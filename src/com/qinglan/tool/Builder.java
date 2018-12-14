@@ -1,0 +1,320 @@
+package com.qinglan.tool;
+
+import brut.androlib.Androlib;
+import brut.androlib.res.util.ExtFile;
+import brut.common.BrutException;
+import com.qinglan.common.Log;
+import com.qinglan.tool.ui.HomeUI;
+import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.Utils;
+import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.xml.XmlTool;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.qinglan.tool.util.FileUtil.getPath;
+
+
+public class Builder extends BaseCompiler {
+    private static final String ASSETS_PATH = OUT_PATH + File.separator + "assets";
+    private static final String LIBS_PATH = OUT_PATH + File.separator + "lib";
+    private static final String RES_PATH = OUT_PATH + File.separator + "res";
+    private static final String ANIM_PATH = RES_PATH + File.separator + "anim";
+    private static final String DRAWABLE_PATH = RES_PATH + File.separator + "drawable*";
+    private static final String LAYOUT_PATH = RES_PATH + File.separator + "layout";
+    private static final String VALUES_PATH = RES_PATH + File.separator + "values*";
+
+    private static final String TAG_VALUES_STRING = "string";
+    private static final String TAG_VALUES_STYLE = "style";
+    private static final String ATTRIBUTE_NAME = "name";
+
+    private static final String CHANNEL_PREFIX = "qlsdk_";
+
+    private ChannelHandler handler;
+
+    public Builder(ChannelHandler handler, Channel c, List<Channel> channels) {
+        super(c, channels);
+        this.handler = handler;
+    }
+
+    public Builder(Channel c, List<Channel> channels) {
+        super(c, channels);
+    }
+
+    public void setApkName(String apk) {
+        decodeApkName = apk;
+    }
+
+    public void build(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+        try {
+            delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId);
+            delUnrelatedAssets();
+            delUnrelatedLibs();
+            addChannelFile();
+            String apkPath = buildApk();
+            boolean isShow = showSignDialog(apkPath);
+            if (!isShow) {
+                signApk(apkPath);
+            }
+        } catch (IOException | BrutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void delUnrelatedAssets() {
+        File assetsDir = new File(ASSETS_PATH);
+        for (Channel channel : exceptChannels) {
+            if (channel.getFilter().getAssets() == null
+                    || channel.getFilter().getAssets().isEmpty()) {
+                Log.dln(channel.getName() + " no existed assets filter.");
+                continue;
+            }
+            //删除assets下无关渠道文件或文件夹
+            if (assetsDir.exists() && assetsDir.isDirectory()) {
+                Iterator<String> iterator = Arrays.asList(assetsDir.list()).iterator();
+                while (iterator.hasNext()) {
+                    String assetsFileName = iterator.next();
+                    for (String asset : channel.getFilter().getAssets()) {
+                        if (assetsFileName.equals(asset)) {
+                            File assetFile = new File(getPath(assetsDir.getAbsolutePath()) + assetsFileName);
+                            if (assetFile.isDirectory())
+                                FileUtil.delFolder(assetFile.getAbsolutePath());
+                            else
+                                FileUtil.deleteFile(assetFile.getAbsolutePath());
+                        }
+                    }
+                }
+            }//if
+        }//for
+    }
+
+    /**
+     * 删除无关渠道的libs
+     * */
+    private void delUnrelatedLibs() {
+        List<String> exceptLibs = getExceptChannelLibs();
+        if (exceptLibs.isEmpty())
+            return;
+
+        File libsDir = new File(LIBS_PATH);
+        Iterator<String> it = Arrays.asList(libsDir.list()).iterator();
+        while (it.hasNext()) {
+            File libFile = new File(libsDir.getAbsolutePath() + File.separator + it.next());
+            for (String filter : exceptLibs) {
+                delLibDirFile(libFile, filter);
+            }
+        }
+    }
+
+    private List<String> getExceptChannelLibs() {
+        List<String> exceptLibs = new ArrayList<>();
+        for (Channel channel : exceptChannels) {
+            if (channel.getFilter().getLibsName() == null
+                    || channel.getFilter().getLibsName().isEmpty()) {
+                Log.dln(channel.getName() + " no existed lib filter.");
+                continue;
+            }
+            exceptLibs.addAll(channel.getFilter().getLibsName());
+        }
+        return exceptLibs;
+    }
+
+    private void delLibDirFile(File file, String filter) {
+        if (file.isFile()) {
+            FileUtil.delMatchFile(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator)), file.getName(), filter);
+        } else {
+            Iterator<String> iterator = Arrays.asList(file.list()).iterator();
+            while (iterator.hasNext()) {
+                String libName = iterator.next();
+                File libSub = new File(file.getAbsolutePath() + File.separator + libName);
+                delLibDirFile(libSub, filter);
+            }
+        }
+    }
+
+    /**
+     * 删除无关渠道的res文件
+     */
+    private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+        File resDir = new File(RES_PATH);
+        for (Channel channel : exceptChannels) {
+            if (channel.getFilter().getResNames() == null
+                    || channel.getFilter().getResNames().isEmpty()) {
+                Log.dln(channel.getName() + " no existed res filter.");
+                continue;
+            }
+
+            //删除res下无关渠道文件
+            if (resDir.exists() && resDir.isDirectory()) {
+                String[] resStringNames = resDir.list();
+                for (String name : resStringNames) {
+                    String resPath = resDir.getAbsolutePath() + File.separator + name;
+                    if (name.startsWith("value")) {
+                        delValues(channel, resPath, appId, appKey, pubKey, secretKey, cpId);
+                    } else {
+                        delRes(channel, resPath);
+                    }
+                }
+            }//if
+        }//for
+    }
+
+    private void delRes(Channel channel, String resPath) {
+        File resFile = new File(resPath);
+        if (resFile.exists() && resFile.isDirectory()) {
+            Iterator<String> iterator = Arrays.asList(resFile.list()).iterator();
+            while (iterator.hasNext()) {
+                String fileName = iterator.next();
+                for (String matchName : channel.getFilter().getResNames()) {
+                    FileUtil.delMatchFile(resFile.getPath(), fileName, matchName);
+                }
+            }
+        }
+    }
+
+    private void delValues(Channel channel, String resName, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+        File valueFile = new File(resName);
+        if (valueFile.exists() && valueFile.isDirectory()) {
+            String[] files = valueFile.list();
+            for (String file : files) {
+                readValueXml(channel, getPath(valueFile.getAbsolutePath()) + file, appId, appKey, pubKey, secretKey, cpId);
+            }
+        }
+    }
+
+    private void readValueXml(Channel channel, String path, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+        Document document = XmlTool.createDocument(path);
+        NodeList nodeList = XmlTool.getDocumentRootNodeList(document);
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node item = nodeList.item(i);
+            if (item.getAttributes() != null && item.getAttributes().getNamedItem(ATTRIBUTE_NAME) != null) {
+                //获取android:name的值
+                Node attributeNode = item.getAttributes().getNamedItem(ATTRIBUTE_NAME);
+                String attributeName = attributeNode.toString();
+                String name = attributeName.substring(attributeName.indexOf('"') + 1, attributeName.lastIndexOf('"'));
+                //若当前是string资源，则查找替换渠道配置
+                if (item.getNodeName().equals(TAG_VALUES_STRING))
+                    updateResConfig(item, name, appId, appKey, pubKey, secretKey, cpId);
+                for (String regex : channel.getFilter().getResNames()) {
+                    matchesStyle(item, regex);
+                    if (Utils.matches(regex, name)) {
+                        item.getParentNode().removeChild(item);
+                    }
+                }
+            }
+        }
+        XmlTool.saveXml(document, path);
+    }
+
+    private void matchesStyle(Node item, String regex) {
+        if (!item.getNodeName().equals(TAG_VALUES_STYLE))
+            return;
+        if (!item.hasChildNodes())
+            return;
+        NodeList styleItems = item.getChildNodes();
+        for (int i = 0; i < styleItems.getLength(); i++) {
+            Node styleItem = styleItems.item(i);
+            String text = styleItem.getTextContent();
+            if (!text.contains("@") || text.indexOf("/") < 0) {
+                continue;
+            }
+            String name = text.substring(text.indexOf("/") + 1);
+            if (Utils.matches(regex, name)) {
+//                item.getParentNode().removeChild(item);
+                //不能直接删除父标签，因为若未在res过滤中配置style名称，可能导致编译出错
+                item.removeChild(styleItem);
+            }
+        }
+    }
+
+    private void updateResConfig(Node item, String attribute, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+        if (!item.getNodeName().equals(TAG_VALUES_STRING)) {
+            return;
+        }
+        if (attribute.equals(RES_NAME_APP_ID) && !Utils.isEmpty(appId)) {
+            item.setTextContent(appId.trim());
+        } else if (attribute.equals(RES_NAME_APP_KEY) && !Utils.isEmpty(appKey)) {
+            item.setTextContent(appKey);
+        } else if (attribute.equals(RES_NAME_PUBLIC_KEY) && !Utils.isEmpty(pubKey)) {
+            item.setTextContent(pubKey);
+        } else if (attribute.equals(RES_NAME_SECRET_KEY) && !Utils.isEmpty(secretKey)) {
+            item.setTextContent(secretKey);
+        } else if (attribute.equals(RES_NAME_CP_ID) && !Utils.isEmpty(cpId)) {
+            item.setTextContent(cpId);
+        }
+    }
+
+    /**
+     * 添加渠道文件qlsdk_[channelId]
+     */
+    private void addChannelFile() throws IOException {
+        String channelFile = FileUtil.findFile(ASSETS_PATH, CHANNEL_PREFIX + "\\d+");
+        if (channelFile != null) {
+            int id = Integer.valueOf(channelFile.substring(channelFile.indexOf(CHANNEL_PREFIX) + CHANNEL_PREFIX.length()));
+            if (id != currChannel.getId()) {
+                FileUtil.renameFile(ASSETS_PATH + File.separator + CHANNEL_PREFIX + id,
+                        ASSETS_PATH + File.separator + CHANNEL_PREFIX + currChannel.getId());
+            }
+        } else {
+            FileUtil.createFile(ASSETS_PATH, CHANNEL_PREFIX + currChannel.getId());
+        }
+    }
+
+    private String buildApk() throws BrutException {
+        String apkName = "build.apk";
+        if (!Utils.isEmpty(decodeApkName)) {
+            apkName = String.format("%s-%s.apk", decodeApkName, currChannel.getName());
+        }
+
+        Androlib androlib = new Androlib();
+        File appDir = new File(OUT_PATH);
+        androlib.buildResourcesFull(appDir, androlib.readMetaFile(new ExtFile(appDir)).usesFramework);
+        String buildPath = OUT_PATH + File.separator + "build" + File.separator + "apk";
+        FileUtil.delFolder(RES_PATH);
+        FileUtil.deleteFile(MANIFEST_PATH);
+        FileUtil.copyFolder(new File(buildPath), new File(OUT_PATH));
+        FileUtil.delFolder(OUT_PATH + File.separator + "build");
+        String apkPath = BIN_PATH + File.separator + apkName;
+        androlib.build(appDir, new File(apkPath));
+//        String scriptPath = String.format("%s b %s -o %s -a %s", APKTOOL_PATH, OUT_PATH, apkPath, BIN_PATH + File.separator + "aapt.exe");
+//        Utils.execShell(scriptPath);
+        return apkPath;
+    }
+
+    private boolean showSignDialog(final String path) {
+        return handler.showDialog("Use default keystore?", new HomeUI.OnDialogButtonClickListener() {
+            @Override
+            public void onPositive() {
+                signApk(path);
+            }
+
+            @Override
+            public void onNegative() {
+
+            }
+        });
+    }
+
+    private int signApk(String apkPath) {
+        String scriptPath = BIN_PATH + File.separator + "apk-sign.bat";
+        String keystorePath = ROOT_PATH + File.separator + "sdk_demo.jks";
+        String keystorePass = "123456";
+        String keystoreAlias = "qinglan";
+        String apkName = apkPath.substring(apkPath.lastIndexOf(File.separator) + 1);
+        String signApkPath = getOutDirPath(decodeApkName) + apkName;
+        FileUtil.deleteFile(signApkPath);
+        Log.dln("sign apk path: " + signApkPath);
+        int result = Utils.execShell(scriptPath, keystorePath, keystorePass, signApkPath, apkPath, keystoreAlias);
+        FileUtil.deleteFile(apkPath);
+        return result;
+    }
+
+}
