@@ -43,12 +43,10 @@ public class Utils {
                 System.out.println("Delete:-------" + entry.getName());
             }
         }
-
         jos.flush();
         jos.finish();
         jos.close();
         bakJarFile.close();
-
     }
 
     private static byte[] readStream(InputStream inStream) throws Exception {

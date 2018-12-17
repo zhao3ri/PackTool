@@ -4,13 +4,17 @@ import com.qinglan.common.Log;
 import com.qinglan.tool.xml.Channel;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.List;
 
 public class HomeUI extends ComponentAdapter implements ItemListener, ActionListener {
     private JFrame frame;
     private Container container;
+    private JButton btnChoose;
+    private JTextField textApkPath;
     private JButton btnSubmit;
     private JPanel panelCheckBox;
     private JTextField textAppId;
@@ -25,7 +29,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private OnChangedChannelListener changedChannelListener;
 
     private static final int FRAME_WIDTH = 500;
-    private static final int FRAME_HEIGHT = 500;
+    private static final int FRAME_HEIGHT = 350;
     private int frame_locx;
     private int frame_locy;
 
@@ -33,12 +37,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         frame = new JFrame();
         frame.setTitle("QL打包工具");
         frame.setLayout(new FlowLayout());
-        frame.setSize(FRAME_WIDTH, FRAME_HEIGHT); //设置窗口的大小
+        frame.setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT)); //设置窗口的大小
         frame.setLocation(300, 200);//设置窗口的初始位置
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//关闭窗口
         frame.setResizable(false);
         frame.addComponentListener(this);
         container = frame.getContentPane();
+//        addApkChoose();
         addChannelListCheckBox(channelList);
         addConfigPanel();
         btnSubmit = addButton("提交");
@@ -47,11 +52,25 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
+//                super.windowClosing(e);
                 if (closeListener != null)
                     closeListener.onClose();
             }
         });
+    }
+
+    private void addApkChoose() {
+        JPanel panel = new JPanel();
+        panel.setMinimumSize(new Dimension(FRAME_WIDTH, 15));
+//        panel.setLayout(new GridLayout(1, 2));
+        textApkPath = new JTextField(35);
+        panel.add(textApkPath);
+
+        btnChoose = new JButton("选择");
+        btnChoose.setSize(50, 15);
+        btnChoose.addActionListener(this);
+        panel.add(btnChoose);
+        container.add(panel);
     }
 
     private void addChannelListCheckBox(List<Channel> channelList) {
@@ -72,7 +91,6 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         JScrollPane pane = new JScrollPane(panelCheckBox);
         pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         container.add(panelCheckBox);
-
     }
 
     private JButton addButton(String text) {
@@ -91,18 +109,18 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private void addConfigPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(5, 1, 5, 5));
-        textAppId = setConfigPanel("AppId:", panel);
-        textAppKey = setConfigPanel("AppKey:", panel);
-        textPubKey = setConfigPanel("PublicKey:", panel);
-        textSecKey = setConfigPanel("SecretKey:", panel);
-        textCpId = setConfigPanel("CpId:", panel);
+        textAppId = setConfigPanel("AppId:", panel, 20);
+        textAppKey = setConfigPanel("AppKey:", panel, 20);
+        textPubKey = setConfigPanel("PublicKey:", panel, 20);
+        textSecKey = setConfigPanel("SecretKey:", panel, 20);
+        textCpId = setConfigPanel("CpId:", panel, 20);
         container.add(panel);
     }
 
-    private JTextField setConfigPanel(String text, JPanel panel) {
+    private JTextField setConfigPanel(String text, JPanel panel, int columns) {
         JLabel label = new JLabel(text);
 //        labelPublicKey.setHorizontalAlignment(SwingConstants.CENTER);
-        JTextField textField = new JTextField(20);
+        JTextField textField = new JTextField(columns);
         panel.add(label);
         panel.add(textField);
         return textField;
@@ -136,10 +154,14 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
             if (submitClickListener != null)
                 submitClickListener.onClick(textAppId.getText(), textAppKey.getText()
                         , textPubKey.getText(), textSecKey.getText(), textCpId.getText());
+        } else if (e.getSource() == btnChoose) {
+            JFileChooser chooser = showFileChooser("APK", "apk");
+            File file = chooser.getSelectedFile();
+            textApkPath.setText(file.getAbsoluteFile().toString());
         }
     }
 
-    public void setRadioButtonsEnable(boolean enable) {
+    public void setUIEnable(boolean enable) {
         int count = panelCheckBox.getComponentCount();
         for (int i = 0; i < count; i++) {
             Object obj = panelCheckBox.getComponent(i);
@@ -147,6 +169,12 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
                 ((JRadioButton) obj).setEnabled(enable);
             }
         }
+        textAppId.setEnabled(enable);
+        textAppKey.setEnabled(enable);
+        textPubKey.setEnabled(enable);
+        textSecKey.setEnabled(enable);
+        textCpId.setEnabled(enable);
+        btnSubmit.setEnabled(enable);
     }
 
     public void showDialog(String msg) {
@@ -160,10 +188,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     public void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener) {
         final JDialog dialog = new JDialog(frame, "Tips", false);
         dialog.setSize(200, 100);
-
-        int x = frame_locx - dialog.getWidth() / 2 + FRAME_WIDTH / 2;
-        int y = frame_locy - dialog.getHeight() / 2 + FRAME_HEIGHT / 2;
-        dialog.setLocation(x, y);
+        setLocation(dialog);
         dialog.setLayout(new GridLayout(2, 1));
         Label label = new Label();
         label.setText(msg);
@@ -205,6 +230,63 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
                 dialog.setVisible(false);
             }
         });
+    }
+
+    public void showSignChooseDialog(final OnSignChooseClickListener chooseClickListener, final OnSignCompleteClickListener completeClickListener
+            , final String filterDesc, final String... filters) {
+        final JDialog dialog = new JDialog(frame, "Choose keystore", false);
+        dialog.setSize(300, 200);
+        setLocation(dialog);
+        JPanel panel = new JPanel();
+        panel.setMinimumSize(new Dimension(FRAME_WIDTH, 15));
+//        panel.setLayout(new GridLayout(1, 2));
+        final JTextField textSignPath = new JTextField(15);
+        textSignPath.setEnabled(false);
+        panel.add(textSignPath);
+
+        JButton btnChoose = new JButton("选择");
+        btnChoose.setSize(50, 15);
+        btnChoose.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser chooser = showFileChooser(filterDesc, filters);
+                textSignPath.setText(chooser.getSelectedFile().getAbsolutePath());
+                if (chooseClickListener != null)
+                    chooseClickListener.onClick(textSignPath);
+            }
+        });
+        panel.add(btnChoose);
+        final JTextField textPass = setConfigPanel("请输入密码", panel, 15);
+        final JTextField textAlias = setConfigPanel("请输入别名", panel, 15);
+        JButton btnCompleted = new JButton("完成");
+        panel.add(btnCompleted);
+        btnChoose.setSize(50, 15);
+        btnCompleted.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dialog.setVisible(false);
+                if (completeClickListener != null)
+                    completeClickListener.onClick(textSignPath.getText(), textPass.getText(), textAlias.getText());
+            }
+        });
+        dialog.add(panel);
+        dialog.setResizable(false);
+        dialog.setVisible(true);
+    }
+
+    public void setLocation(JDialog dialog) {
+        int x = frame_locx - dialog.getWidth() / 2 + FRAME_WIDTH / 2;
+        int y = frame_locy - dialog.getHeight() / 2 + FRAME_HEIGHT / 2;
+        dialog.setLocation(x, y);
+    }
+
+    public JFileChooser showFileChooser(String filterDesc, String... filters) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(filterDesc, filters);
+        chooser.setFileFilter(filter);
+        chooser.showDialog(new JLabel(), "选择");
+        return chooser;
     }
 
     @Override
@@ -254,4 +336,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
 
         void onNegative();
     }
+
+    public interface OnSignCompleteClickListener {
+        void onClick(String path, String passwords, String alias);
+    }
+
+    public interface OnSignChooseClickListener {
+        void onClick(JTextField text);
+    }
+
 }

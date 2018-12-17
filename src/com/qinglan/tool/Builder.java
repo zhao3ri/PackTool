@@ -4,10 +4,10 @@ import brut.androlib.Androlib;
 import brut.androlib.res.util.ExtFile;
 import brut.common.BrutException;
 import com.qinglan.common.Log;
-import com.qinglan.tool.ui.HomeUI;
 import com.qinglan.tool.util.FileUtil;
 import com.qinglan.tool.util.Utils;
 import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.xml.Filter;
 import com.qinglan.tool.xml.XmlTool;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.qinglan.tool.ChannelManager.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.getPath;
-
 
 public class Builder extends BaseCompiler {
     private static final String ASSETS_PATH = OUT_PATH + File.separator + "assets";
@@ -38,35 +38,25 @@ public class Builder extends BaseCompiler {
 
     private static final String CHANNEL_PREFIX = "qlsdk_";
 
-    private ChannelHandler handler;
-
-    public Builder(ChannelHandler handler, Channel c, List<Channel> channels) {
-        super(c, channels);
-        this.handler = handler;
-    }
-
     public Builder(Channel c, List<Channel> channels) {
         super(c, channels);
     }
 
-    public void setApkName(String apk) {
-        decodeApkName = apk;
-    }
-
-    public void build(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId) {
         try {
             delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId);
             delUnrelatedAssets();
             delUnrelatedLibs();
+            delClasses();
             addChannelFile();
             String apkPath = buildApk();
-            boolean isShow = showSignDialog(apkPath);
-            if (!isShow) {
-                signApk(apkPath);
-            }
+            return apkPath;
         } catch (IOException | BrutException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     private void delUnrelatedAssets() {
@@ -98,8 +88,8 @@ public class Builder extends BaseCompiler {
 
     /**
      * 删除无关渠道的libs
-     * */
-    private void delUnrelatedLibs() {
+     */
+    private void delUnrelatedLibs() throws IOException {
         List<String> exceptLibs = getExceptChannelLibs();
         if (exceptLibs.isEmpty())
             return;
@@ -107,7 +97,7 @@ public class Builder extends BaseCompiler {
         File libsDir = new File(LIBS_PATH);
         Iterator<String> it = Arrays.asList(libsDir.list()).iterator();
         while (it.hasNext()) {
-            File libFile = new File(libsDir.getAbsolutePath() + File.separator + it.next());
+            File libFile = new File(libsDir.getCanonicalPath() + File.separator + it.next());
             for (String filter : exceptLibs) {
                 delLibDirFile(libFile, filter);
             }
@@ -129,7 +119,9 @@ public class Builder extends BaseCompiler {
 
     private void delLibDirFile(File file, String filter) {
         if (file.isFile()) {
-            FileUtil.delMatchFile(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator)), file.getName(), filter);
+            String path = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator));
+            Log.eln(path);
+            FileUtil.delMatchFile(path, file.getName(), filter);
         } else {
             Iterator<String> iterator = Arrays.asList(file.list()).iterator();
             while (iterator.hasNext()) {
@@ -143,7 +135,7 @@ public class Builder extends BaseCompiler {
     /**
      * 删除无关渠道的res文件
      */
-    private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId) throws IOException {
         File resDir = new File(RES_PATH);
         for (Channel channel : exceptChannels) {
             if (channel.getFilter().getResNames() == null
@@ -167,13 +159,15 @@ public class Builder extends BaseCompiler {
         }//for
     }
 
-    private void delRes(Channel channel, String resPath) {
+    private void delRes(Channel channel, String resPath) throws IOException {
         File resFile = new File(resPath);
         if (resFile.exists() && resFile.isDirectory()) {
             Iterator<String> iterator = Arrays.asList(resFile.list()).iterator();
             while (iterator.hasNext()) {
                 String fileName = iterator.next();
                 for (String matchName : channel.getFilter().getResNames()) {
+                    String path = resFile.getCanonicalPath();
+                    Log.eln(path);
                     FileUtil.delMatchFile(resFile.getPath(), fileName, matchName);
                 }
             }
@@ -268,6 +262,24 @@ public class Builder extends BaseCompiler {
         }
     }
 
+    private void delClasses() throws Exception {
+        String scriptPath = BIN_PATH + File.separator + "dex2jar-2.0" + File.separator + "d2j-dex2jar.bat";
+        int result = Utils.execShell(scriptPath, "--force", OUT_PATH + File.separator + "classes.dex");
+        if (result == 0) {
+            String dexJar = ROOT_PATH + File.separator + "classes-dex2jar.jar";
+            FileUtil.deleteFile(dexJar);
+            List<String> deletes = new ArrayList<>();
+            for (Channel channel : exceptChannels) {
+                if (null == channel.getFilter().getPackageNameList() || channel.getFilter().getPackageNameList().isEmpty())
+                    continue;
+                for (Filter.Package pkg : channel.getFilter().getPackageNameList()) {
+                    deletes.add(pkg.getName().replace(".", "/"));
+                }
+            }
+            Utils.delete(dexJar, deletes);
+        }
+    }
+
     private String buildApk() throws BrutException {
         String apkName = "build.apk";
         if (!Utils.isEmpty(decodeApkName)) {
@@ -288,33 +300,4 @@ public class Builder extends BaseCompiler {
 //        Utils.execShell(scriptPath);
         return apkPath;
     }
-
-    private boolean showSignDialog(final String path) {
-        return handler.showDialog("Use default keystore?", new HomeUI.OnDialogButtonClickListener() {
-            @Override
-            public void onPositive() {
-                signApk(path);
-            }
-
-            @Override
-            public void onNegative() {
-
-            }
-        });
-    }
-
-    private int signApk(String apkPath) {
-        String scriptPath = BIN_PATH + File.separator + "apk-sign.bat";
-        String keystorePath = ROOT_PATH + File.separator + "sdk_demo.jks";
-        String keystorePass = "123456";
-        String keystoreAlias = "qinglan";
-        String apkName = apkPath.substring(apkPath.lastIndexOf(File.separator) + 1);
-        String signApkPath = getOutDirPath(decodeApkName) + apkName;
-        FileUtil.deleteFile(signApkPath);
-        Log.dln("sign apk path: " + signApkPath);
-        int result = Utils.execShell(scriptPath, keystorePath, keystorePass, signApkPath, apkPath, keystoreAlias);
-        FileUtil.deleteFile(apkPath);
-        return result;
-    }
-
 }

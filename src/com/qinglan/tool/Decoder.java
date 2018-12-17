@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.qinglan.tool.ChannelManager.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.createFileDir;
 import static com.qinglan.tool.util.FileUtil.searchApk;
 

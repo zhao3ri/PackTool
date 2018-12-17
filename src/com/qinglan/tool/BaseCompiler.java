@@ -5,8 +5,10 @@ import com.qinglan.tool.xml.Channel;
 import java.io.File;
 import java.util.List;
 
-public class BaseCompiler {
-    public static final String ROOT_PATH = "H:\\PackTools";
+import static com.qinglan.tool.ChannelManager.ROOT_PATH;
+
+public abstract class BaseCompiler {
+    //    public static final String ROOT_PATH = "H:\\PackTools";
     public static final String BIN_PATH = ROOT_PATH + File.separator + "bin";
     public static final String APKTOOL_PATH = BIN_PATH + File.separator + "apktool.bat";
     public static final String OUT_PATH = BIN_PATH + File.separator + "out";
@@ -44,4 +46,9 @@ public class BaseCompiler {
     protected String getOutDirPath(String apkName) {
         return ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkName + File.separator;
     }
+
+    public void setApkName(String apk) {
+        decodeApkName = apk;
+    }
+
 }
