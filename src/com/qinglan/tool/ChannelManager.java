@@ -23,6 +23,7 @@ public class ChannelManager {
     private String pubKey;
     private String secretKey;
     private String cpId;
+    private String suffix="test";
     private String apkPath;
     private String apkName;
     private CyclicBarrier cyclicBarrier;
@@ -55,7 +56,7 @@ public class ChannelManager {
     }
 
     private void start() {
-        new SubThread(cyclicBarrier) {
+        new SubThread(cyclicBarrier, "BuildApk") {
             @Override
             public void execute() {
                 Channel channel = getChannel(channelId);
@@ -63,10 +64,10 @@ public class ChannelManager {
                 Decoder decoder = new Decoder(channel, channels);
                 int result = decoder.decode();
                 if (result == CODE_SUCCESS) {
-                    apkName = decoder.updateConfig(appId, cpId, appKey);
-                    Builder builder = new Builder(channel, channels);
+                    apkName = decoder.updateConfig(appId, cpId, appKey, suffix);
+                    Builder builder = new Builder(channel, channels, decoder.getPackageName());
                     builder.setApkName(apkName);
-                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId);
+                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, suffix);
                     if (Utils.isEmpty(apkPath)) {
                         result = CODE_FAIL;
                     }
@@ -74,11 +75,6 @@ public class ChannelManager {
                 if (listener != null) {
                     listener.onFinish(result);
                 }
-            }
-
-            @Override
-            public String getThreadName() {
-                return "BuildApk";
             }
         }.start();
     }
@@ -104,7 +100,7 @@ public class ChannelManager {
     }
 
     public void sign(final String... args) {
-        new SubThread(cyclicBarrier) {
+        new SubThread(cyclicBarrier, "SignApk") {
             @Override
             public void execute() {
                 if (!Utils.isEmpty(apkPath)) {
@@ -112,11 +108,6 @@ public class ChannelManager {
                     signer.setApkName(apkName);
                     signer.sign(apkPath, args);
                 }
-            }
-
-            @Override
-            public String getThreadName() {
-                return "SignApk";
             }
         }.start();
     }

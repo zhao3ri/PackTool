@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.qinglan.tool.ChannelManager.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.getPath;
 
 public class Builder extends BaseCompiler {
@@ -29,17 +28,32 @@ public class Builder extends BaseCompiler {
     private static final String ATTRIBUTE_NAME = "name";
 
     private static final String CHANNEL_PREFIX = "qlsdk_";
+    private List<String> packageNameFilter;
+    private String mPackageName;
 
-    public Builder(Channel c, List<Channel> channels) {
+    public Builder(Channel c, List<Channel> channels, String pkg) {
         super(c, channels);
+        mPackageName = pkg;
+        packageNameFilter = new ArrayList<>();
+        addPackage("android.support");
+        addPackage("com.google");
+        addPackage("com.alipay");
+        addPackage("com.ta.utdid2");
+        addPackage("com.ut.device");
+        addPackage("org.json.alipay");
     }
 
-    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    private void addPackage(String pkg) {
+        packageNameFilter.add(replacePackageSeparator(pkg, File.separator));
+    }
+
+    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix) {
         try {
             delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId);
             delUnrelatedAssets();
             delUnrelatedLibs();
-            delClasses();
+//            delClasses();
+            updatePackage(suffix);
             addChannelFile();
             String apkPath = buildApk();
             return apkPath;
@@ -252,11 +266,66 @@ public class Builder extends BaseCompiler {
         }
     }
 
+    private void updatePackage(String suffix) throws IOException {
+        for (Channel channel : exceptChannels) {
+            if (null == channel.getFilter().getPackageNameList() || channel.getFilter().getPackageNameList().isEmpty()) {
+                continue;
+            }
+            for (Filter.Package pkg : channel.getFilter().getPackageNameList()) {
+                String pkgFileName = replacePackageSeparator(pkg.getName(), "/");
+                Log.eln(pkgFileName);
+                FileUtil.delFolder(SMALI_PATH + File.separator + pkgFileName);
+            }
+        }
+        if (Utils.isEmpty(suffix)) {
+            return;
+        }
+        String[] smailNames = (new File(SMALI_PATH)).list();
+        Iterator<String> iterator = Arrays.asList(smailNames).iterator();
+        while (iterator.hasNext()) {
+            String fileName = iterator.next();
+            readSmail(fileName, suffix);
+        }
+        File sourceFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName, File.separator));
+        File destFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(String.format("%s.%s", mPackageName, suffix), File.separator));
+        FileUtil.copyFolder(sourceFile, destFile);
+        FileUtil.delAllFile(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName, File.separator));
+    }
+
+    private String replacePackageSeparator(String pkg, String separator) {
+        String rp = pkg.replace(".", separator);
+        return rp;
+    }
+
+    private void readSmail(String fileName, String suffix) throws IOException {
+        File file = new File(SMALI_PATH + File.separator + fileName);
+        String pkgName = file.getPath().substring(SMALI_PATH.length() + 1);
+        Log.eln("package==" + pkgName);
+        if (file.isFile()) {
+            Log.ln();
+            if (!Utils.isEmpty(mPackageName) && !Utils.isEmpty(suffix)) {
+                String[] targets = new String[]{mPackageName, replacePackageSeparator(mPackageName, "/")};
+                String[] replaces = new String[]{String.format("%s.%s", mPackageName, suffix), replacePackageSeparator(String.format("%s.%s", mPackageName, suffix), "/")};
+                String content = FileUtil.readAndReplaceFile(file.getCanonicalPath(), targets, replaces);
+                FileUtil.writer2File(file.getCanonicalPath(), content);
+            }
+        } else {
+            Iterator<String> iterator = Arrays.asList(file.list()).iterator();
+            while (iterator.hasNext()) {
+                if (packageNameFilter.contains(pkgName)) {
+                    break;
+                }
+                readSmail(pkgName + File.separator + iterator.next(), suffix);
+            }
+        }
+    }
+
     private void delClasses() throws Exception {
-        String scriptPath = BIN_PATH + File.separator + "dex2jar-2.0" + File.separator + "d2j-dex2jar.bat";
-        int result = Utils.execShell(scriptPath, "--force", OUT_PATH + File.separator + "classes.dex");
+//        String scriptPath = BIN_PATH + File.separator + "dex2jar-2.0" + File.separator + "d2j-dex2jar.bat";
+        String scriptPath = BIN_PATH + File.separator + "dex2jar.bat";
+        int result = Utils.execShell(scriptPath/*, "--force", OUT_PATH + File.separator + "classes.dex"*/, OUT_PATH + File.separator + "classes.dex");
         if (result == 0) {
-            String dexJar = ROOT_PATH + File.separator + "classes-dex2jar.jar";
+            String dexJar = BIN_PATH + File.separator + "classes-dex2jar.jar";
             FileUtil.deleteFile(dexJar);
             List<String> deletes = new ArrayList<>();
             for (Channel channel : exceptChannels) {

@@ -6,19 +6,21 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 public abstract class SubThread extends Thread {
-    CyclicBarrier cyclicBarrier;
+    private CyclicBarrier cyclicBarrier;
+    private String threadName;
 
-    public SubThread(CyclicBarrier barrier) {
+    public SubThread(CyclicBarrier barrier, String name) {
         cyclicBarrier = barrier;
+        threadName = name;
     }
 
     @Override
     public void run() {
         try {
-            Log.eln(getThreadName() + " Number3 = " + cyclicBarrier.getNumberWaiting());
+            Log.eln(threadName + " Number3 = " + cyclicBarrier.getNumberWaiting());
             execute();
             cyclicBarrier.await();
-            Log.eln(getThreadName() + " Number4 = " + cyclicBarrier.getNumberWaiting());
+            Log.eln(threadName + " Number4 = " + cyclicBarrier.getNumberWaiting());
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }
@@ -26,5 +28,4 @@ public abstract class SubThread extends Thread {
 
     public abstract void execute();
 
-    public abstract String getThreadName();
 }

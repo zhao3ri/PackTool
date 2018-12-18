@@ -240,10 +240,17 @@ public class FileUtil {
     }
 
     public static String readFile(String path) {
+        return replaceFile(path, null, null);
+    }
+
+    public static String replaceFile(String path, String target, String replace) {
+        if (null != replace && !replace.isEmpty() && null != target && !target.isEmpty()) {
+            return readAndReplaceFile(path, new String[]{target}, new String[]{replace});
+        }
         return readAndReplaceFile(path, null, null);
     }
 
-    public static String readAndReplaceFile(String path, String target, String replace) {
+    public static String readAndReplaceFile(String path, String[] targets, String[] replaces) {
         File file = new File(path);
         StringBuffer sb = new StringBuffer();
         if (!file.isFile()) {
@@ -257,9 +264,11 @@ public class FileUtil {
                 if (line.trim().startsWith("<!--") || line.trim().isEmpty()) {
                     continue;
                 }
-                if (null != replace && !replace.isEmpty() && null != target && !target.isEmpty()) {
-                    if (line.contains(target)) {
-                        line = line.replace(target, replace);
+                if (null != replaces && replaces.length != 0 && null != targets && targets.length != 0) {
+                    for (int i = 0; i < targets.length; i++) {
+                        if (line.contains(targets[i])) {
+                            line = line.replace(targets[i], replaces[i]);
+                        }
                     }
                 }
                 sb.append(line);
@@ -282,6 +291,7 @@ public class FileUtil {
     }
 
     public static void writer2File(String path, String content) {
+        Log.dln("write to " + path);
         File file = new File(path);
         PrintWriter printWriter = null;
         try {

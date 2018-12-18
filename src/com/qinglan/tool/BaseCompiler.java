@@ -15,6 +15,7 @@ public abstract class BaseCompiler {
     public static final String APKTOOL_PATH = BIN_PATH + File.separator + "apktool.bat";
     public static final String OUT_PATH = BIN_PATH + File.separator + "out";
     public static final String MANIFEST_PATH = OUT_PATH + File.separator + "AndroidManifest.xml";
+    public static final String SMALI_PATH = OUT_PATH + File.separator + "smali";
     public static final String ASSETS_PATH = OUT_PATH + File.separator + "assets";
     public static final String LIBS_PATH = OUT_PATH + File.separator + "lib";
     public static final String RES_PATH = OUT_PATH + File.separator + "res";

@@ -48,7 +48,7 @@ public class Decoder extends BaseCompiler {
             FileUtil.delFolder(OUT_PATH);
             createFileDir(OUT_PATH);
 //            apkDecode(path);
-            String scriptPath = String.format("%s d %s -o %s -s -f", APKTOOL_PATH, path, OUT_PATH);
+            String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/"%s d %s -o %s -f", APKTOOL_PATH, path, OUT_PATH);
             result = Utils.execShell(scriptPath);
             return 0;
         } catch (AndrolibException e) {
@@ -61,6 +61,12 @@ public class Decoder extends BaseCompiler {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public String getPackageName() {
+        if (mApkInfo == null)
+            return null;
+        return mApkInfo.getPackageName();
     }
 
     private String createOutDir() {
@@ -83,15 +89,19 @@ public class Decoder extends BaseCompiler {
         decoder.decode();
     }
 
-    public String updateConfig(String appId, String cpId, String appKey) {
-        updateManifest(appId, cpId, appKey);
+    public String updateConfig(String appId, String cpId, String appKey, String suffix) {
+        updateManifest(appId, cpId, appKey, suffix);
         return decodeApkName;
     }
 
-    private void updateManifest(String appId, String cpId, String appKey) {
+    private void updateManifest(String appId, String cpId, String appKey, String suffix) {
         Document document = XmlTool.createDocument(MANIFEST_PATH);
         delUnrelatedManifest(addSDKInfo(document));
-        updateManifestTag(mApkInfo.getPackageName(), appId, cpId, appKey);
+        String packageName = mApkInfo.getPackageName();
+        if (!Utils.isEmpty(suffix)) {
+            packageName += "." + suffix;
+        }
+        updateManifestTag(packageName, appId, cpId, appKey);
     }
 
     private Document addSDKInfo(Document document) {
@@ -179,7 +189,7 @@ public class Decoder extends BaseCompiler {
     private void updateManifestTag(String packageName, String appId, String cpId, String appKey) {
         if (null == packageName || packageName.isEmpty())
             return;
-        String manifest = FileUtil.readAndReplaceFile(MANIFEST_PATH, PACKAGE_NAME_TAG, packageName);
+        String manifest = FileUtil.replaceFile(MANIFEST_PATH, PACKAGE_NAME_TAG, packageName);
         String[] lines = manifest.split("\n");
         StringBuffer sb = new StringBuffer();
         for (String line : lines) {
