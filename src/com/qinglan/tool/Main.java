@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
+import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
+import static com.qinglan.tool.ChannelManager.CODE_SUCCESS;
+
 public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitClickListener, HomeUI.OnCloseListener, ChannelManager.OnBuildFinishListener {
     ChannelManager manager;
     int channelId;
@@ -16,20 +19,32 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
 
     public static void main(String[] args) {
         Main main = new Main();
-        main.init();
+        main.start();
     }
 
-    private void init() {
+    private void start() {
+        cyclicBarrier = new CyclicBarrier(3, new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
         manager = new ChannelManager();
         List<Channel> channels = manager.getChannels();
         manager.setBuildFinishListener(this);
 
         homeUI = new HomeUI(channels);
+        init("Welcome!");
         homeUI.setCloseListener(this);
         homeUI.setSubmitClickListener(this);
         homeUI.setChangedChannelListener(this);
-        cyclicBarrier = new CyclicBarrier(3);
+    }
+
+    private void init(String msg) {
+        homeUI.setUIEnable(true);
+        homeUI.setMessage(msg);
         manager.setCyclicBarrier(cyclicBarrier);
+        cyclicBarrier.reset();
     }
 
     @Override
@@ -52,14 +67,14 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         manager.setPubKey(pubKey);
         manager.setSecretKey(secretKey);
         manager.setCpId(cpId);
+        manager.setChannelId(channelId);
         new Thread() {
             @Override
             public void run() {
                 manager.execute();
                 try {
                     cyclicBarrier.await();
-                    homeUI.setUIEnable(true);
-                    homeUI.setMessage("Finish!!");
+                    init("Finish!!");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {
@@ -72,12 +87,26 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
     @Override
     public void onChange(int id) {
         channelId = id;
-        manager.setChannelId(channelId);
     }
 
     @Override
-    public void onFinish(String... args) {
-        homeUI.showDialog("Use default keystore?", true, new HomeUI.OnDialogButtonClickListener() {
+    public void onFinish(int code) {
+        String tip = "Build Error!!";
+        switch (code) {
+            case CODE_SUCCESS:
+                showKeystoreChooser(code);
+                break;
+            case CODE_NO_FIND:
+                tip = "No find apk!";
+            default:
+                homeUI.showDialog(tip);
+                init("Finish!!");
+                break;
+        }
+    }
+
+    private void showKeystoreChooser(final int code) {
+        homeUI.showDialog("Use default keystore?", true, new HomeUI.OnDialogButtonClickListener() {//弹窗按钮点击事件
             @Override
             public void onPositive() {
                 homeUI.setMessage("Sign apk.....");
@@ -99,10 +128,24 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
                 }, new HomeUI.OnSignCompleteClickListener() {
                     @Override
                     public void onClick(String path, String passwords, String alias) {
-                        manager.sign(path,passwords,alias);
+                        manager.sign(path, passwords, alias);
+                    }
+                }, new HomeUI.OnCloseListener() {
+                    @Override
+                    public void onClose() {
+                        onFinish(code);
                     }
                 }, "Keystore", "jks", "keystore");
             }
+        }, new HomeUI.OnCloseListener() {//弹窗关闭事件
+            @Override
+            public void onClose() {
+                if (code == CODE_SUCCESS) {
+                    homeUI.setMessage("Sign apk.....");
+                    manager.sign();
+                }
+            }
         });
     }
+
 }

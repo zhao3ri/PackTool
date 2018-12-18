@@ -129,7 +129,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private JLabel addLabelMsg() {
 //        JLabel line = new JLabel("-----------------------------------", JLabel.CENTER);
 //        container.add(line);
-        JLabel lab = new JLabel("Welcome", JLabel.CENTER);
+        JLabel lab = new JLabel("", JLabel.CENTER);
         lab.setLayout(new GridLayout(1, 1));
         lab.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
 //        Font fnt = new Font("Default", Font.BOLD, 30);
@@ -182,15 +182,16 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     }
 
     public void showDialog(String msg, boolean addBtn) {
-        showDialog(msg, addBtn, null);
+        showDialog(msg, addBtn, null, null);
     }
 
-    public void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener) {
+    public void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
         final JDialog dialog = new JDialog(frame, "Tips", false);
-        dialog.setSize(200, 100);
+        dialog.setMinimumSize(new Dimension(200, 125));
         setLocation(dialog);
         dialog.setLayout(new GridLayout(2, 1));
-        Label label = new Label();
+        JLabel label = new JLabel();
+        label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setText(msg);
         dialog.add(label);
         if (addBtn) {
@@ -228,12 +229,14 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 dialog.setVisible(false);
+                if (closeListener != null)
+                    closeListener.onClose();
             }
         });
     }
 
     public void showSignChooseDialog(final OnSignChooseClickListener chooseClickListener, final OnSignCompleteClickListener completeClickListener
-            , final String filterDesc, final String... filters) {
+            , final OnCloseListener closeListener, final String filterDesc, final String... filters) {
         final JDialog dialog = new JDialog(frame, "Choose keystore", false);
         dialog.setSize(300, 200);
         setLocation(dialog);
@@ -267,6 +270,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
                 dialog.setVisible(false);
                 if (completeClickListener != null)
                     completeClickListener.onClick(textSignPath.getText(), textPass.getText(), textAlias.getText());
+            }
+        });
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (closeListener != null)
+                    closeListener.onClose();
             }
         });
         dialog.add(panel);

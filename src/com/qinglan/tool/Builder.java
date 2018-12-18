@@ -24,14 +24,6 @@ import static com.qinglan.tool.ChannelManager.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.getPath;
 
 public class Builder extends BaseCompiler {
-    private static final String ASSETS_PATH = OUT_PATH + File.separator + "assets";
-    private static final String LIBS_PATH = OUT_PATH + File.separator + "lib";
-    private static final String RES_PATH = OUT_PATH + File.separator + "res";
-    private static final String ANIM_PATH = RES_PATH + File.separator + "anim";
-    private static final String DRAWABLE_PATH = RES_PATH + File.separator + "drawable*";
-    private static final String LAYOUT_PATH = RES_PATH + File.separator + "layout";
-    private static final String VALUES_PATH = RES_PATH + File.separator + "values*";
-
     private static final String TAG_VALUES_STRING = "string";
     private static final String TAG_VALUES_STYLE = "style";
     private static final String ATTRIBUTE_NAME = "name";
@@ -120,7 +112,6 @@ public class Builder extends BaseCompiler {
     private void delLibDirFile(File file, String filter) {
         if (file.isFile()) {
             String path = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator));
-            Log.eln(path);
             FileUtil.delMatchFile(path, file.getName(), filter);
         } else {
             Iterator<String> iterator = Arrays.asList(file.list()).iterator();
@@ -167,8 +158,7 @@ public class Builder extends BaseCompiler {
                 String fileName = iterator.next();
                 for (String matchName : channel.getFilter().getResNames()) {
                     String path = resFile.getCanonicalPath();
-                    Log.eln(path);
-                    FileUtil.delMatchFile(resFile.getPath(), fileName, matchName);
+                    FileUtil.delMatchFile(path, fileName, matchName);
                 }
             }
         }

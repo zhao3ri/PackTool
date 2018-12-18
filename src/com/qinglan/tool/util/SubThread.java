@@ -19,9 +19,7 @@ public abstract class SubThread extends Thread {
             execute();
             cyclicBarrier.await();
             Log.eln(getThreadName() + " Number4 = " + cyclicBarrier.getNumberWaiting());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (BrokenBarrierException e) {
+        } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }
     }

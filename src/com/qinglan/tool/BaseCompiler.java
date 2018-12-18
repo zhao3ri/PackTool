@@ -1,8 +1,10 @@
 package com.qinglan.tool;
 
+import com.qinglan.common.Log;
 import com.qinglan.tool.xml.Channel;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.qinglan.tool.ChannelManager.ROOT_PATH;
@@ -13,6 +15,13 @@ public abstract class BaseCompiler {
     public static final String APKTOOL_PATH = BIN_PATH + File.separator + "apktool.bat";
     public static final String OUT_PATH = BIN_PATH + File.separator + "out";
     public static final String MANIFEST_PATH = OUT_PATH + File.separator + "AndroidManifest.xml";
+    public static final String ASSETS_PATH = OUT_PATH + File.separator + "assets";
+    public static final String LIBS_PATH = OUT_PATH + File.separator + "lib";
+    public static final String RES_PATH = OUT_PATH + File.separator + "res";
+    public static final String ANIM_PATH = RES_PATH + File.separator + "anim";
+    public static final String DRAWABLE_PATH = RES_PATH + File.separator + "drawable*";
+    public static final String LAYOUT_PATH = RES_PATH + File.separator + "layout";
+    public static final String VALUES_PATH = RES_PATH + File.separator + "values*";
     public static final String OUT_DIR_PREFIX = "out-";
     /**
      * 替换packageName的标记
@@ -39,8 +48,8 @@ public abstract class BaseCompiler {
 
     public BaseCompiler(Channel c, List<Channel> channels) {
         currChannel = c;
-        channels.remove(currChannel);
-        exceptChannels = channels;
+        exceptChannels = new ArrayList<>(channels);
+        exceptChannels.remove(currChannel);
     }
 
     protected String getOutDirPath(String apkName) {

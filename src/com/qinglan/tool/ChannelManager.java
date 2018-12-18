@@ -1,5 +1,6 @@
 package com.qinglan.tool;
 
+import com.qinglan.common.Log;
 import com.qinglan.tool.util.FileUtil;
 import com.qinglan.tool.util.SubThread;
 import com.qinglan.tool.util.Utils;
@@ -26,8 +27,12 @@ public class ChannelManager {
     private String apkName;
     private CyclicBarrier cyclicBarrier;
     private OnBuildFinishListener listener;
+
     public static final String ROOT_PATH = ".";
     private static final String SIGN_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
+    public static final int CODE_SUCCESS = 0;
+    public static final int CODE_NO_FIND = 1;
+    public static final int CODE_FAIL = 2;
 
     public ChannelManager() {
         initChannel();
@@ -54,17 +59,20 @@ public class ChannelManager {
             @Override
             public void execute() {
                 Channel channel = getChannel(channelId);
-
+                Log.eln("channel===" + channel);
                 Decoder decoder = new Decoder(channel, channels);
                 int result = decoder.decode();
-                if (result == 0) {
+                if (result == CODE_SUCCESS) {
                     apkName = decoder.updateConfig(appId, cpId, appKey);
                     Builder builder = new Builder(channel, channels);
                     builder.setApkName(apkName);
                     apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId);
-                    if (listener != null) {
-                        listener.onFinish();
+                    if (Utils.isEmpty(apkPath)) {
+                        result = CODE_FAIL;
                     }
+                }
+                if (listener != null) {
+                    listener.onFinish(result);
                 }
             }
 
@@ -84,6 +92,7 @@ public class ChannelManager {
     }
 
     private Channel getChannel(int channelId) {
+        Log.eln("channels" + channels + " channelId==" + channelId);
         if (null != channels && !channels.isEmpty()) {
             for (Channel channel : channels) {
                 if (channelId == channel.getId()) {
@@ -137,6 +146,6 @@ public class ChannelManager {
     }
 
     public interface OnBuildFinishListener {
-        void onFinish(String... args);
+        void onFinish(int code);
     }
 }

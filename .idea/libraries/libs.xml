@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="libs">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/jackson-databind-2.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/jackson-core-2.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/jackson-annotations-2.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/jackson-dataformat-xml-2.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/apktool.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/stax2-api-3.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

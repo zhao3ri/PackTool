@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
 import static com.qinglan.tool.ChannelManager.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.createFileDir;
 import static com.qinglan.tool.util.FileUtil.searchApk;
@@ -30,7 +31,6 @@ public class Decoder extends BaseCompiler {
     private static final String ATTRIBUTE_ANDROID_NAME = "android:name";
     private static final String ATTRIBUTE_ANDROID_RESOURCE = "android:resource";
 
-    //    private String mApkPath;
     private ApkInfo mApkInfo;
 
     public Decoder(Channel c, List<Channel> channels) {
@@ -40,25 +40,25 @@ public class Decoder extends BaseCompiler {
     public int decode() {
         int result = -1;
         String path = createOutDir();
-        if (!Utils.isEmpty(path)) {
-            try {
-//                mApkPath = path;
-                mApkInfo = new ApkUtil().getApkInfo(path);
-                FileUtil.delFolder(OUT_PATH);
-                FileUtil.createFileDir(OUT_PATH);
-                apkDecode(path);
-//            String scriptPath = String.format("%s d %s -o %s -s -f", APKTOOL_PATH, path, OUT_PATH);
-//            result = Utils.execShell(scriptPath);
-                return 0;
-            } catch (AndrolibException e) {
-                e.printStackTrace();
-            } catch (DirectoryException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (Utils.isEmpty(path)) {
+            return CODE_NO_FIND;
+        }
+        try {
+            mApkInfo = new ApkUtil().getApkInfo(path);
+            FileUtil.delFolder(OUT_PATH);
+            createFileDir(OUT_PATH);
+//            apkDecode(path);
+            String scriptPath = String.format("%s d %s -o %s -s -f", APKTOOL_PATH, path, OUT_PATH);
+            result = Utils.execShell(scriptPath);
+            return 0;
+        } catch (AndrolibException e) {
+            e.printStackTrace();
+        } catch (DirectoryException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return result;
     }

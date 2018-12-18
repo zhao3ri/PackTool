@@ -1,9 +1,7 @@
 package com.qinglan.tool;
 
 import com.qinglan.common.Log;
-import com.qinglan.tool.ui.HomeUI;
 import com.qinglan.tool.util.FileUtil;
-import com.qinglan.tool.util.SubThread;
 import com.qinglan.tool.util.Utils;
 import com.qinglan.tool.xml.Channel;
 
