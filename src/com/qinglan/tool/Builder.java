@@ -41,6 +41,11 @@ public class Builder extends BaseCompiler {
         addPackage("com.ta.utdid2");
         addPackage("com.ut.device");
         addPackage("org.json.alipay");
+        addPackage("cn.uc.gamesdk");
+        addPackage("cn.gundam.sdk");
+        addPackage("com.huawei");
+        addPackage("com.unionpay");
+        addPackage("com.bignox.sdk");
     }
 
     private void addPackage(String pkg) {
@@ -273,7 +278,6 @@ public class Builder extends BaseCompiler {
             }
             for (Filter.Package pkg : channel.getFilter().getPackageNameList()) {
                 String pkgFileName = replacePackageSeparator(pkg.getName(), "/");
-                Log.eln(pkgFileName);
                 FileUtil.delFolder(SMALI_PATH + File.separator + pkgFileName);
             }
         }
@@ -288,8 +292,10 @@ public class Builder extends BaseCompiler {
         }
         File sourceFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName, File.separator));
         File destFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(String.format("%s.%s", mPackageName, suffix), File.separator));
-        FileUtil.copyFolder(sourceFile, destFile);
-        FileUtil.delAllFile(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName, File.separator));
+        File tmpFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName + "0", File.separator));
+        FileUtil.renameFile(sourceFile, tmpFile);
+        FileUtil.copyFolder(tmpFile, destFile);
+        FileUtil.delFolder(tmpFile.getCanonicalPath());
     }
 
     private String replacePackageSeparator(String pkg, String separator) {
@@ -300,7 +306,7 @@ public class Builder extends BaseCompiler {
     private void readSmail(String fileName, String suffix) throws IOException {
         File file = new File(SMALI_PATH + File.separator + fileName);
         String pkgName = file.getPath().substring(SMALI_PATH.length() + 1);
-        Log.eln("package==" + pkgName);
+        Log.iln("package==" + pkgName);
         if (file.isFile()) {
             Log.ln();
             if (!Utils.isEmpty(mPackageName) && !Utils.isEmpty(suffix)) {

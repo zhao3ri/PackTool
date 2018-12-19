@@ -1,5 +1,6 @@
 package com.qinglan.tool;
 
+import com.qinglan.common.Log;
 import com.qinglan.tool.ui.HomeUI;
 import com.qinglan.tool.xml.Channel;
 
@@ -19,6 +20,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
 
     public static void main(String[] args) {
         Main main = new Main();
+        Log.setLevel(Log.INFO);
         main.start();
     }
 
@@ -55,7 +57,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
     }
 
     @Override
-    public void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    public void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix) {
         if (channelId == 0) {
             homeUI.showDialog("Please choose the channel!");
             return;
@@ -67,6 +69,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         manager.setPubKey(pubKey);
         manager.setSecretKey(secretKey);
         manager.setCpId(cpId);
+        manager.setSuffix(suffix);
         manager.setChannelId(channelId);
         new Thread() {
             @Override

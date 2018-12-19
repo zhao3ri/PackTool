@@ -72,16 +72,18 @@ public class FileUtil {
     // 复制某个目录及目录下的所有子目录和文件到新文件夹
     public static void copyFolder(File source, File dest) {
         try {
+            Log.iln("source file == " + source.getCanonicalPath() + ", dest file== " + dest.getCanonicalPath());
             // 如果文件夹不存在，则建立新文件夹
-            dest.mkdirs();
+            if (!dest.exists())
+                dest.mkdirs();
             // 读取整个文件夹的内容到file字符串数组，下面设置一个游标i，不停地向下移开始读这个数组
             String[] file = source.list();
             File temp = null;
             for (int i = 0; i < file.length; i++) {
-                temp = new File(getPath(source.getPath()) + file[i]);
+                temp = new File(getPath(source.getCanonicalPath()) + file[i]);
                 if (temp.isFile()) {
                     FileInputStream input = new FileInputStream(temp);
-                    FileOutputStream output = new FileOutputStream(getPath(dest.getPath()) + (temp.getName()));
+                    FileOutputStream output = new FileOutputStream(getPath(dest.getCanonicalPath()) + (temp.getName()));
                     byte[] bufferarray = new byte[1024 * 64];
                     int prereadlength;
                     while ((prereadlength = input.read(bufferarray)) != -1) {
@@ -91,7 +93,7 @@ public class FileUtil {
                     output.close();
                     input.close();
                 } else if (temp.isDirectory()) {
-                    copyFolder(new File(getPath(source.getPath()) + file[i]), new File(getPath(dest.getPath()) + file[i]));
+                    copyFolder(new File(getPath(source.getCanonicalPath()) + file[i]), new File(getPath(dest.getCanonicalPath()) + file[i]));
                 }
             }
         } catch (Exception e) {
@@ -202,7 +204,11 @@ public class FileUtil {
     }
 
     public static boolean renameFile(String source, String dest) {
-        return new File(source).renameTo(new File(dest));
+        return renameFile(new File(source), new File(dest));
+    }
+
+    public static boolean renameFile(File source, File dest) {
+        return source.renameTo(dest);
     }
 
     public static String findFile(String path, String regex) {
@@ -266,7 +272,7 @@ public class FileUtil {
                 }
                 if (null != replaces && replaces.length != 0 && null != targets && targets.length != 0) {
                     for (int i = 0; i < targets.length; i++) {
-                        if (line.contains(targets[i])) {
+                        if (line.contains(targets[i]) && !Utils.isEmpty(replaces[i])) {
                             line = line.replace(targets[i], replaces[i]);
                         }
                     }

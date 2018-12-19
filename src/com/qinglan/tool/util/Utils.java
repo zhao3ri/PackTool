@@ -16,7 +16,7 @@ public class Utils {
         //先备份
         File oriFile = new File(jarName);
         if (!oriFile.exists()) {
-            Log.d("######Not Find File:" + jarName);
+            Log.dln("######Not Find File:" + jarName);
             return;
         }
         //将文件名命名成备份文件
@@ -24,7 +24,7 @@ public class Utils {
         File bakFile = new File(bakJarName);
         boolean isOK = oriFile.renameTo(bakFile);
         if (!isOK) {
-            Log.d("######Remame ERR..........");
+            Log.dln("######Remame ERR..........");
             return;
         }
 
@@ -69,7 +69,6 @@ public class Utils {
         String argStr = "";
         if (args != null && args.length > 0) {
             for (String arg : args) {
-                Log.dln("arg==" + arg);
                 argStr += arg + " ";
             }
         }
@@ -94,8 +93,4 @@ public class Utils {
         return false;
     }
 
-    public static void main(String[] args) {
-//        execShell("H:/PackTools/bin/build.bat");
-        Log.d(matches("libentryexpro", "libentryexpro"));
-    }
 }

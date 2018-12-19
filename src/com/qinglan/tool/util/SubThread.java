@@ -17,10 +17,10 @@ public abstract class SubThread extends Thread {
     @Override
     public void run() {
         try {
-            Log.eln(threadName + " Number3 = " + cyclicBarrier.getNumberWaiting());
+            Log.eln(threadName + ": isBroken = " + cyclicBarrier.isBroken() + ", Number = " + cyclicBarrier.getNumberWaiting());
             execute();
             cyclicBarrier.await();
-            Log.eln(threadName + " Number4 = " + cyclicBarrier.getNumberWaiting());
+            Log.eln(threadName + ": isBroken = " + cyclicBarrier.isBroken() + ", Number = " + cyclicBarrier.getNumberWaiting());
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }

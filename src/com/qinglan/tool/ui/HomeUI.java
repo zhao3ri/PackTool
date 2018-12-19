@@ -22,6 +22,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private JTextField textPubKey;
     private JTextField textSecKey;
     private JTextField textCpId;
+    private JTextField textSuffix;
     private JLabel labMsg;
 
     private OnCloseListener closeListener;
@@ -108,12 +109,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
 
     private void addConfigPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 1, 5, 5));
+        panel.setLayout(new GridLayout(6, 1, 5, 5));
         textAppId = setConfigPanel("AppId:", panel, 20);
         textAppKey = setConfigPanel("AppKey:", panel, 20);
         textPubKey = setConfigPanel("PublicKey:", panel, 20);
         textSecKey = setConfigPanel("SecretKey:", panel, 20);
         textCpId = setConfigPanel("CpId:", panel, 20);
+        textSuffix = setConfigPanel("包名后缀:", panel, 20);
         container.add(panel);
     }
 
@@ -152,8 +154,8 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnSubmit) {
             if (submitClickListener != null)
-                submitClickListener.onClick(textAppId.getText(), textAppKey.getText()
-                        , textPubKey.getText(), textSecKey.getText(), textCpId.getText());
+                submitClickListener.onClick(textAppId.getText(), textAppKey.getText(), textPubKey.getText()
+                        , textSecKey.getText(), textCpId.getText(),textSuffix.getText());
         } else if (e.getSource() == btnChoose) {
             JFileChooser chooser = showFileChooser("APK", "apk");
             File file = chooser.getSelectedFile();
@@ -334,7 +336,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     }
 
     public interface OnSubmitClickListener {
-        void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId);
+        void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix);
     }
 
     public interface OnChangedChannelListener {

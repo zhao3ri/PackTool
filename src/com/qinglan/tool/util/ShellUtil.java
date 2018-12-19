@@ -17,7 +17,7 @@ public class ShellUtil {
         barrier.reset();
         try {
             ps = Runtime.getRuntime().exec(cmd);
-            Log.dln("Number of parties required to trip the barrier = " + barrier.getParties());
+            Log.iln("Number of parties required to trip the barrier = " + barrier.getParties());
             StreamGobbler errorGobbler = new StreamGobbler(ps.getErrorStream());
             StreamGobbler outGobbler = new StreamGobbler(ps.getInputStream());
             errorGobbler.setTag("Error:");
@@ -60,7 +60,7 @@ public class ShellUtil {
             InputStreamReader isr = null;
             BufferedReader br = null;
             PrintWriter pw = null;
-            Log.dln(tag + " Is the barrier broken? - " + barrier.isBroken());
+            Log.iln(tag + " Is the barrier broken? - " + barrier.isBroken());
             try {
                 if (os != null) {
                     pw = new PrintWriter(os);
@@ -72,9 +72,9 @@ public class ShellUtil {
                     if (pw != null) {
                         pw.println(line);
                     }
-                    Log.dln(tag + line);
+                    Log.iln(tag + line);
                 }
-                Log.dln((tag + " Number of parties waiting at the barrier at this point = " + barrier.getNumberWaiting()));
+                Log.iln((tag + " Number of parties waiting at the barrier at this point = " + barrier.getNumberWaiting()));
                 if (pw != null) {
                     pw.flush();
                 }
@@ -82,7 +82,7 @@ public class ShellUtil {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             } catch (InterruptedException | BrokenBarrierException e) {
-                Log.eln(tag + "3");
+                Log.eln(tag + " " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 try {

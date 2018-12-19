@@ -59,4 +59,8 @@ public class Channel {
         return this.id == ((Channel) obj).id;
     }
 
+    @Override
+    public String toString() {
+        return "Channel id=" + getId() + ", name=" + getName();
+    }
 }

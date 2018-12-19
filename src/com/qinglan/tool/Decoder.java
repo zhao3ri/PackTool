@@ -98,10 +98,7 @@ public class Decoder extends BaseCompiler {
         Document document = XmlTool.createDocument(MANIFEST_PATH);
         delUnrelatedManifest(addSDKInfo(document));
         String packageName = mApkInfo.getPackageName();
-        if (!Utils.isEmpty(suffix)) {
-            packageName += "." + suffix;
-        }
-        updateManifestTag(packageName, appId, cpId, appKey);
+        updateManifestTag(packageName, appId, cpId, appKey, suffix);
     }
 
     private Document addSDKInfo(Document document) {
@@ -186,22 +183,20 @@ public class Decoder extends BaseCompiler {
 
     }
 
-    private void updateManifestTag(String packageName, String appId, String cpId, String appKey) {
+    private void updateManifestTag(String packageName, String appId, String cpId, String appKey, String suffix) {
         if (null == packageName || packageName.isEmpty())
             return;
-        String manifest = FileUtil.replaceFile(MANIFEST_PATH, PACKAGE_NAME_TAG, packageName);
-        String[] lines = manifest.split("\n");
-        StringBuffer sb = new StringBuffer();
-        for (String line : lines) {
-            if (line.contains(APP_ID_TAG)) {
-                line = line.replace(APP_ID_TAG, appId);
-            } else if (line.contains(CP_ID_TAG)) {
-                line = line.replace(CP_ID_TAG, cpId);
-            } else if (line.contains(APP_KEY_TAG)) {
-                line = line.replace(APP_KEY_TAG, appKey);
-            }
-            sb.append(line + "\n");
+        String[] targets;
+        String[] replaces;
+        if (Utils.isEmpty(suffix)) {
+            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG};
+            replaces = new String[]{packageName, appId, cpId, appKey};
+        } else {
+            String completePkg = String.format("%s.%s", packageName, suffix);
+            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, packageName};
+            replaces = new String[]{packageName, appId, cpId, appKey, completePkg};
         }
-        FileUtil.writer2File(MANIFEST_PATH, sb.toString());
+        String manifest = FileUtil.readAndReplaceFile(MANIFEST_PATH, targets, replaces);
+        FileUtil.writer2File(MANIFEST_PATH, manifest);
     }
 }

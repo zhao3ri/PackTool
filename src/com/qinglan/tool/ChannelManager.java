@@ -23,7 +23,7 @@ public class ChannelManager {
     private String pubKey;
     private String secretKey;
     private String cpId;
-    private String suffix="test";
+    private String suffix;
     private String apkPath;
     private String apkName;
     private CyclicBarrier cyclicBarrier;
@@ -60,7 +60,7 @@ public class ChannelManager {
             @Override
             public void execute() {
                 Channel channel = getChannel(channelId);
-                Log.eln("channel===" + channel);
+                Log.dln("channel===" + channel);
                 Decoder decoder = new Decoder(channel, channels);
                 int result = decoder.decode();
                 if (result == CODE_SUCCESS) {
@@ -88,7 +88,7 @@ public class ChannelManager {
     }
 
     private Channel getChannel(int channelId) {
-        Log.eln("channels" + channels + " channelId==" + channelId);
+        Log.dln("channels" + channels + " channelId==" + channelId);
         if (null != channels && !channels.isEmpty()) {
             for (Channel channel : channels) {
                 if (channelId == channel.getId()) {
@@ -130,6 +130,10 @@ public class ChannelManager {
 
     public void setCpId(String cpId) {
         this.cpId = cpId;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
     }
 
     public void setBuildFinishListener(OnBuildFinishListener listener) {
