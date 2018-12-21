@@ -39,7 +39,10 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private int frame_locx;
     private int frame_locy;
 
-    public HomeUI(List<Channel> channelList) {
+    private String currentPath;
+
+    public HomeUI(List<Channel> channelList, String path) {
+        currentPath = path;
         frame = new JFrame();
         frame.setTitle("QL打包工具");
         frame.setLayout(new FlowLayout());
@@ -321,6 +324,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     public JFileChooser showFileChooser(String filterDesc, int mode, String... filters) {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(mode);
+        chooser.setCurrentDirectory(new File(currentPath));
         if (!Utils.isEmpty(filterDesc) && null != filters) {
             FileNameExtensionFilter filter = new FileNameExtensionFilter(filterDesc, filters);
             chooser.setFileFilter(filter);

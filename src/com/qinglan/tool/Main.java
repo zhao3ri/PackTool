@@ -13,10 +13,11 @@ import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
 import static com.qinglan.tool.ChannelManager.CODE_SUCCESS;
 
 public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitClickListener, HomeUI.OnCloseListener, ChannelManager.OnBuildFinishListener {
-    ChannelManager manager;
-    int channelId;
-    HomeUI homeUI;
-    CyclicBarrier cyclicBarrier;
+    private ChannelManager manager;
+    private int channelId;
+    private HomeUI homeUI;
+    private CyclicBarrier cyclicBarrier;
+    public static final String ROOT_PATH = ".";
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -35,7 +36,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         List<Channel> channels = manager.getChannels();
         manager.setBuildFinishListener(this);
 
-        homeUI = new HomeUI(channels);
+        homeUI = new HomeUI(channels, ROOT_PATH);
         init("Welcome!");
         homeUI.setCloseListener(this);
         homeUI.setSubmitClickListener(this);

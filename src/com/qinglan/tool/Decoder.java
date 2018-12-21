@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
-import static com.qinglan.tool.ChannelManager.ROOT_PATH;
+import static com.qinglan.tool.Main.ROOT_PATH;
 import static com.qinglan.tool.util.FileUtil.createFileDir;
 import static com.qinglan.tool.util.FileUtil.searchApk;
 

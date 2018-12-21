@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 
+import static com.qinglan.tool.Main.ROOT_PATH;
+
 /**
  * Created by zhaoj on 2018/10/29.
  */
@@ -30,7 +32,6 @@ public class ChannelManager {
     private CyclicBarrier cyclicBarrier;
     private OnBuildFinishListener listener;
 
-    public static final String ROOT_PATH = ".";
     private static final String SIGN_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
     public static final int CODE_SUCCESS = 0;
     public static final int CODE_NO_FIND = 1;

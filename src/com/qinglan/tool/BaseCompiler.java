@@ -7,7 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.qinglan.tool.ChannelManager.ROOT_PATH;
+import static com.qinglan.tool.Main.ROOT_PATH;
 
 public abstract class BaseCompiler {
     //    public static final String ROOT_PATH = "H:\\PackTools";
