@@ -99,7 +99,6 @@ public class DrawableReplaceHelper {
                         replace(replaceScreens, drawable.getCanonicalPath(), drawableName, suffix, false);
                     } else if (name.equals(iconName)) {
                         replace(replaceIcons, drawable.getCanonicalPath(), drawableName, suffix, true);
-                        Log.iln("icon==" + drawableName + ",iconPath==" + fileName + " suffix=" + suffix);
                     }
                 }//while
             }
@@ -107,7 +106,7 @@ public class DrawableReplaceHelper {
     }
 
     private boolean replace(Map<String, String> drawables, String drawablePath, String drawableName, String suffix, boolean delete) {
-        if (Utils.isEmpty(drawablePath) || Utils.isEmpty(drawableName) || null == drawables) {
+        if (Utils.isEmpty(drawablePath) || Utils.isEmpty(drawableName) || null == drawables || drawables.isEmpty()) {
             return false;
         }
         String path = getPath(drawables, suffix, delete);

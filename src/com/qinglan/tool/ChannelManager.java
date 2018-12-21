@@ -26,6 +26,7 @@ public class ChannelManager {
     private String suffix;
     private String apkPath;
     private String apkName;
+    private String drawableDir;
     private CyclicBarrier cyclicBarrier;
     private OnBuildFinishListener listener;
 
@@ -69,7 +70,7 @@ public class ChannelManager {
                     builder.setApkName(apkName);
                     builder.setPackageName(decoder.getPackageName());
                     builder.setApplicationIcons(decoder.getIcons());
-                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, suffix);
+                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, suffix, drawableDir);
                     if (Utils.isEmpty(apkPath)) {
                         result = CODE_FAIL;
                     }
@@ -132,6 +133,10 @@ public class ChannelManager {
 
     public void setCpId(String cpId) {
         this.cpId = cpId;
+    }
+
+    public void setDrawableDir(String drawableDir) {
+        this.drawableDir = drawableDir;
     }
 
     public void setSuffix(String suffix) {

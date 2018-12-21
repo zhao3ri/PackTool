@@ -84,6 +84,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         manager.setCpId(cpId);
         manager.setSuffix(suffix);
         manager.setChannelId(channelId);
+        manager.setDrawableDir(homeUI.getDrawablePath());
         new Thread() {
             @Override
             public void run() {
