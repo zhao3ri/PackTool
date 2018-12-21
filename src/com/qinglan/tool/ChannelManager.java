@@ -65,8 +65,10 @@ public class ChannelManager {
                 int result = decoder.decode();
                 if (result == CODE_SUCCESS) {
                     apkName = decoder.updateConfig(appId, cpId, appKey, suffix);
-                    Builder builder = new Builder(channel, channels, decoder.getPackageName());
+                    Builder builder = new Builder(channel, channels);
                     builder.setApkName(apkName);
+                    builder.setPackageName(decoder.getPackageName());
+                    builder.setApplicationIcons(decoder.getIcons());
                     apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, suffix);
                     if (Utils.isEmpty(apkPath)) {
                         result = CODE_FAIL;

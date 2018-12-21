@@ -3,6 +3,7 @@ package com.qinglan.tool;
 import brut.androlib.AndrolibException;
 import brut.androlib.ApkDecoder;
 import brut.directory.DirectoryException;
+import com.qinglan.common.Log;
 import com.qinglan.tool.entity.ApkInfo;
 import com.qinglan.tool.util.ApkUtil;
 import com.qinglan.tool.util.FileUtil;
@@ -15,6 +16,7 @@ import org.w3c.dom.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
 import static com.qinglan.tool.ChannelManager.ROOT_PATH;
@@ -45,6 +47,7 @@ public class Decoder extends BaseCompiler {
         }
         try {
             mApkInfo = new ApkUtil().getApkInfo(path);
+            Log.eln(mApkInfo);
             FileUtil.delFolder(OUT_PATH);
             createFileDir(OUT_PATH);
 //            apkDecode(path);
@@ -67,6 +70,12 @@ public class Decoder extends BaseCompiler {
         if (mApkInfo == null)
             return null;
         return mApkInfo.getPackageName();
+    }
+
+    public Map<String, String> getIcons() {
+        if (mApkInfo == null)
+            return null;
+        return mApkInfo.getApplicationIcons();
     }
 
     private String createOutDir() {

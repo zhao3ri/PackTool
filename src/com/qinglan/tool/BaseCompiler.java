@@ -24,6 +24,8 @@ public abstract class BaseCompiler {
     public static final String LAYOUT_PATH = RES_PATH + File.separator + "layout";
     public static final String VALUES_PATH = RES_PATH + File.separator + "values*";
     public static final String OUT_DIR_PREFIX = "out-";
+
+    public static final String DRAWABLE_ICON_LAUNCHER = "ic_launcher";
     /**
      * 替换packageName的标记
      */

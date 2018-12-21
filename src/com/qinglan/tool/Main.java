@@ -51,9 +51,22 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
 
     @Override
     public void onClose() {
-//        Log.eln("" + cyclicBarrier.isBroken() + " num==" + cyclicBarrier.getNumberWaiting());
-//        homeUI.showDialog("The thread is running. Do you want to exit?", true);
-//        System.exit(1);
+        Log.eln("" + cyclicBarrier.isBroken() + " num==" + cyclicBarrier.getNumberWaiting());
+        if (cyclicBarrier.getNumberWaiting() > 0) {
+            homeUI.showDialog("<html>The thread is running.<br/> Do you want to exit?</html>", new HomeUI.OnDialogButtonClickListener() {
+                @Override
+                public void onPositive() {
+                    System.exit(1);
+                }
+
+                @Override
+                public void onNegative() {
+
+                }
+            }, null);
+            return;
+        }
+        System.exit(0);
     }
 
     @Override
@@ -109,7 +122,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
     }
 
     private void showKeystoreChooser(final int code) {
-        homeUI.showDialog("Use default keystore?", true, new HomeUI.OnDialogButtonClickListener() {//弹窗按钮点击事件
+        homeUI.showDialog("Use default keystore?", new HomeUI.OnDialogButtonClickListener() {//弹窗按钮点击事件
             @Override
             public void onPositive() {
                 homeUI.setMessage("Sign apk.....");

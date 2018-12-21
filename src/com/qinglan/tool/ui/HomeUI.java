@@ -1,6 +1,7 @@
 package com.qinglan.tool.ui;
 
 import com.qinglan.common.Log;
+import com.qinglan.tool.util.Utils;
 import com.qinglan.tool.xml.Channel;
 
 import javax.swing.*;
@@ -9,6 +10,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.List;
+
+import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 
 public class HomeUI extends ComponentAdapter implements ItemListener, ActionListener {
     private JFrame frame;
@@ -23,6 +26,8 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private JTextField textSecKey;
     private JTextField textCpId;
     private JTextField textSuffix;
+    private JTextField textDrawable;
+    private JButton btnDrawableChoose;
     private JLabel labMsg;
 
     private OnCloseListener closeListener;
@@ -40,12 +45,14 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         frame.setLayout(new FlowLayout());
         frame.setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT)); //设置窗口的大小
         frame.setLocation(300, 200);//设置窗口的初始位置
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//关闭窗口
         frame.setResizable(false);
         frame.addComponentListener(this);
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//关闭窗口
+        frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         container = frame.getContentPane();
 //        addApkChoose();
         addChannelListCheckBox(channelList);
+        addChooseDrawable();
         addConfigPanel();
         btnSubmit = addButton("提交");
         btnSubmit.addActionListener(this);
@@ -53,7 +60,6 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-//                super.windowClosing(e);
                 if (closeListener != null)
                     closeListener.onClose();
             }
@@ -94,6 +100,18 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         container.add(panelCheckBox);
     }
 
+    private void addChooseDrawable() {
+        JPanel panel = new JPanel();
+//        textDrawable = new JTextField(35);
+        textDrawable = setConfigPanel("选择替换图片目录:", panel, 25);
+        textDrawable.setEnabled(false);
+        panel.add(textDrawable);
+        btnDrawableChoose = new JButton("选择");
+        btnDrawableChoose.addActionListener(this);
+        panel.add(btnDrawableChoose);
+        container.add(panel);
+    }
+
     private JButton addButton(String text) {
         JPanel panel = new JPanel();
         panel.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
@@ -129,8 +147,6 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     }
 
     private JLabel addLabelMsg() {
-//        JLabel line = new JLabel("-----------------------------------", JLabel.CENTER);
-//        container.add(line);
         JLabel lab = new JLabel("", JLabel.CENTER);
         lab.setLayout(new GridLayout(1, 1));
         lab.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
@@ -155,11 +171,15 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         if (e.getSource() == btnSubmit) {
             if (submitClickListener != null)
                 submitClickListener.onClick(textAppId.getText(), textAppKey.getText(), textPubKey.getText()
-                        , textSecKey.getText(), textCpId.getText(),textSuffix.getText());
+                        , textSecKey.getText(), textCpId.getText(), textSuffix.getText());
         } else if (e.getSource() == btnChoose) {
-            JFileChooser chooser = showFileChooser("APK", "apk");
+            JFileChooser chooser = showFileChooser("APK", JFileChooser.FILES_ONLY, "apk");
             File file = chooser.getSelectedFile();
             textApkPath.setText(file.getAbsoluteFile().toString());
+        } else if (e.getSource() == btnDrawableChoose) {
+            JFileChooser chooser = showFileChooser(null, JFileChooser.DIRECTORIES_ONLY);
+            File file = chooser.getSelectedFile();
+            textDrawable.setText(file.getAbsoluteFile().toString());
         }
     }
 
@@ -176,7 +196,9 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         textPubKey.setEnabled(enable);
         textSecKey.setEnabled(enable);
         textCpId.setEnabled(enable);
+        textSuffix.setEnabled(enable);
         btnSubmit.setEnabled(enable);
+        btnDrawableChoose.setEnabled(enable);
     }
 
     public void showDialog(String msg) {
@@ -187,7 +209,11 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         showDialog(msg, addBtn, null, null);
     }
 
-    public void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
+    public void showDialog(String msg, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
+        showDialog(msg, true, listener, closeListener);
+    }
+
+    private void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
         final JDialog dialog = new JDialog(frame, "Tips", false);
         dialog.setMinimumSize(new Dimension(200, 125));
         setLocation(dialog);
@@ -254,7 +280,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         btnChoose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser chooser = showFileChooser(filterDesc, filters);
+                JFileChooser chooser = showFileChooser(filterDesc, JFileChooser.FILES_ONLY, filters);
                 textSignPath.setText(chooser.getSelectedFile().getAbsolutePath());
                 if (chooseClickListener != null)
                     chooseClickListener.onClick(textSignPath);
@@ -292,11 +318,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         dialog.setLocation(x, y);
     }
 
-    public JFileChooser showFileChooser(String filterDesc, String... filters) {
+    public JFileChooser showFileChooser(String filterDesc, int mode, String... filters) {
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(filterDesc, filters);
-        chooser.setFileFilter(filter);
+        chooser.setFileSelectionMode(mode);
+        if (!Utils.isEmpty(filterDesc) && null != filters) {
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(filterDesc, filters);
+            chooser.setFileFilter(filter);
+        }
         chooser.showDialog(new JLabel(), "选择");
         return chooser;
     }
@@ -329,6 +357,10 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
 
     public void setMessage(String msg) {
         labMsg.setText(msg);
+    }
+
+    public String getDrawablePath() {
+        return textDrawable.getText();
     }
 
     public interface OnCloseListener {

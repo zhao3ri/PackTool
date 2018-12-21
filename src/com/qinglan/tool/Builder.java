@@ -15,25 +15,24 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.qinglan.tool.util.FileUtil.getPath;
 
 public class Builder extends BaseCompiler {
     private static final String TAG_VALUES_STRING = "string";
     private static final String TAG_VALUES_STYLE = "style";
+    private static final String RES_VALUE = "value";
+    private static final String RES_DRAWABLE = "drawable";
     private static final String ATTRIBUTE_NAME = "name";
 
     private static final String CHANNEL_PREFIX = "qlsdk_";
     private List<String> packageNameFilter;
     private String mPackageName;
+    private Map<String, String> applicationIcons;
 
-    public Builder(Channel c, List<Channel> channels, String pkg) {
+    public Builder(Channel c, List<Channel> channels) {
         super(c, channels);
-        mPackageName = pkg;
         packageNameFilter = new ArrayList<>();
         addPackage("android.support");
         addPackage("com.google");
@@ -52,8 +51,12 @@ public class Builder extends BaseCompiler {
         packageNameFilter.add(replacePackageSeparator(pkg, File.separator));
     }
 
-    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix) {
+    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix, String replacePath) {
         try {
+            if (!Utils.isEmpty(replacePath)) {
+                DrawableReplaceHelper helper = new DrawableReplaceHelper(applicationIcons, replacePath);
+                helper.replace();
+            }
             delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId);
             delUnrelatedAssets();
             delUnrelatedLibs();
@@ -68,6 +71,14 @@ public class Builder extends BaseCompiler {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void setApplicationIcons(Map<String, String> applicationIcons) {
+        this.applicationIcons = applicationIcons;
+    }
+
+    public void setPackageName(String packageName) {
+        this.mPackageName = packageName;
     }
 
     private void delUnrelatedAssets() {
@@ -159,7 +170,7 @@ public class Builder extends BaseCompiler {
                 String[] resStringNames = resDir.list();
                 for (String name : resStringNames) {
                     String resPath = resDir.getAbsolutePath() + File.separator + name;
-                    if (name.startsWith("value")) {
+                    if (name.startsWith(RES_VALUE)) {
                         delValues(channel, resPath, appId, appKey, pubKey, secretKey, cpId);
                     } else {
                         delRes(channel, resPath);
@@ -298,11 +309,6 @@ public class Builder extends BaseCompiler {
         FileUtil.delFolder(tmpFile.getCanonicalPath());
     }
 
-    private String replacePackageSeparator(String pkg, String separator) {
-        String rp = pkg.replace(".", separator);
-        return rp;
-    }
-
     private void readSmail(String fileName, String suffix) throws IOException {
         File file = new File(SMALI_PATH + File.separator + fileName);
         String pkgName = file.getPath().substring(SMALI_PATH.length() + 1);
@@ -324,6 +330,11 @@ public class Builder extends BaseCompiler {
                 readSmail(pkgName + File.separator + iterator.next(), suffix);
             }
         }
+    }
+
+    private String replacePackageSeparator(String pkg, String separator) {
+        String rp = pkg.replace(".", separator);
+        return rp;
     }
 
     private void delClasses() throws Exception {
