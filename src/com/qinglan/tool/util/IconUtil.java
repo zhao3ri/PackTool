@@ -57,22 +57,4 @@ public class IconUtil {
 		bos.close();
 	}
 
-	/**
-	 * demo 获取apk文件的icon并写入磁盘指定位置
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		try {
-			String apkpath = "D:\\DefaultApkTempSaveFolder\\3G安卓市场\\com.jiubang.market.apk";
-			if (args.length > 0) {
-				apkpath = args[0];
-			}
-			ApkInfo apkInfo = new ApkUtil().getApkInfo(apkpath);
-			Log.dln(apkInfo.toString());
-			extractFileFromApk(apkpath, apkInfo.getApplicationIcon(), "D:\\DefaultApkTempSaveFolder\\3G安卓市场\\crawler\\icon.png");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 }

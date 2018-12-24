@@ -34,20 +34,20 @@ public class Builder extends BaseCompiler {
     public Builder(Channel c, List<Channel> channels) {
         super(c, channels);
         packageNameFilter = new ArrayList<>();
-        addPackage("android.support");
-        addPackage("com.google");
-        addPackage("com.alipay");
-        addPackage("com.ta.utdid2");
-        addPackage("com.ut.device");
-        addPackage("org.json.alipay");
-        addPackage("cn.uc.gamesdk");
-        addPackage("cn.gundam.sdk");
-        addPackage("com.huawei");
-        addPackage("com.unionpay");
-        addPackage("com.bignox.sdk");
+        addPackageFilter("android.support");
+        addPackageFilter("com.google");
+        addPackageFilter("com.alipay");
+        addPackageFilter("com.ta.utdid2");
+        addPackageFilter("com.ut.device");
+        addPackageFilter("org.json.alipay");
+        addPackageFilter("cn.uc.gamesdk");
+        addPackageFilter("cn.gundam.sdk");
+        addPackageFilter("com.huawei");
+        addPackageFilter("com.unionpay");
+        addPackageFilter("com.bignox.sdk");
     }
 
-    private void addPackage(String pkg) {
+    private void addPackageFilter(String pkg) {
         packageNameFilter.add(replacePackageSeparator(pkg, File.separator));
     }
 

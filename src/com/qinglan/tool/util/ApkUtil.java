@@ -167,24 +167,6 @@ public class ApkUtil {
 		}
 	}
 
-	public static void main(String[] args) {
-		try {
-			String demo = "H:\\PackTools\\QLBS_Game-YXF.apk";
-			if (args.length > 0) {
-				if(args[0].equals("-version") || args[0].equals("-v")){
-					Log.dln("ApkUtil   -by Geek_Soledad");
-					Log.dln("Version:" + Version.getVersion());
-					return;
-				}
-				demo = args[0];
-			}
-			ApkInfo apkInfo = new ApkUtil().getApkInfo(demo);
-			Log.dln(apkInfo);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public String getmAaptPath() {
 		return mAaptPath;
 	}

@@ -28,6 +28,7 @@ public class DrawableReplaceHelper {
     private static final String DRAWABLE_XXXHDPI = "xxxhdpi";
 
     private static final String DRAWABLE_PREFIX_LAN = "land-";
+    private static final String DRAWABLE_NAME_REGEX = "^*-(m|h|xh|xxh|xxxh)dpi";
 
     private Map<Integer, String> dpiContainer;
 
@@ -58,12 +59,20 @@ public class DrawableReplaceHelper {
         Iterator<String> it = Arrays.asList(replaces).iterator();
         while (it.hasNext()) {
             String name = it.next();
+            boolean matches = Utils.matches(DRAWABLE_NAME_REGEX, name);
+            if (!matches) {
+                continue;
+            }
             String suffix = name.substring(name.indexOf("-") + 1, name.indexOf("."));
             Map<String, String> drawableMap;
             if (name.startsWith(DRAWABLE_ICON_LAUNCHER)) {
                 drawableMap = replaceIcons;
             } else {
                 drawableMap = replaceScreens;
+                int index = name.indexOf("-");
+                if (index < 0) {
+                    continue;
+                }
                 String prefix = name.substring(0, name.indexOf("-"));//获得闪屏图片的名称
                 if (Utils.isEmpty(screenName)) {
                     screenName = prefix;
@@ -71,7 +80,6 @@ public class DrawableReplaceHelper {
             }
             putDrawables(drawableMap, suffix, name);
         }
-        Log.iln("iconName==" + iconName + ",screenName==" + screenName);
     }
 
     private void putDrawables(Map<String, String> drawables, String key, String name) {
@@ -79,6 +87,10 @@ public class DrawableReplaceHelper {
     }
 
     public void replace() throws IOException {
+        if (replaceScreens.isEmpty() && replaceIcons.isEmpty()) {
+            Log.eln("replace drawable is null");
+            return;
+        }
         File resFile = new File(RES_PATH);
         File[] drawableFiles = resFile.listFiles(new DrawableFilter());
         Iterator<File> iterator = Arrays.asList(drawableFiles).iterator();

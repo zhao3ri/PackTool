@@ -47,7 +47,6 @@ public class Decoder extends BaseCompiler {
         }
         try {
             mApkInfo = new ApkUtil().getApkInfo(path);
-            Log.eln(mApkInfo);
             FileUtil.delFolder(OUT_PATH);
             createFileDir(OUT_PATH);
 //            apkDecode(path);

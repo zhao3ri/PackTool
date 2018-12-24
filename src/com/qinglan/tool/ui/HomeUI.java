@@ -35,7 +35,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private OnChangedChannelListener changedChannelListener;
 
     private static final int FRAME_WIDTH = 500;
-    private static final int FRAME_HEIGHT = 350;
+    private static final int FRAME_HEIGHT = 360;
     private int frame_locx;
     private int frame_locy;
 
@@ -202,6 +202,8 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         textSuffix.setEnabled(enable);
         btnSubmit.setEnabled(enable);
         btnDrawableChoose.setEnabled(enable);
+        if (enable)
+            textDrawable.setText("");
     }
 
     public void showDialog(String msg) {
