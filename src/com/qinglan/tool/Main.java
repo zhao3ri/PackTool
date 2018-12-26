@@ -71,7 +71,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
     }
 
     @Override
-    public void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix) {
+    public void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String suffix) {
         if (channelId == 0) {
             homeUI.showDialog("Please choose the channel!");
             return;
@@ -83,6 +83,7 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         manager.setPubKey(pubKey);
         manager.setSecretKey(secretKey);
         manager.setCpId(cpId);
+        manager.setCpKey(cpKey);
         manager.setSuffix(suffix);
         manager.setChannelId(channelId);
         manager.setDrawableDir(homeUI.getDrawablePath());
@@ -165,5 +166,4 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
             }
         });
     }
-
 }

@@ -97,26 +97,33 @@ public class Decoder extends BaseCompiler {
         decoder.decode();
     }
 
-    public String updateConfig(String appId, String cpId, String appKey, String suffix) {
-        updateManifest(appId, cpId, appKey, suffix);
+    public String updateConfig(String appId, String appKey, String cpId, String cpKey, String suffix) {
+        updateManifest(appId, appKey, cpId, cpKey, suffix);
         return decodeApkName;
     }
 
-    private void updateManifest(String appId, String cpId, String appKey, String suffix) {
+    private void updateManifest(String appId, String appKey, String cpId, String cpKey, String suffix) {
         Document document = XmlTool.createDocument(MANIFEST_PATH);
         delUnrelatedManifest(addSDKInfo(document));
         String packageName = mApkInfo.getPackageName();
-        updateManifestTag(packageName, appId, cpId, appKey, suffix);
+        updateManifestTag(packageName, appId, appKey, cpId, cpKey, suffix);
     }
 
     private Document addSDKInfo(Document document) {
-        if (document.getElementsByTagName("uses-sdk") != null) {
-            return document;
-        }
-
+//        if (document.getElementsByTagName("uses-sdk") != null) {
+//            return document;
+//        }
         Element sdkElm = document.createElement("uses-sdk");
         Attr minSdkAttr = document.createAttribute("android:minSdkVersion");
-        minSdkAttr.setValue(mApkInfo.getSdkVersion());
+        String minSdk = mApkInfo.getMinSdkVersion();
+        String targetSdk = mApkInfo.getTargetSdkVersion();
+        if (Utils.isEmpty(minSdk)) {
+            minSdk = mApkInfo.getSdkVersion();
+        }
+        if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
+            minSdk = targetSdk;
+        }
+        minSdkAttr.setValue(minSdk);
         Attr targetSdkAttr = document.createAttribute("android:targetSdkVersion");
         targetSdkAttr.setValue(mApkInfo.getTargetSdkVersion());
         sdkElm.setAttributeNode(minSdkAttr);
@@ -191,18 +198,18 @@ public class Decoder extends BaseCompiler {
 
     }
 
-    private void updateManifestTag(String packageName, String appId, String cpId, String appKey, String suffix) {
+    private void updateManifestTag(String packageName, String appId, String appKey, String cpId, String cpKey, String suffix) {
         if (null == packageName || packageName.isEmpty())
             return;
         String[] targets;
         String[] replaces;
         if (Utils.isEmpty(suffix)) {
-            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG};
-            replaces = new String[]{packageName, appId, cpId, appKey};
+            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, CP_KEY_TAG};
+            replaces = new String[]{packageName, appId, cpId, appKey, cpKey};
         } else {
             String completePkg = String.format("%s.%s", packageName, suffix);
-            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, packageName};
-            replaces = new String[]{packageName, appId, cpId, appKey, completePkg};
+            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, CP_KEY_TAG, packageName};
+            replaces = new String[]{packageName, appId, cpId, appKey, cpKey, completePkg};
         }
         String manifest = FileUtil.readAndReplaceFile(MANIFEST_PATH, targets, replaces);
         FileUtil.writer2File(MANIFEST_PATH, manifest);

@@ -3,32 +3,8 @@
     <description>渠道相关配置</description>
     <channel-list>
         <!--所有渠道平台的配置参数在此添加-->
-        <!--游戏fun渠道-->
-        <!--id为服务端分配的平台id，不可随意更改，name可根据需要修改-->
-        <channel id="4" name="YXF">
-            <class-name>YXFChannel</class-name>
-            <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
-            <filter>
-                <!--渠道包根目录的包名-->
-                <package-list>
-                    <package base-name="com.game.sdk"/>
-                </package-list>
-                <!--渠道需要的jar和so包，支持通配符"*""?"，需要扩展名，如.jar/.aar/.so等-->
-                <libs>
-                    <lib>yxf*.jar</lib>
-                    <lib>libsmc.so</lib>
-                </libs>
-                <!--渠道res中的名称，支持通配符"*""?"-->
-                <!--若有多个命名方式可添加多个-->
-                <res>
-                    <!--例如，yxf平台res下包括anim、drawable等使用的名称均以yxf开头，可写作yxf*，不需要扩展名-->
-                    <name>yxf*</name>
-                </res>
-            </filter>
-        </channel>
-
         <!--UC渠道-->
-        <channel id="5" name="UC">
+        <channel id="1" name="UC">
             <class-name>UCChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
@@ -49,7 +25,7 @@
         </channel>
 
         <!--华为渠道-->
-        <channel id="6" name="Huawei">
+        <channel id="2" name="Huawei">
             <class-name>HMSChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
@@ -75,7 +51,7 @@
         </channel>
 
         <!--夜神渠道-->
-        <channel id="42" name="YeShen">
+        <channel id="3" name="YeShen">
             <class-name>YeshenChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
@@ -94,6 +70,53 @@
                     <lib>libuptsmaddon.so</lib>
                     <lib>libuptsmaddonmi.so</lib>
                 </libs>
+            </filter>
+        </channel>
+
+        <!--游戏fun渠道-->
+        <!--id为服务端分配的平台id，不可随意更改，name可根据需要修改-->
+        <channel id="4" name="YXF">
+            <class-name>YXFChannel</class-name>
+            <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
+            <filter>
+                <!--渠道包根目录的包名-->
+                <package-list>
+                    <package base-name="com.game.sdk"/>
+                </package-list>
+                <!--渠道需要的jar和so包，支持通配符"*""?"，需要扩展名，如.jar/.aar/.so等-->
+                <libs>
+                    <lib>yxf*.jar</lib>
+                    <lib>libsmc.so</lib>
+                </libs>
+                <!--渠道res中的名称，支持通配符"*""?"-->
+                <!--若有多个命名方式可添加多个-->
+                <res>
+                    <!--例如，yxf平台res下包括anim、drawable等使用的名称均以yxf开头，可写作yxf*，不需要扩展名-->
+                    <name>yxf*</name>
+                </res>
+            </filter>
+        </channel>
+
+        <!--57k渠道-->
+        <channel id="5" name="57k">
+            <class-name>HuoSdkChannel</class-name>
+            <filter>
+                <package-list>
+                    <package base-name="com.game.sdk.domain"/>
+                    <!--使用了imageloader-->
+                    <package base-name="com.nostra13.universalimageloader"/>
+                </package-list>
+                <libs>
+                    <lib>HuoSusdk*.jar</lib>
+                    <lib>libhs_sdk-lib.so</lib>
+                </libs>
+                <res>
+                    <name>huo_sdk*</name>
+                    <name>huosdk*</name>
+                    <name>floating_view_icon_normal</name>
+                    <name>floater_hide_tips_02</name>
+                    <name>floater_hide_tips_03</name>
+                </res>
             </filter>
         </channel>
     </channel-list>

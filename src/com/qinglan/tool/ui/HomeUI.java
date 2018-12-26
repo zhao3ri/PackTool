@@ -25,6 +25,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private JTextField textPubKey;
     private JTextField textSecKey;
     private JTextField textCpId;
+    private JTextField textCpKey;
     private JTextField textSuffix;
     private JTextField textDrawable;
     private JButton btnDrawableChoose;
@@ -35,7 +36,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private OnChangedChannelListener changedChannelListener;
 
     private static final int FRAME_WIDTH = 500;
-    private static final int FRAME_HEIGHT = 360;
+    private static final int FRAME_HEIGHT = 400;
     private int frame_locx;
     private int frame_locy;
 
@@ -130,12 +131,13 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
 
     private void addConfigPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(6, 1, 5, 5));
+        panel.setLayout(new GridLayout(7, 1, 5, 5));
         textAppId = setConfigPanel("AppId:", panel, 20);
         textAppKey = setConfigPanel("AppKey:", panel, 20);
         textPubKey = setConfigPanel("PublicKey:", panel, 20);
         textSecKey = setConfigPanel("SecretKey:", panel, 20);
         textCpId = setConfigPanel("CpId:", panel, 20);
+        textCpKey = setConfigPanel("CpKey:", panel, 20);
         textSuffix = setConfigPanel("包名后缀:", panel, 20);
         container.add(panel);
     }
@@ -174,7 +176,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         if (e.getSource() == btnSubmit) {
             if (submitClickListener != null)
                 submitClickListener.onClick(textAppId.getText(), textAppKey.getText(), textPubKey.getText()
-                        , textSecKey.getText(), textCpId.getText(), textSuffix.getText());
+                        , textSecKey.getText(), textCpId.getText(), textCpKey.getText(), textSuffix.getText());
         } else if (e.getSource() == btnChoose) {
             JFileChooser chooser = showFileChooser("APK", JFileChooser.FILES_ONLY, "apk");
             File file = chooser.getSelectedFile();
@@ -374,7 +376,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     }
 
     public interface OnSubmitClickListener {
-        void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix);
+        void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String suffix);
     }
 
     public interface OnChangedChannelListener {

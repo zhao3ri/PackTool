@@ -27,12 +27,13 @@ public abstract class BaseCompiler {
 
     public static final String DRAWABLE_ICON_LAUNCHER = "ic_launcher";
     /**
-     * 替换packageName的标记
+     * 替换androidmanifest的标记
      */
     public static final String PACKAGE_NAME_TAG = "qinglanGameApplicationId";
     public static final String APP_ID_TAG = "qinglanChannelAppId";
     public static final String APP_KEY_TAG = "qinglanChannelAppKey";
     public static final String CP_ID_TAG = "qinglanChannelCpId";
+    public static final String CP_KEY_TAG = "qinglanChannelCpKey";
     /**
      * 第三方渠道res配置文件名
      */
@@ -40,6 +41,7 @@ public abstract class BaseCompiler {
     public static final String RES_NAME_APP_KEY = "qlsdk_third_party_appkey";
     public static final String RES_NAME_PUBLIC_KEY = "qlsdk_third_party_pubkey";
     public static final String RES_NAME_CP_ID = "qlsdk_third_party_cpid";
+    public static final String RES_NAME_CP_KEY = "qlsdk_third_party_cpkey";
     public static final String RES_NAME_SECRET_KEY = "qlsdk_third_party_seckey";
 
     protected Channel currChannel;

@@ -25,6 +25,7 @@ public class ChannelManager {
     private String pubKey;
     private String secretKey;
     private String cpId;
+    private String cpKey;
     private String suffix;
     private String apkPath;
     private String apkName;
@@ -66,12 +67,12 @@ public class ChannelManager {
                 Decoder decoder = new Decoder(channel, channels);
                 int result = decoder.decode();
                 if (result == CODE_SUCCESS) {
-                    apkName = decoder.updateConfig(appId, cpId, appKey, suffix);
+                    apkName = decoder.updateConfig(appId, appKey, cpId, cpKey, suffix);
                     Builder builder = new Builder(channel, channels);
                     builder.setApkName(apkName);
                     builder.setPackageName(decoder.getPackageName());
                     builder.setApplicationIcons(decoder.getIcons());
-                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, suffix, drawableDir);
+                    apkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, cpKey, suffix, drawableDir);
                     if (Utils.isEmpty(apkPath)) {
                         result = CODE_FAIL;
                     }
@@ -134,6 +135,10 @@ public class ChannelManager {
 
     public void setCpId(String cpId) {
         this.cpId = cpId;
+    }
+
+    public void setCpKey(String cpKey) {
+        this.cpKey = cpKey;
     }
 
     public void setDrawableDir(String drawableDir) {

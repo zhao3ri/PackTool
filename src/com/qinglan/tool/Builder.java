@@ -51,13 +51,13 @@ public class Builder extends BaseCompiler {
         packageNameFilter.add(replacePackageSeparator(pkg, File.separator));
     }
 
-    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId, String suffix, String replacePath) {
+    public String build(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String suffix, String replacePath) {
         try {
             if (!Utils.isEmpty(replacePath)) {
                 DrawableReplaceHelper helper = new DrawableReplaceHelper(applicationIcons, replacePath);
                 helper.replace();
             }
-            delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId);
+            delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId, cpKey);
             delUnrelatedAssets();
             delUnrelatedLibs();
 //            delClasses();
@@ -156,7 +156,7 @@ public class Builder extends BaseCompiler {
     /**
      * 删除无关渠道的res文件
      */
-    private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId) throws IOException {
+    private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) throws IOException {
         File resDir = new File(RES_PATH);
         for (Channel channel : exceptChannels) {
             if (channel.getFilter().getResNames() == null
@@ -171,7 +171,7 @@ public class Builder extends BaseCompiler {
                 for (String name : resStringNames) {
                     String resPath = resDir.getAbsolutePath() + File.separator + name;
                     if (name.startsWith(RES_VALUE)) {
-                        delValues(channel, resPath, appId, appKey, pubKey, secretKey, cpId);
+                        delValues(channel, resPath, appId, appKey, pubKey, secretKey, cpId, cpKey);
                     } else {
                         delRes(channel, resPath);
                     }
@@ -194,17 +194,17 @@ public class Builder extends BaseCompiler {
         }
     }
 
-    private void delValues(Channel channel, String resName, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    private void delValues(Channel channel, String resName, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
         File valueFile = new File(resName);
         if (valueFile.exists() && valueFile.isDirectory()) {
             String[] files = valueFile.list();
             for (String file : files) {
-                readValueXml(channel, getPath(valueFile.getAbsolutePath()) + file, appId, appKey, pubKey, secretKey, cpId);
+                readValueXml(channel, getPath(valueFile.getAbsolutePath()) + file, appId, appKey, pubKey, secretKey, cpId, cpKey);
             }
         }
     }
 
-    private void readValueXml(Channel channel, String path, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    private void readValueXml(Channel channel, String path, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
         Document document = XmlTool.createDocument(path);
         NodeList nodeList = XmlTool.getDocumentRootNodeList(document);
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -216,7 +216,7 @@ public class Builder extends BaseCompiler {
                 String name = attributeName.substring(attributeName.indexOf('"') + 1, attributeName.lastIndexOf('"'));
                 //若当前是string资源，则查找替换渠道配置
                 if (item.getNodeName().equals(TAG_VALUES_STRING))
-                    updateResConfig(item, name, appId, appKey, pubKey, secretKey, cpId);
+                    updateResConfig(item, name, appId, appKey, pubKey, secretKey, cpId, cpKey);
                 for (String regex : channel.getFilter().getResNames()) {
                     matchesStyle(item, regex);
                     if (Utils.matches(regex, name)) {
@@ -249,7 +249,7 @@ public class Builder extends BaseCompiler {
         }
     }
 
-    private void updateResConfig(Node item, String attribute, String appId, String appKey, String pubKey, String secretKey, String cpId) {
+    private void updateResConfig(Node item, String attribute, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
         if (!item.getNodeName().equals(TAG_VALUES_STRING)) {
             return;
         }
@@ -263,6 +263,8 @@ public class Builder extends BaseCompiler {
             item.setTextContent(secretKey);
         } else if (attribute.equals(RES_NAME_CP_ID) && !Utils.isEmpty(cpId)) {
             item.setTextContent(cpId);
+        } else if (attribute.equals(RES_NAME_CP_KEY) && !Utils.isEmpty(cpId)) {
+            item.setTextContent(cpKey);
         }
     }
 
