@@ -13,12 +13,13 @@ import java.util.List;
 
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 
-public class HomeUI extends ComponentAdapter implements ItemListener, ActionListener {
+public class HomeUI extends BaseUI implements ItemListener, ActionListener {
     private JFrame frame;
     private Container container;
     private JButton btnChoose;
     private JTextField textApkPath;
     private JButton btnSubmit;
+    private JButton btnMore;
     private JPanel panelCheckBox;
     private JTextField textAppId;
     private JTextField textAppKey;
@@ -31,14 +32,10 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
     private JButton btnDrawableChoose;
     private JLabel labMsg;
 
+    //    private MoreUI moreUI;
     private OnCloseListener closeListener;
     private OnSubmitClickListener submitClickListener;
     private OnChangedChannelListener changedChannelListener;
-
-    private static final int FRAME_WIDTH = 500;
-    private static final int FRAME_HEIGHT = 400;
-    private int frame_locx;
-    private int frame_locy;
 
     private String currentPath;
 
@@ -58,8 +55,8 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         addChannelListCheckBox(channelList);
         addChooseDrawable();
         addConfigPanel();
-        btnSubmit = addButton("提交");
-        btnSubmit.addActionListener(this);
+        addButton();
+
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -116,17 +113,23 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         container.add(panel);
     }
 
-    private JButton addButton(String text) {
+    private void addButton() {
         JPanel panel = new JPanel();
         panel.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
-        panel.setLayout(new GridLayout(2, 1));
-        JButton button = new JButton(text);
-        button.setSize(50, 15);
-        panel.add(button);
+        panel.setLayout(new GridLayout(2, 2, 5, 5));
+        btnSubmit = new JButton("提交");
+        btnSubmit.setSize(50, 15);
+        btnSubmit.addActionListener(this);
+        panel.add(btnSubmit);
+
+        btnMore = new JButton("更多");
+        btnMore.setSize(50, 15);
+        btnMore.addActionListener(this);
+        panel.add(btnMore);
+
         labMsg = addLabelMsg();
         panel.add(labMsg);
         container.add(panel);
-        return button;
     }
 
     private void addConfigPanel() {
@@ -185,6 +188,9 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
             JFileChooser chooser = showFileChooser(null, JFileChooser.DIRECTORIES_ONLY);
             File file = chooser.getSelectedFile();
             textDrawable.setText(file.getAbsoluteFile().toString());
+        } else if (e.getSource() == btnMore) {
+            MoreUI moreUI = new MoreUI();
+            moreUI.show();
         }
     }
 
@@ -201,6 +207,7 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         textPubKey.setEnabled(enable);
         textSecKey.setEnabled(enable);
         textCpId.setEnabled(enable);
+        textCpKey.setEnabled(enable);
         textSuffix.setEnabled(enable);
         btnSubmit.setEnabled(enable);
         btnDrawableChoose.setEnabled(enable);
@@ -319,12 +326,6 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         dialog.setVisible(true);
     }
 
-    public void setLocation(JDialog dialog) {
-        int x = frame_locx - dialog.getWidth() / 2 + FRAME_WIDTH / 2;
-        int y = frame_locy - dialog.getHeight() / 2 + FRAME_HEIGHT / 2;
-        dialog.setLocation(x, y);
-    }
-
     public JFileChooser showFileChooser(String filterDesc, int mode, String... filters) {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(mode);
@@ -335,20 +336,6 @@ public class HomeUI extends ComponentAdapter implements ItemListener, ActionList
         }
         chooser.showDialog(new JLabel(), "选择");
         return chooser;
-    }
-
-    @Override
-    public void componentResized(ComponentEvent e) {
-        super.componentResized(e);
-    }
-
-    @Override
-    public void componentMoved(ComponentEvent e) {
-        Component comp = e.getComponent();
-
-        //更新当前窗口所在的坐标
-        frame_locx = comp.getX();
-        frame_locy = comp.getY();
     }
 
     public void setCloseListener(OnCloseListener closeListener) {

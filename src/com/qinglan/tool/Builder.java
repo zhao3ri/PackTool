@@ -27,6 +27,10 @@ public class Builder extends BaseCompiler {
     private static final String ATTRIBUTE_NAME = "name";
 
     private static final String CHANNEL_PREFIX = "qlsdk_";
+    private static final String CHANNEL_REGEX = CHANNEL_PREFIX + "\\d+";
+    private static final String BUILD_PATH = OUT_PATH + File.separator + "build";
+    private static final String BUILD_APK_PATH = BUILD_PATH + File.separator + "apk";
+    private static final String DEFAULT_APK_NAME = "build.apk";
     private List<String> packageNameFilter;
     private String mPackageName;
     private Map<String, String> applicationIcons;
@@ -45,6 +49,7 @@ public class Builder extends BaseCompiler {
         addPackageFilter("com.huawei");
         addPackageFilter("com.unionpay");
         addPackageFilter("com.bignox.sdk");
+        addPackageFilter("com.game.sdk");
     }
 
     private void addPackageFilter(String pkg) {
@@ -60,7 +65,7 @@ public class Builder extends BaseCompiler {
             delUnrelatedRes(appId, appKey, pubKey, secretKey, cpId, cpKey);
             delUnrelatedAssets();
             delUnrelatedLibs();
-//            delClasses();
+            delChannelClass();
             updatePackage(suffix);
             addChannelFile();
             String apkPath = buildApk();
@@ -157,130 +162,21 @@ public class Builder extends BaseCompiler {
      * 删除无关渠道的res文件
      */
     private void delUnrelatedRes(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) throws IOException {
-        File resDir = new File(RES_PATH);
-        for (Channel channel : exceptChannels) {
-            if (channel.getFilter().getResNames() == null
-                    || channel.getFilter().getResNames().isEmpty()) {
-                Log.dln(channel.getName() + " no existed res filter.");
-                continue;
-            }
+        ResourceHelper resourceHelper = new ResourceHelper(RES_PATH, appId, appKey, pubKey, secretKey, cpId, cpKey);
 
-            //删除res下无关渠道文件
-            if (resDir.exists() && resDir.isDirectory()) {
-                String[] resStringNames = resDir.list();
-                for (String name : resStringNames) {
-                    String resPath = resDir.getAbsolutePath() + File.separator + name;
-                    if (name.startsWith(RES_VALUE)) {
-                        delValues(channel, resPath, appId, appKey, pubKey, secretKey, cpId, cpKey);
-                    } else {
-                        delRes(channel, resPath);
-                    }
-                }
-            }//if
+        for (Channel channel : exceptChannels) {
+            resourceHelper.deleteUnrelatedChannelResource(channel);
         }//for
     }
 
-    private void delRes(Channel channel, String resPath) throws IOException {
-        File resFile = new File(resPath);
-        if (resFile.exists() && resFile.isDirectory()) {
-            Iterator<String> iterator = Arrays.asList(resFile.list()).iterator();
-            while (iterator.hasNext()) {
-                String fileName = iterator.next();
-                for (String matchName : channel.getFilter().getResNames()) {
-                    String path = resFile.getCanonicalPath();
-                    FileUtil.delMatchFile(path, fileName, matchName);
-                }
+    private void delChannelClass() throws IOException {
+        File channelDir = new File(SMALI_PATH + File.separator + replacePackageSeparator(CHANNEL_PACKAGE_NAME, File.separator));
+        Iterator<File> iterator = Arrays.asList(channelDir.listFiles()).iterator();
+        while (iterator.hasNext()) {
+            File file = iterator.next();
+            if (file.isDirectory() && !file.getName().equals(CHANNEL_SUB_NAME_ENTITY)) {
+                FileUtil.delFolder(file.getCanonicalPath());
             }
-        }
-    }
-
-    private void delValues(Channel channel, String resName, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
-        File valueFile = new File(resName);
-        if (valueFile.exists() && valueFile.isDirectory()) {
-            String[] files = valueFile.list();
-            for (String file : files) {
-                readValueXml(channel, getPath(valueFile.getAbsolutePath()) + file, appId, appKey, pubKey, secretKey, cpId, cpKey);
-            }
-        }
-    }
-
-    private void readValueXml(Channel channel, String path, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
-        Document document = XmlTool.createDocument(path);
-        NodeList nodeList = XmlTool.getDocumentRootNodeList(document);
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node item = nodeList.item(i);
-            if (item.getAttributes() != null && item.getAttributes().getNamedItem(ATTRIBUTE_NAME) != null) {
-                //获取android:name的值
-                Node attributeNode = item.getAttributes().getNamedItem(ATTRIBUTE_NAME);
-                String attributeName = attributeNode.toString();
-                String name = attributeName.substring(attributeName.indexOf('"') + 1, attributeName.lastIndexOf('"'));
-                //若当前是string资源，则查找替换渠道配置
-                if (item.getNodeName().equals(TAG_VALUES_STRING))
-                    updateResConfig(item, name, appId, appKey, pubKey, secretKey, cpId, cpKey);
-                for (String regex : channel.getFilter().getResNames()) {
-                    matchesStyle(item, regex);
-                    if (Utils.matches(regex, name)) {
-                        item.getParentNode().removeChild(item);
-                    }
-                }
-            }
-        }
-        XmlTool.saveXml(document, path);
-    }
-
-    private void matchesStyle(Node item, String regex) {
-        if (!item.getNodeName().equals(TAG_VALUES_STYLE))
-            return;
-        if (!item.hasChildNodes())
-            return;
-        NodeList styleItems = item.getChildNodes();
-        for (int i = 0; i < styleItems.getLength(); i++) {
-            Node styleItem = styleItems.item(i);
-            String text = styleItem.getTextContent();
-            if (!text.contains("@") || text.indexOf("/") < 0) {
-                continue;
-            }
-            String name = text.substring(text.indexOf("/") + 1);
-            if (Utils.matches(regex, name)) {
-//                item.getParentNode().removeChild(item);
-                //不能直接删除父标签，因为若未在res过滤中配置style名称，可能导致编译出错
-                item.removeChild(styleItem);
-            }
-        }
-    }
-
-    private void updateResConfig(Node item, String attribute, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
-        if (!item.getNodeName().equals(TAG_VALUES_STRING)) {
-            return;
-        }
-        if (attribute.equals(RES_NAME_APP_ID) && !Utils.isEmpty(appId)) {
-            item.setTextContent(appId.trim());
-        } else if (attribute.equals(RES_NAME_APP_KEY) && !Utils.isEmpty(appKey)) {
-            item.setTextContent(appKey);
-        } else if (attribute.equals(RES_NAME_PUBLIC_KEY) && !Utils.isEmpty(pubKey)) {
-            item.setTextContent(pubKey);
-        } else if (attribute.equals(RES_NAME_SECRET_KEY) && !Utils.isEmpty(secretKey)) {
-            item.setTextContent(secretKey);
-        } else if (attribute.equals(RES_NAME_CP_ID) && !Utils.isEmpty(cpId)) {
-            item.setTextContent(cpId);
-        } else if (attribute.equals(RES_NAME_CP_KEY) && !Utils.isEmpty(cpId)) {
-            item.setTextContent(cpKey);
-        }
-    }
-
-    /**
-     * 添加渠道文件qlsdk_[channelId]
-     */
-    private void addChannelFile() throws IOException {
-        String channelFile = FileUtil.findFile(ASSETS_PATH, CHANNEL_PREFIX + "\\d+");
-        if (channelFile != null) {
-            int id = Integer.valueOf(channelFile.substring(channelFile.indexOf(CHANNEL_PREFIX) + CHANNEL_PREFIX.length()));
-            if (id != currChannel.getId()) {
-                FileUtil.renameFile(ASSETS_PATH + File.separator + CHANNEL_PREFIX + id,
-                        ASSETS_PATH + File.separator + CHANNEL_PREFIX + currChannel.getId());
-            }
-        } else {
-            FileUtil.createFile(ASSETS_PATH, CHANNEL_PREFIX + currChannel.getId());
         }
     }
 
@@ -339,27 +235,24 @@ public class Builder extends BaseCompiler {
         return rp;
     }
 
-    private void delClasses() throws Exception {
-//        String scriptPath = BIN_PATH + File.separator + "dex2jar-2.0" + File.separator + "d2j-dex2jar.bat";
-        String scriptPath = BIN_PATH + File.separator + "dex2jar.bat";
-        int result = Utils.execShell(scriptPath/*, "--force", OUT_PATH + File.separator + "classes.dex"*/, OUT_PATH + File.separator + "classes.dex");
-        if (result == 0) {
-            String dexJar = BIN_PATH + File.separator + "classes-dex2jar.jar";
-            FileUtil.deleteFile(dexJar);
-            List<String> deletes = new ArrayList<>();
-            for (Channel channel : exceptChannels) {
-                if (null == channel.getFilter().getPackageNameList() || channel.getFilter().getPackageNameList().isEmpty())
-                    continue;
-                for (Filter.Package pkg : channel.getFilter().getPackageNameList()) {
-                    deletes.add(pkg.getName().replace(".", "/"));
-                }
+    /**
+     * 添加渠道文件qlsdk_[channelId]
+     */
+    private void addChannelFile() throws IOException {
+        String channelFile = FileUtil.findFile(ASSETS_PATH, CHANNEL_REGEX);
+        if (channelFile != null) {
+            int id = Integer.valueOf(channelFile.substring(channelFile.indexOf(CHANNEL_PREFIX) + CHANNEL_PREFIX.length()));
+            if (id != currChannel.getId()) {
+                FileUtil.renameFile(ASSETS_PATH + File.separator + CHANNEL_PREFIX + id,
+                        ASSETS_PATH + File.separator + CHANNEL_PREFIX + currChannel.getId());
             }
-            Utils.delete(dexJar, deletes);
+        } else {
+            FileUtil.createFile(ASSETS_PATH, CHANNEL_PREFIX + currChannel.getId());
         }
     }
 
     private String buildApk() throws BrutException {
-        String apkName = "build.apk";
+        String apkName = DEFAULT_APK_NAME;
         if (!Utils.isEmpty(decodeApkName)) {
             apkName = String.format("%s-%s.apk", decodeApkName, currChannel.getName());
         }
@@ -367,11 +260,10 @@ public class Builder extends BaseCompiler {
         Androlib androlib = new Androlib();
         File appDir = new File(OUT_PATH);
         androlib.buildResourcesFull(appDir, androlib.readMetaFile(new ExtFile(appDir)).usesFramework);
-        String buildPath = OUT_PATH + File.separator + "build" + File.separator + "apk";
         FileUtil.delFolder(RES_PATH);
         FileUtil.deleteFile(MANIFEST_PATH);
-        FileUtil.copyFolder(new File(buildPath), new File(OUT_PATH));
-        FileUtil.delFolder(OUT_PATH + File.separator + "build");
+        FileUtil.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
+        FileUtil.delFolder(BUILD_PATH);
         String apkPath = BIN_PATH + File.separator + apkName;
         androlib.build(appDir, new File(apkPath));
 //        String scriptPath = String.format("%s b %s -o %s -a %s", APKTOOL_PATH, OUT_PATH, apkPath, BIN_PATH + File.separator + "aapt.exe");

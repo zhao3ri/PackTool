@@ -34,15 +34,10 @@ public abstract class BaseCompiler {
     public static final String APP_KEY_TAG = "qinglanChannelAppKey";
     public static final String CP_ID_TAG = "qinglanChannelCpId";
     public static final String CP_KEY_TAG = "qinglanChannelCpKey";
-    /**
-     * 第三方渠道res配置文件名
-     */
-    public static final String RES_NAME_APP_ID = "qlsdk_third_party_appid";
-    public static final String RES_NAME_APP_KEY = "qlsdk_third_party_appkey";
-    public static final String RES_NAME_PUBLIC_KEY = "qlsdk_third_party_pubkey";
-    public static final String RES_NAME_CP_ID = "qlsdk_third_party_cpid";
-    public static final String RES_NAME_CP_KEY = "qlsdk_third_party_cpkey";
-    public static final String RES_NAME_SECRET_KEY = "qlsdk_third_party_seckey";
+    public static final String LAUNCHER_TAG = "qinglanChannelLauncher";
+
+    public static final String CHANNEL_PACKAGE_NAME = "com.qinglan.sdk.android.channel";
+    public static final String CHANNEL_SUB_NAME_ENTITY = "entity";
 
     protected Channel currChannel;
     protected List<Channel> exceptChannels;

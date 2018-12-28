@@ -12,7 +12,10 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 
+import static com.qinglan.tool.BaseCompiler.OUT_DIR_PREFIX;
 import static com.qinglan.tool.Main.ROOT_PATH;
+import static com.qinglan.tool.util.FileUtil.createFileDir;
+import static com.qinglan.tool.util.FileUtil.searchApk;
 
 /**
  * Created by zhaoj on 2018/10/29.
@@ -64,10 +67,15 @@ public class ChannelManager {
             public void execute() {
                 Channel channel = getChannel(channelId);
                 Log.dln("channel===" + channel);
+                //查找当前目录下的apk，并创建输出目录
+                String path = createOutDir();
+                //初始化Decoder
                 Decoder decoder = new Decoder(channel, channels);
-                int result = decoder.decode();
+                decoder.setApkName(apkName);
+
+                int result = decoder.decode(path);
                 if (result == CODE_SUCCESS) {
-                    apkName = decoder.updateConfig(appId, appKey, cpId, cpKey, suffix);
+                    decoder.updateConfig(appId, appKey, cpId, cpKey, suffix);
                     Builder builder = new Builder(channel, channels);
                     builder.setApkName(apkName);
                     builder.setPackageName(decoder.getPackageName());
@@ -82,6 +90,17 @@ public class ChannelManager {
                 }
             }
         }.start();
+    }
+
+    private String createOutDir() {
+        File apk = searchApk(ROOT_PATH);
+        if (apk != null) {
+            apkName = apk.getName().substring(0, apk.getName().indexOf("."));
+            createFileDir(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkName + File.separator);
+//                FileUtil.createOutDir(apk, new File(outPath + apk.getName()));
+            return apk.getAbsolutePath();
+        }
+        return null;
     }
 
     public void setChannelId(int id) {

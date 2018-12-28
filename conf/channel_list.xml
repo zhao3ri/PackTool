@@ -25,7 +25,7 @@
         </channel>
 
         <!--华为渠道-->
-        <channel id="2" name="Huawei">
+        <channel id="2" name="华为">
             <class-name>HMSChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
@@ -51,7 +51,7 @@
         </channel>
 
         <!--夜神渠道-->
-        <channel id="3" name="YeShen">
+        <channel id="3" name="夜神">
             <class-name>YeshenChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
@@ -75,12 +75,13 @@
 
         <!--游戏fun渠道-->
         <!--id为服务端分配的平台id，不可随意更改，name可根据需要修改-->
-        <channel id="4" name="YXF">
+        <channel id="4" name="游戏fun">
             <class-name>YXFChannel</class-name>
             <!--渠道对应资源的过滤器，二次打包时使用，将根据以下列表筛选-->
             <filter>
                 <!--渠道包根目录的包名-->
                 <package-list>
+                    <!--这个。。。。。-->
                     <package base-name="com.game.sdk"/>
                 </package-list>
                 <!--渠道需要的jar和so包，支持通配符"*""?"，需要扩展名，如.jar/.aar/.so等-->
@@ -102,9 +103,9 @@
             <class-name>HuoSdkChannel</class-name>
             <filter>
                 <package-list>
-                    <package base-name="com.game.sdk.domain"/>
+                    <package base-name="com.game.sdk"/>
                     <!--使用了imageloader-->
-                    <package base-name="com.nostra13.universalimageloader"/>
+                    <!--<package base-name="com.nostra13.universalimageloader"/>-->
                 </package-list>
                 <libs>
                     <lib>HuoSusdk*.jar</lib>
@@ -117,6 +118,49 @@
                     <name>floater_hide_tips_02</name>
                     <name>floater_hide_tips_03</name>
                 </res>
+            </filter>
+        </channel>
+
+        <!--汉风渠道-->
+        <channel id="6" name="汉风">
+            <class-name>HanfengChannel</class-name>
+            <launcher>hf.sdk.common.components.HfWelcomeActivity</launcher>
+            <filter>
+                <package-list>
+                    <package base-name="hf.sdk"/>
+                    <package base-name="com.hanfeng"/>
+                </package-list>
+                <assets>
+                    <asset>yhsdk</asset>
+                </assets>
+                <res>
+                    <name>yhsdk*</name>
+                    <name>hf_*</name>
+                </res>
+                <libs>
+                    <lib>libentryexpro.so</lib>
+                    <lib>libuptsmaddon.so</lib>
+                    <lib>hf_*.jar</lib>
+                </libs>
+            </filter>
+        </channel>
+
+        <!--虫虫渠道-->
+        <channel id="7" name="虫虫">
+            <class-name>ChongchongChannel</class-name>
+            <filter>
+                <package-list>
+                    <package base-name="com.lion"/>
+                    <package base-name="com.xbfxmedia.player"/>
+                </package-list>
+                <res>
+                    <name>lion*</name>
+                </res>
+                <libs>
+                    <lib>libentryexpro.so</lib>
+                    <lib>libuptsmaddon.so</lib>
+                    <lib>libXBFX*.so</lib>
+                </libs>
             </filter>
         </channel>
     </channel-list>

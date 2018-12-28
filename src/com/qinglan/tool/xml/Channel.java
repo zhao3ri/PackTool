@@ -15,6 +15,9 @@ public class Channel {
     @JacksonXmlProperty(localName = "class-name")
     String clazz;
 
+    @JacksonXmlProperty(localName = "launcher")
+    String launcher;
+
     @JacksonXmlProperty(localName = "filter")
     Filter filter;
 
@@ -52,6 +55,15 @@ public class Channel {
     @XmlElement(name = "filter")
     public void setFilter(Filter filter) {
         this.filter = filter;
+    }
+
+    public String getLauncher() {
+        return launcher;
+    }
+
+    @XmlElement(name = "launcher")
+    public void setLauncher(String launcher) {
+        this.launcher = launcher;
     }
 
     @Override

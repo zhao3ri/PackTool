@@ -103,32 +103,6 @@ public class XmlTool {
     public static void addElement(Document document, Element addEle) {
         Element root = document.getDocumentElement();
         root.appendChild(addEle);
-//        Element root = document.getDocumentElement();
-//
-//        //解决问题步骤1、创建节点 创建属性 创建内容 2、写入内容 写入属性 写入节点
-//        //1、创建
-//        //创建students节点以及students下的name节点与age节点
-//        Element stuEle = document.createElement("student");
-//        Element nameEle = document.createElement("name");
-//        Element ageEle = document.createElement("age");
-//        //创建name与age内容
-//        Text nameText = document.createTextNode("赵六");
-//        Text ageText = document.createTextNode("21");
-//        //创建student节点属性sn=04
-//        Attr stuAttr = document.createAttribute("sn");
-//        stuAttr.setValue("04");
-//
-//        //2、写入
-//        //写入属性
-//        stuEle.setAttributeNode(stuAttr);
-//        //把name、age写入student下
-//        stuEle.appendChild(nameEle);
-//        stuEle.appendChild(ageEle);
-//        //写入内容
-//        nameEle.appendChild(nameText);
-//        ageEle.appendChild(ageText);
-//        //把student写入根节点下
-//        root.appendChild(stuEle);
     }
 
     public static void saveXml(Document document, String xmlPath) {

@@ -13,6 +13,9 @@ import static com.qinglan.tool.BaseCompiler.DRAWABLE_ICON_LAUNCHER;
 import static com.qinglan.tool.BaseCompiler.RES_PATH;
 import static com.qinglan.tool.entity.ApkInfo.*;
 
+/**
+ * 用于替换图标和闪屏图片
+ */
 public class DrawableReplaceHelper {
     private String replacePath;
     private Map<String, String> replaceIcons;
