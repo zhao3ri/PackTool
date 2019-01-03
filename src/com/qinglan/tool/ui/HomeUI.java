@@ -2,7 +2,7 @@ package com.qinglan.tool.ui;
 
 import com.qinglan.common.Log;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.entity.Channel;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -14,7 +14,7 @@ import java.util.List;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 
 public class HomeUI extends BaseUI implements ItemListener, ActionListener {
-    private JFrame frame;
+    private static final String LINE = "________________________________________________________";
     private Container container;
     private JButton btnChoose;
     private JTextField textApkPath;
@@ -31,16 +31,44 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
     private JTextField textDrawable;
     private JButton btnDrawableChoose;
     private JLabel labMsg;
+    private JLabel labApkInfo;
 
     //    private MoreUI moreUI;
     private OnCloseListener closeListener;
     private OnSubmitClickListener submitClickListener;
     private OnChangedChannelListener changedChannelListener;
+    private MoreUI.OnConfirmClickListener onConfirmClickListener;
 
     private String currentPath;
 
+    private String drawablePath;
+    private String minSdk;
+    private String targetSdk;
+    private String versionCode;
+    private String versionName;
+
     public HomeUI(List<Channel> channelList, String path) {
+        super();
         currentPath = path;
+        container = frame.getContentPane();
+//        addApkChoose();
+        addChannelListCheckBox(channelList);
+        addChooseDrawable();
+        addConfigPanel();
+        addButton();
+        addLabel();
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (closeListener != null)
+                    closeListener.onClose();
+            }
+        });
+    }
+
+    @Override
+    protected JFrame createFrame() {
         frame = new JFrame();
         frame.setTitle("QL打包工具");
         frame.setLayout(new FlowLayout());
@@ -50,21 +78,7 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         frame.addComponentListener(this);
 //        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//关闭窗口
         frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        container = frame.getContentPane();
-//        addApkChoose();
-        addChannelListCheckBox(channelList);
-        addChooseDrawable();
-        addConfigPanel();
-        addButton();
-
-        frame.setVisible(true);
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (closeListener != null)
-                    closeListener.onClose();
-            }
-        });
+        return frame;
     }
 
     private void addApkChoose() {
@@ -113,25 +127,6 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         container.add(panel);
     }
 
-    private void addButton() {
-        JPanel panel = new JPanel();
-        panel.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
-        panel.setLayout(new GridLayout(2, 2, 5, 5));
-        btnSubmit = new JButton("提交");
-        btnSubmit.setSize(50, 15);
-        btnSubmit.addActionListener(this);
-        panel.add(btnSubmit);
-
-        btnMore = new JButton("更多");
-        btnMore.setSize(50, 15);
-        btnMore.addActionListener(this);
-        panel.add(btnMore);
-
-        labMsg = addLabelMsg();
-        panel.add(labMsg);
-        container.add(panel);
-    }
-
     private void addConfigPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(7, 1, 5, 5));
@@ -145,24 +140,41 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         container.add(panel);
     }
 
-    private JTextField setConfigPanel(String text, JPanel panel, int columns) {
-        JLabel label = new JLabel(text);
-//        labelPublicKey.setHorizontalAlignment(SwingConstants.CENTER);
-        JTextField textField = new JTextField(columns);
-        panel.add(label);
-        panel.add(textField);
-        return textField;
+    private void addButton() {
+        JPanel panel = new JPanel();
+        panel.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
+        panel.setLayout(new GridLayout(1, 2, 5, 10));
+        btnSubmit = new JButton("提交");
+        btnSubmit.setSize(50, 15);
+        btnSubmit.addActionListener(this);
+        panel.add(btnSubmit);
+
+        btnMore = new JButton("更多");
+        btnMore.setSize(50, 15);
+        btnMore.addActionListener(this);
+        panel.add(btnMore);
+        container.add(panel);
     }
 
-    private JLabel addLabelMsg() {
-        JLabel lab = new JLabel("", JLabel.CENTER);
-        lab.setLayout(new GridLayout(1, 1));
-        lab.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
+    private void addLabel() {
+        JPanel panel = new JPanel();
+        panel.setMinimumSize(new Dimension(FRAME_WIDTH, 50));
+        panel.setLayout(new GridLayout(3, 1, 0, 5));
+        labApkInfo = new JLabel("", JLabel.CENTER);
+        labApkInfo.setForeground(Color.RED);
+        panel.add(labApkInfo);
+
+        JLabel line = new JLabel(LINE, JLabel.CENTER);
+        line.setForeground(Color.LIGHT_GRAY);
+        panel.add(line);
+
+        labMsg = new JLabel("", JLabel.CENTER);
+        labMsg.setMinimumSize(new Dimension(FRAME_WIDTH, 0));
 //        Font fnt = new Font("Default", Font.BOLD, 30);
 //        lab.setFont(fnt);
-        lab.setForeground(Color.BLUE);
-        container.add(lab);
-        return lab;
+        labMsg.setForeground(Color.BLUE);
+        panel.add(labMsg);
+        container.add(panel);
     }
 
     @Override
@@ -181,15 +193,21 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
                 submitClickListener.onClick(textAppId.getText(), textAppKey.getText(), textPubKey.getText()
                         , textSecKey.getText(), textCpId.getText(), textCpKey.getText(), textSuffix.getText());
         } else if (e.getSource() == btnChoose) {
-            JFileChooser chooser = showFileChooser("APK", JFileChooser.FILES_ONLY, "apk");
+            JFileChooser chooser = showFileChooser("APK", JFileChooser.FILES_ONLY, "apk", currentPath);
             File file = chooser.getSelectedFile();
             textApkPath.setText(file.getAbsoluteFile().toString());
         } else if (e.getSource() == btnDrawableChoose) {
-            JFileChooser chooser = showFileChooser(null, JFileChooser.DIRECTORIES_ONLY);
+            JFileChooser chooser = showFileChooser(null, JFileChooser.DIRECTORIES_ONLY, drawablePath);
             File file = chooser.getSelectedFile();
-            textDrawable.setText(file.getAbsoluteFile().toString());
+            drawablePath = file.getAbsoluteFile().toString();
+            textDrawable.setText(drawablePath);
         } else if (e.getSource() == btnMore) {
             MoreUI moreUI = new MoreUI();
+            moreUI.setOnConfirmClickListener(onConfirmClickListener);
+            moreUI.setMinSDK(minSdk);
+            moreUI.setTargetSDK(targetSdk);
+            moreUI.setVersionCode(versionCode);
+            moreUI.setVersionName(versionName);
             moreUI.show();
         }
     }
@@ -210,71 +228,77 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         textCpKey.setEnabled(enable);
         textSuffix.setEnabled(enable);
         btnSubmit.setEnabled(enable);
+        btnMore.setEnabled(enable);
         btnDrawableChoose.setEnabled(enable);
-        if (enable)
-            textDrawable.setText("");
     }
 
-    public void showDialog(String msg) {
-        showDialog(msg, false);
+    public void setDrawablePath(String path) {
+        setText(path, textDrawable);
+        drawablePath = path;
     }
 
-    public void showDialog(String msg, boolean addBtn) {
-        showDialog(msg, addBtn, null, null);
+    public void setAppIdText(String id) {
+        setText(id, textAppId);
     }
 
-    public void showDialog(String msg, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
-        showDialog(msg, true, listener, closeListener);
+    public void setAppKeyText(String key) {
+        setText(key, textAppKey);
     }
 
-    private void showDialog(String msg, boolean addBtn, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
-        final JDialog dialog = new JDialog(frame, "Tips", false);
-        dialog.setMinimumSize(new Dimension(200, 125));
-        setLocation(dialog);
-        dialog.setLayout(new GridLayout(2, 1));
-        JLabel label = new JLabel();
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setText(msg);
-        dialog.add(label);
-        if (addBtn) {
-            JPanel panel = new JPanel();
-            JButton btnYes = new JButton("是");
-            JButton btnNo = new JButton("否");
-            btnYes.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    dialog.setVisible(false);
-                    if (listener != null)
-                        listener.onPositive();
-                }
-            });
-            btnNo.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    dialog.setVisible(false);
-                    if (listener != null)
-                        listener.onNegative();
-                }
-            });
-            FlowLayout fl = (FlowLayout) panel.getLayout();
-            fl.setHgap(10);//水平间距
-            fl.setVgap(10);//组件垂直间距
-            panel.setLayout(fl);
-            panel.add(btnYes);
-            panel.add(btnNo);
-            dialog.add(panel);
+    public void setPublicKeyText(String key) {
+        setText(key, textPubKey);
+    }
+
+    public void setSecretKeyText(String key) {
+        setText(key, textSecKey);
+    }
+
+    public void setCpIdText(String id) {
+        setText(id, textCpId);
+    }
+
+    public void setCpKeyText(String key) {
+        setText(key, textCpKey);
+    }
+
+    public void setSuffixText(String suffix) {
+        setText(suffix, textSuffix);
+    }
+
+    private void setText(String text, JTextField textField) {
+        if (text == null) {
+            textField.setText("");
+        } else {
+            textField.setText(text);
         }
-        dialog.setResizable(false);
-        dialog.setVisible(true);
-        dialog.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
-                dialog.setVisible(false);
-                if (closeListener != null)
-                    closeListener.onClose();
-            }
-        });
+    }
+
+    public void setMessage(String msg) {
+        labMsg.setText(msg);
+    }
+
+    public void setApkInfoText(String text) {
+        labApkInfo.setText(text);
+    }
+
+    public String getDrawablePath() {
+        return drawablePath;
+    }
+
+    public void setMinSDK(String min) {
+        minSdk = min;
+    }
+
+    public void setTargetSDK(String target) {
+        targetSdk = target;
+    }
+
+    public void setVersionCode(String versionCode) {
+        this.versionCode = versionCode;
+    }
+
+    public void setVersionName(String versionName) {
+        this.versionName = versionName;
     }
 
     public void showSignChooseDialog(final OnSignChooseClickListener chooseClickListener, final OnSignCompleteClickListener completeClickListener
@@ -294,7 +318,7 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         btnChoose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser chooser = showFileChooser(filterDesc, JFileChooser.FILES_ONLY, filters);
+                JFileChooser chooser = showFileChooser(filterDesc, JFileChooser.FILES_ONLY, currentPath, filters);
                 textSignPath.setText(chooser.getSelectedFile().getAbsolutePath());
                 if (chooseClickListener != null)
                     chooseClickListener.onClick(textSignPath);
@@ -326,10 +350,13 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         dialog.setVisible(true);
     }
 
-    public JFileChooser showFileChooser(String filterDesc, int mode, String... filters) {
+    public JFileChooser showFileChooser(String filterDesc, int mode, String path, String... filters) {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(mode);
-        chooser.setCurrentDirectory(new File(currentPath));
+        if (Utils.isEmpty(path)) {
+            path = currentPath;
+        }
+        chooser.setCurrentDirectory(new File(path));
         if (!Utils.isEmpty(filterDesc) && null != filters) {
             FileNameExtensionFilter filter = new FileNameExtensionFilter(filterDesc, filters);
             chooser.setFileFilter(filter);
@@ -350,12 +377,8 @@ public class HomeUI extends BaseUI implements ItemListener, ActionListener {
         this.changedChannelListener = changedChannelListener;
     }
 
-    public void setMessage(String msg) {
-        labMsg.setText(msg);
-    }
-
-    public String getDrawablePath() {
-        return textDrawable.getText();
+    public void setOnConfirmClickListener(MoreUI.OnConfirmClickListener listener) {
+        onConfirmClickListener = listener;
     }
 
     public interface OnCloseListener {

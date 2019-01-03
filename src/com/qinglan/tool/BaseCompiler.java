@@ -1,7 +1,6 @@
 package com.qinglan.tool;
 
-import com.qinglan.common.Log;
-import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.entity.Channel;
 
 import java.io.File;
 import java.util.ArrayList;

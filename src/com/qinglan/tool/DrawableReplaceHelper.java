@@ -1,7 +1,7 @@
 package com.qinglan.tool;
 
 import com.qinglan.common.Log;
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
 
 import java.io.File;
@@ -127,15 +127,15 @@ public class DrawableReplaceHelper {
         String path = getPath(drawables, suffix, delete);
         if (Utils.isEmpty(path)) {
             if (delete) {
-                FileUtil.deleteFile(drawablePath + File.separator + drawableName);
+                FileUtils.deleteFile(drawablePath + File.separator + drawableName);
             }
             return false;
         }
         File file = new File(path);
         String fileName = file.getName();
-        FileUtil.copyFile(file, new File(drawablePath + File.separator + fileName));
-        FileUtil.deleteFile(drawablePath + File.separator + drawableName);
-        FileUtil.renameFile(drawablePath + File.separator + fileName, drawablePath + File.separator + drawableName);
+        FileUtils.copyFile(file, new File(drawablePath + File.separator + fileName));
+        FileUtils.deleteFile(drawablePath + File.separator + drawableName);
+        FileUtils.renameFile(drawablePath + File.separator + fileName, drawablePath + File.separator + drawableName);
         return true;
     }
 

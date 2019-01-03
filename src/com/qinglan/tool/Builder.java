@@ -4,28 +4,18 @@ import brut.androlib.Androlib;
 import brut.androlib.res.util.ExtFile;
 import brut.common.BrutException;
 import com.qinglan.common.Log;
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
-import com.qinglan.tool.xml.Filter;
-import com.qinglan.tool.xml.XmlTool;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import com.qinglan.tool.entity.Channel;
+import com.qinglan.tool.entity.Filter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.qinglan.tool.util.FileUtil.getPath;
+import static com.qinglan.tool.util.FileUtils.getPath;
 
 public class Builder extends BaseCompiler {
-    private static final String TAG_VALUES_STRING = "string";
-    private static final String TAG_VALUES_STYLE = "style";
-    private static final String RES_VALUE = "value";
-    private static final String RES_DRAWABLE = "drawable";
-    private static final String ATTRIBUTE_NAME = "name";
-
     private static final String CHANNEL_PREFIX = "qlsdk_";
     private static final String CHANNEL_REGEX = CHANNEL_PREFIX + "\\d+";
     private static final String BUILD_PATH = OUT_PATH + File.separator + "build";
@@ -103,9 +93,9 @@ public class Builder extends BaseCompiler {
                         if (assetsFileName.equals(asset)) {
                             File assetFile = new File(getPath(assetsDir.getAbsolutePath()) + assetsFileName);
                             if (assetFile.isDirectory())
-                                FileUtil.delFolder(assetFile.getAbsolutePath());
+                                FileUtils.delFolder(assetFile.getAbsolutePath());
                             else
-                                FileUtil.deleteFile(assetFile.getAbsolutePath());
+                                FileUtils.deleteFile(assetFile.getAbsolutePath());
                         }
                     }
                 }
@@ -147,7 +137,7 @@ public class Builder extends BaseCompiler {
     private void delLibDirFile(File file, String filter) {
         if (file.isFile()) {
             String path = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator));
-            FileUtil.delMatchFile(path, file.getName(), filter);
+            FileUtils.delMatchFile(path, file.getName(), filter);
         } else {
             Iterator<String> iterator = Arrays.asList(file.list()).iterator();
             while (iterator.hasNext()) {
@@ -175,7 +165,7 @@ public class Builder extends BaseCompiler {
         while (iterator.hasNext()) {
             File file = iterator.next();
             if (file.isDirectory() && !file.getName().equals(CHANNEL_SUB_NAME_ENTITY)) {
-                FileUtil.delFolder(file.getCanonicalPath());
+                FileUtils.delFolder(file.getCanonicalPath());
             }
         }
     }
@@ -187,7 +177,7 @@ public class Builder extends BaseCompiler {
             }
             for (Filter.Package pkg : channel.getFilter().getPackageNameList()) {
                 String pkgFileName = replacePackageSeparator(pkg.getName(), "/");
-                FileUtil.delFolder(SMALI_PATH + File.separator + pkgFileName);
+                FileUtils.delFolder(SMALI_PATH + File.separator + pkgFileName);
             }
         }
         if (Utils.isEmpty(suffix)) {
@@ -202,9 +192,9 @@ public class Builder extends BaseCompiler {
         File sourceFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName, File.separator));
         File destFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(String.format("%s.%s", mPackageName, suffix), File.separator));
         File tmpFile = new File(SMALI_PATH + File.separator + replacePackageSeparator(mPackageName + "0", File.separator));
-        FileUtil.renameFile(sourceFile, tmpFile);
-        FileUtil.copyFolder(tmpFile, destFile);
-        FileUtil.delFolder(tmpFile.getCanonicalPath());
+        FileUtils.renameFile(sourceFile, tmpFile);
+        FileUtils.copyFolder(tmpFile, destFile);
+        FileUtils.delFolder(tmpFile.getCanonicalPath());
     }
 
     private void readSmail(String fileName, String suffix) throws IOException {
@@ -216,8 +206,8 @@ public class Builder extends BaseCompiler {
             if (!Utils.isEmpty(mPackageName) && !Utils.isEmpty(suffix)) {
                 String[] targets = new String[]{mPackageName, replacePackageSeparator(mPackageName, "/")};
                 String[] replaces = new String[]{String.format("%s.%s", mPackageName, suffix), replacePackageSeparator(String.format("%s.%s", mPackageName, suffix), "/")};
-                String content = FileUtil.readAndReplaceFile(file.getCanonicalPath(), targets, replaces);
-                FileUtil.writer2File(file.getCanonicalPath(), content);
+                String content = FileUtils.readAndReplaceFile(file.getCanonicalPath(), targets, replaces);
+                FileUtils.writer2File(file.getCanonicalPath(), content);
             }
         } else {
             Iterator<String> iterator = Arrays.asList(file.list()).iterator();
@@ -239,15 +229,15 @@ public class Builder extends BaseCompiler {
      * 添加渠道文件qlsdk_[channelId]
      */
     private void addChannelFile() throws IOException {
-        String channelFile = FileUtil.findFile(ASSETS_PATH, CHANNEL_REGEX);
+        String channelFile = FileUtils.findFile(ASSETS_PATH, CHANNEL_REGEX);
         if (channelFile != null) {
             int id = Integer.valueOf(channelFile.substring(channelFile.indexOf(CHANNEL_PREFIX) + CHANNEL_PREFIX.length()));
             if (id != currChannel.getId()) {
-                FileUtil.renameFile(ASSETS_PATH + File.separator + CHANNEL_PREFIX + id,
+                FileUtils.renameFile(ASSETS_PATH + File.separator + CHANNEL_PREFIX + id,
                         ASSETS_PATH + File.separator + CHANNEL_PREFIX + currChannel.getId());
             }
         } else {
-            FileUtil.createFile(ASSETS_PATH, CHANNEL_PREFIX + currChannel.getId());
+            FileUtils.createFile(ASSETS_PATH, CHANNEL_PREFIX + currChannel.getId());
         }
     }
 
@@ -260,10 +250,10 @@ public class Builder extends BaseCompiler {
         Androlib androlib = new Androlib();
         File appDir = new File(OUT_PATH);
         androlib.buildResourcesFull(appDir, androlib.readMetaFile(new ExtFile(appDir)).usesFramework);
-        FileUtil.delFolder(RES_PATH);
-        FileUtil.deleteFile(MANIFEST_PATH);
-        FileUtil.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
-        FileUtil.delFolder(BUILD_PATH);
+        FileUtils.delFolder(RES_PATH);
+        FileUtils.deleteFile(MANIFEST_PATH);
+        FileUtils.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
+        FileUtils.delFolder(BUILD_PATH);
         String apkPath = BIN_PATH + File.separator + apkName;
         androlib.build(appDir, new File(apkPath));
 //        String scriptPath = String.format("%s b %s -o %s -a %s", APKTOOL_PATH, OUT_PATH, apkPath, BIN_PATH + File.separator + "aapt.exe");

@@ -2,10 +2,10 @@ package com.qinglan.tool;
 
 import com.qinglan.common.Log;
 import com.qinglan.tool.entity.ApkInfo;
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
-import com.qinglan.tool.xml.Filter;
+import com.qinglan.tool.entity.Channel;
+import com.qinglan.tool.entity.Filter;
 import com.qinglan.tool.xml.XmlTool;
 import org.w3c.dom.*;
 
@@ -19,6 +19,8 @@ public class ManifestHelper {
     private static final String ATTRIBUTE_ANDROID_NAME = "android:name";
     private static final String ATTRIBUTE_ANDROID_RESOURCE = "android:resource";
     private static final String ATTRIBUTE_ANDROID_LABEL = "android:label";
+    private static final String ATTRIBUTE_ANDROID_VERSION_CODE = "android:versionCode";
+    private static final String ATTRIBUTE_ANDROID_VERSION_NAME = "android:versionName";
 
     private static final String ELEMENT_USE_SDK = "uses-sdk";
     private static final String ATTRIBUTE_ANDROID_MIN_SDK = "android:minSdkVersion";
@@ -34,7 +36,60 @@ public class ManifestHelper {
         manifestPath = path;
     }
 
-    public void addSdkInfo() {
+    public void addVersionInfo(String code, String name) {
+        if (Utils.isEmpty(code)) {
+            code = mApkInfo.getVersionCode();
+        }
+        if (Utils.isEmpty(name)) {
+            name = mApkInfo.getVersionName();
+        }
+        createVersion(ATTRIBUTE_ANDROID_VERSION_CODE, code);
+        createVersion(ATTRIBUTE_ANDROID_VERSION_NAME, name);
+    }
+
+    private void createVersion(String name, String value) {
+        Log.eln(name + "=" + value);
+        Node attributeVersion = mDocument.getDocumentElement().getAttributes().getNamedItem(name);
+        if (attributeVersion != null) {
+            attributeVersion.setTextContent(value);
+        } else {
+            Attr codeAttr = mDocument.createAttribute(name);
+            codeAttr.setValue(value);
+            mDocument.getDocumentElement().setAttributeNode(codeAttr);
+        }
+    }
+
+    /**
+     * 添加sdk配置
+     */
+    public void addSdkInfo(String minSdk, String targetSdk) {
+        String[] sdkInfo = getSdkInfo();
+        if (Utils.isEmpty(minSdk)) {
+            minSdk = sdkInfo[0];
+        }
+        if (Utils.isEmpty(targetSdk)) {
+            targetSdk = sdkInfo[1];
+        }
+        if (mDocument.getElementsByTagName(ELEMENT_USE_SDK) != null) {
+            NodeList nodeList = mDocument.getElementsByTagName(ELEMENT_USE_SDK);
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                node.getParentNode().removeChild(node);
+            }
+        }
+
+        Element sdkElm = mDocument.createElement(ELEMENT_USE_SDK);
+        Attr minSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_MIN_SDK);
+        minSdkAttr.setValue(minSdk);
+        sdkElm.setAttributeNode(minSdkAttr);
+
+        Attr targetSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_TARGET_SDK);
+        targetSdkAttr.setValue(targetSdk);
+        sdkElm.setAttributeNode(targetSdkAttr);
+        XmlTool.addElement(mDocument, sdkElm);
+    }
+
+    private String[] getSdkInfo() {
         String minSdk = mApkInfo.getMinSdkVersion();
         String targetSdk = mApkInfo.getTargetSdkVersion();
         if (Utils.isEmpty(minSdk)) {
@@ -43,28 +98,7 @@ public class ManifestHelper {
         if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
             minSdk = targetSdk;
         }
-        addSdkInfo(minSdk, targetSdk);
-    }
-
-    /**
-     * 添加sdk配置
-     */
-    public void addSdkInfo(String minSdk, String targetSdk) {
-        if (mDocument.getElementsByTagName(ELEMENT_USE_SDK) != null) {
-            NodeList nodeList = mDocument.getElementsByTagName(ELEMENT_USE_SDK);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                node.getParentNode().removeChild(node);
-            }
-        }
-        Element sdkElm = mDocument.createElement(ELEMENT_USE_SDK);
-        Attr minSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_MIN_SDK);
-        minSdkAttr.setValue(minSdk);
-        Attr targetSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_TARGET_SDK);
-        targetSdkAttr.setValue(targetSdk);
-        sdkElm.setAttributeNode(minSdkAttr);
-        sdkElm.setAttributeNode(targetSdkAttr);
-        XmlTool.addElement(mDocument, sdkElm);
+        return new String[]{minSdk, targetSdk};
     }
 
     private NodeList getRootList() {
@@ -170,7 +204,7 @@ public class ManifestHelper {
     }
 
     public void updateManifestConfig(String[] targets, String[] replaces) {
-        String manifest = FileUtil.readAndReplaceFile(manifestPath, targets, replaces);
-        FileUtil.writer2File(manifestPath, manifest);
+        String manifest = FileUtils.readAndReplaceFile(manifestPath, targets, replaces);
+        FileUtils.writer2File(manifestPath, manifest);
     }
 }

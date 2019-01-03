@@ -4,25 +4,27 @@ import brut.androlib.AndrolibException;
 import brut.androlib.ApkDecoder;
 import brut.directory.DirectoryException;
 import com.qinglan.tool.entity.ApkInfo;
-import com.qinglan.tool.util.ApkUtil;
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.entity.Channel;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
-import static com.qinglan.tool.util.FileUtil.createFileDir;
+import static com.qinglan.tool.util.FileUtils.createFileDir;
 
 public class Decoder extends BaseCompiler {
-
     private ApkInfo mApkInfo;
+    private String minSdk;
+    private String targetSdk;
+    private String versionCode;
+    private String versionName;
 
-    public Decoder(Channel c, List<Channel> channels) {
+    public Decoder(ApkInfo apkInfo, Channel c, List<Channel> channels) {
         super(c, channels);
+        mApkInfo = apkInfo;
     }
 
     public int decode(String path) {
@@ -31,35 +33,32 @@ public class Decoder extends BaseCompiler {
             return CODE_NO_FIND;
         }
         try {
-            mApkInfo = new ApkUtil().getApkInfo(path);
-            FileUtil.delFolder(OUT_PATH);
+            FileUtils.delFolder(OUT_PATH);
             createFileDir(OUT_PATH);
 //            apkDecode(path);
             String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/"%s d %s -o %s -f", APKTOOL_PATH, path, OUT_PATH);
             result = Utils.execShell(scriptPath);
             return 0;
-        } catch (AndrolibException e) {
-            e.printStackTrace();
-        } catch (DirectoryException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return result;
     }
 
-    public String getPackageName() {
-        if (mApkInfo == null)
-            return null;
-        return mApkInfo.getPackageName();
+    public void setMinSdk(String min) {
+        this.minSdk = min;
     }
 
-    public Map<String, String> getIcons() {
-        if (mApkInfo == null)
-            return null;
-        return mApkInfo.getApplicationIcons();
+    public void setTargetSdk(String target) {
+        this.targetSdk = target;
+    }
+
+    public void setVersionCode(String code) {
+        this.versionCode = code;
+    }
+
+    public void setVersionName(String name) {
+        this.versionName = name;
     }
 
     private void apkDecode(String apkPath) throws AndrolibException, IOException, DirectoryException {
@@ -73,7 +72,8 @@ public class Decoder extends BaseCompiler {
 
     public void updateConfig(String appId, String appKey, String cpId, String cpKey, String suffix) {
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
-        manifestHelper.addSdkInfo();
+        manifestHelper.addVersionInfo(versionCode, versionName);
+        manifestHelper.addSdkInfo(minSdk, targetSdk);
         manifestHelper.replaceLauncher(currChannel);
         for (Channel channel : exceptChannels) {
             manifestHelper.deleteUnrelatedChannelInfo(channel);

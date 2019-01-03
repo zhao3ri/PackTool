@@ -1,8 +1,8 @@
 package com.qinglan.tool;
 
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.entity.Channel;
 import com.qinglan.tool.xml.XmlTool;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import static com.qinglan.tool.util.FileUtil.getPath;
+import static com.qinglan.tool.util.FileUtils.getPath;
 
 public class ResourceHelper {
     private static final String ELEMENT_VALUES_STRING = "string";
@@ -80,7 +80,7 @@ public class ResourceHelper {
                 String fileName = iterator.next();
                 for (String matchName : channel.getFilter().getResNames()) {
                     String path = resFile.getCanonicalPath();
-                    FileUtil.delMatchFile(path, fileName, matchName);
+                    FileUtils.delMatchFile(path, fileName, matchName);
                 }
             }
         }

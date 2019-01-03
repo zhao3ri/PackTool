@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
  * apk工具类。封装了获取Apk信息的方法。
  *
  */
-public class ApkUtil {
+public class ApkUtils {
 	public static final String VERSION_CODE = "versionCode";
 	public static final String VERSION_NAME = "versionName";
 	public static final String SDK_VERSION = "sdkVersion";
@@ -39,7 +39,7 @@ public class ApkUtil {
 	 */
 	private String mAaptPath = "libs/aapt";
 
-	public ApkUtil() {
+	public ApkUtils() {
 		mBuilder = new ProcessBuilder();
 		mBuilder.redirectErrorStream(true);
 	}

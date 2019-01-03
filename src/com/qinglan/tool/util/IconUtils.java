@@ -15,7 +15,7 @@ import com.qinglan.tool.entity.ApkInfo;
 /**
  * 通过ApkInfo 里的applicationIcon从APK里解压出icon图片并存放到磁盘上
  */
-public class IconUtil {
+public class IconUtils {
 	
 	/**
 	 * 从指定的apk文件里获取指定file的流

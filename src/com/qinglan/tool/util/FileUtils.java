@@ -8,7 +8,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class FileUtil {
+public class FileUtils {
     private static final String APK_SUFFIX = ".apk";
 
     public static File searchApk(String path) {
@@ -270,7 +270,7 @@ public class FileUtil {
                 if (line.trim().startsWith("<!--") || line.trim().isEmpty()) {
                     continue;
                 }
-                if (null != replaces && replaces.length != 0 && null != targets && targets.length != 0) {
+                if (null != replaces && replaces.length != 0 && null != targets && targets.length != 0 && targets.length == replaces.length) {
                     for (int i = 0; i < targets.length; i++) {
                         if (line.contains(targets[i]) && !Utils.isEmpty(replaces[i])) {
                             line = line.replace(targets[i], replaces[i]);

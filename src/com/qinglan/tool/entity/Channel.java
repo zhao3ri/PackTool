@@ -1,4 +1,4 @@
-package com.qinglan.tool.xml;
+package com.qinglan.tool.entity;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 

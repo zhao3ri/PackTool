@@ -1,9 +1,9 @@
 package com.qinglan.tool;
 
 import com.qinglan.common.Log;
-import com.qinglan.tool.util.FileUtil;
+import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
-import com.qinglan.tool.xml.Channel;
+import com.qinglan.tool.entity.Channel;
 
 import java.io.File;
 import java.util.List;
@@ -47,10 +47,10 @@ public class Signer extends BaseCompiler {
         }
         String apkName = apkPath.substring(apkPath.lastIndexOf(File.separator) + 1);
         String signApkPath = getOutDirPath(decodeApkName) + apkName;
-        FileUtil.deleteFile(signApkPath);
+        FileUtils.deleteFile(signApkPath);
         Log.dln("sign apk path: " + signApkPath);
         int result = Utils.execShell(scriptPath, keystorePath, keystorePass, signApkPath, apkPath, keystoreAlias);
-        FileUtil.deleteFile(apkPath);
+        FileUtils.deleteFile(apkPath);
         return result;
     }
 }

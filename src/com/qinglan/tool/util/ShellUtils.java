@@ -8,7 +8,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import static com.qinglan.tool.util.Utils.isEmpty;
 
-public class ShellUtil {
+public class ShellUtils {
     final CyclicBarrier barrier = new CyclicBarrier(2);
 
     public int execute(String cmd) {

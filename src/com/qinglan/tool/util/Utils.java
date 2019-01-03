@@ -1,5 +1,7 @@
 package com.qinglan.tool.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qinglan.common.Log;
 
 import java.io.*;
@@ -75,7 +77,7 @@ public class Utils {
         String cmd = "cmd.exe /C start /b " + scriptPath + " " + argStr;
         Log.dln(cmd);
         Log.ln();
-        ShellUtil shell = new ShellUtil();
+        ShellUtils shell = new ShellUtils();
         int result = shell.execute(cmd);
         return result;
     }
@@ -93,4 +95,23 @@ public class Utils {
         return false;
     }
 
+    public static <T> T json2Obj(String json, Class<T> cls) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, cls);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String obj2Json(Object obj) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
