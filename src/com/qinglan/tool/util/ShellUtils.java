@@ -10,6 +10,14 @@ import static com.qinglan.tool.util.Utils.isEmpty;
 
 public class ShellUtils {
     final CyclicBarrier barrier = new CyclicBarrier(2);
+    OnProgressListener onProgressListener;
+
+    public ShellUtils() {
+    }
+
+    public ShellUtils(OnProgressListener listener) {
+        onProgressListener = listener;
+    }
 
     public int execute(String cmd) {
         Process ps = null;
@@ -72,6 +80,9 @@ public class ShellUtils {
                     if (pw != null) {
                         pw.println(line);
                     }
+                    if (onProgressListener != null) {
+                        onProgressListener.publishProgress(line);
+                    }
                     Log.iln(tag + line);
                 }
                 Log.iln((tag + " Number of parties waiting at the barrier at this point = " + barrier.getNumberWaiting()));
@@ -99,4 +110,7 @@ public class ShellUtils {
         }
     }
 
+    public interface OnProgressListener {
+        void publishProgress(String values);
+    }
 }

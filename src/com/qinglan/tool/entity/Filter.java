@@ -1,5 +1,6 @@
 package com.qinglan.tool.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -24,6 +25,10 @@ public class Filter {
     @JacksonXmlElementWrapper(localName = "assets")
     @JacksonXmlProperty(localName = "asset")
     List<String> assets;
+
+    @JacksonXmlElementWrapper(localName = "meta-data")
+    @JacksonXmlProperty(localName = "item")
+    List<String> metaData;
 
     public List<Package> getPackageNameList() {
         return packageNameList;
@@ -63,6 +68,14 @@ public class Filter {
     @XmlElement(name = "asset")
     public void setAssets(List<String> assets) {
         this.assets = assets;
+    }
+
+    public List<String> getMetaData() {
+        return metaData;
+    }
+
+    public void setMetaData(List<String> metaData) {
+        this.metaData = metaData;
     }
 
     public static class Package {

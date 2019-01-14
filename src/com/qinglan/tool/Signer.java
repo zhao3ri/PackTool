@@ -1,6 +1,7 @@
 package com.qinglan.tool;
 
 import com.qinglan.common.Log;
+import com.qinglan.tool.entity.SignInfo;
 import com.qinglan.tool.util.FileUtils;
 import com.qinglan.tool.util.Utils;
 import com.qinglan.tool.entity.Channel;
@@ -15,41 +16,36 @@ public class Signer extends BaseCompiler {
     private static final String DEFAULT_KEYSTORE_PASSWORDS = "123456";
     private static final String DEFAULT_KEYSTORE_ALIAS = "qinglan";
 
-    public Signer(List<Channel> channels) {
-        super(null, channels);
+    public Signer(Channel c, List<Channel> channels, String apkName) {
+        super(c, channels, apkName);
     }
 
-    public Signer(Channel c, List<Channel> channels) {
-        super(c, channels);
-    }
-
-    public void sign(String apkPath, String... args) {
-        if (args != null && args.length == 3) {
-            String keystorePath = args[0];
-            String keystorePass = args[1];
-            String keystoreAlias = args[2];
-            signApk(apkPath, keystorePath, keystorePass, keystoreAlias);
-        } else {
-            signApk(apkPath, null, null, null);
-        }
-    }
-
-    private int signApk(String apkPath, String keystorePath, String keystorePass, String keystoreAlias) {
-        String scriptPath = BIN_PATH + File.separator + "apk-sign.bat";
-        if (Utils.isEmpty(keystorePath)) {
+    public int sign(String apkPath, String keystorePath, String keystorePass, String keystoreAlias) {
+        SignInfo signInfo = null;
+        if (!Utils.isEmpty(keystorePath) && !Utils.isEmpty(keystorePass) && !Utils.isEmpty(keystoreAlias)) {
             keystorePath = DEFAULT_KEYSTORE_PATH;
-        }
-        if (Utils.isEmpty(keystorePass)) {
             keystorePass = DEFAULT_KEYSTORE_PASSWORDS;
-        }
-        if (Utils.isEmpty(keystoreAlias)) {
             keystoreAlias = DEFAULT_KEYSTORE_ALIAS;
+            signInfo = new SignInfo(keystorePath, keystorePass, keystoreAlias);
         }
+        return sign(apkPath, signInfo);
+    }
+
+    public int sign(String apkPath, SignInfo signInfo) {
+        if (signInfo == null) {
+            signInfo = new SignInfo(DEFAULT_KEYSTORE_PATH, DEFAULT_KEYSTORE_PASSWORDS, DEFAULT_KEYSTORE_ALIAS);
+        }
+        return signApk(apkPath, signInfo);
+    }
+
+    private int signApk(String apkPath, SignInfo signInfo) {
+        String scriptPath = BIN_PATH + File.separator + "apk-sign.bat";
+
         String apkName = apkPath.substring(apkPath.lastIndexOf(File.separator) + 1);
-        String signApkPath = getOutDirPath(decodeApkName) + apkName;
+        String signApkPath = getOutDirPath(apkFileName) + apkName;
         FileUtils.deleteFile(signApkPath);
         Log.dln("sign apk path: " + signApkPath);
-        int result = Utils.execShell(scriptPath, keystorePath, keystorePass, signApkPath, apkPath, keystoreAlias);
+        int result = Utils.execShell(scriptPath, signInfo.getPath(), signInfo.getPasswords(), signApkPath, apkPath, signInfo.getAlias());
         FileUtils.deleteFile(apkPath);
         return result;
     }

@@ -1,11 +1,11 @@
 package com.qinglan.tool;
 
 import com.qinglan.common.Log;
+import com.qinglan.tool.entity.AppConfig;
 import com.qinglan.tool.entity.GameChannelConfig;
-import com.qinglan.tool.ui.BaseUI;
-import com.qinglan.tool.ui.HomeUI;
-import com.qinglan.tool.ui.MoreUI;
+import com.qinglan.tool.ui.MainFrame;
 import com.qinglan.tool.entity.Channel;
+import com.qinglan.tool.util.ShellUtils;
 import com.qinglan.tool.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,32 +14,23 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
-import static com.qinglan.tool.ChannelManager.CODE_NO_FIND;
-import static com.qinglan.tool.ChannelManager.CODE_SUCCESS;
+import static com.qinglan.tool.ChannelManager.STATUS_NO_FIND;
+import static com.qinglan.tool.ChannelManager.STATUS_SIGN_SUCCESS;
+import static com.qinglan.tool.ChannelManager.STATUS_SUCCESS;
 
-public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitClickListener, HomeUI.OnCloseListener, ChannelManager.OnBuildFinishListener, MoreUI.OnConfirmClickListener {
+public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSubmitClickListener, MainFrame.OnCloseListener, ChannelManager.OnBuildFinishListener, MainFrame.OnConfirmClickListener {
     public static final String ROOT_PATH = ".";
     private static final String VERSION_REGEX = "\\d+(\\.\\d+){0,2}";
 
     private ChannelManager channelManager;
     private ConfigManager confManager;
     private int channelId;
-    private HomeUI homeUI;
+    //    private HomePane homePane;
+    private MainFrame mainFrame;
     private CyclicBarrier cyclicBarrier;
 
-    private String packageName;
-    private String drawablePath;
-    private String appId;
-    private String appKey;
-    private String pubKey;
-    private String secretKey;
-    private String cpId;
-    private String cpKey;
-    private String suffix;
-    private String minSdk;
-    private String targetSdk;
-    private String versionCode;
-    private String versionName;
+    private String apkPackageName;
+    private GameChannelConfig mConfig;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -57,37 +48,53 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         confManager = new ConfigManager();
         channelManager = new ChannelManager();
         List<Channel> channels = channelManager.getChannels();
-        packageName = channelManager.getPackageName();
+        apkPackageName = channelManager.getDefaultPackageName();
         channelManager.setBuildFinishListener(this);
 
-        homeUI = new HomeUI(channels, ROOT_PATH);
-        init("Welcome!");
-        initUI();
-        homeUI.setApkInfoText("find apk: " + channelManager.getAppName() + ", versionName: " + versionName);
-        homeUI.setCloseListener(this);
-        homeUI.setSubmitClickListener(this);
-        homeUI.setChangedChannelListener(this);
-        homeUI.setOnConfirmClickListener(this);
-        homeUI.show();
+        mainFrame = new MainFrame(ROOT_PATH, channels);
+        finish("Welcome!");
+        refresh();
+        mainFrame.setApkInfoText("apk: " + channelManager.getAppName() + ", versionName: " + channelManager.getDefaultVersionName());
+        mainFrame.setCloseListener(this);
+        mainFrame.setSubmitClickListener(this);
+        mainFrame.setChangedChannelListener(this);
+        mainFrame.setConfirmClickListener(this);
+//        mainFrame.open();
+        mainFrame.showSignChooseDialog(null,null,"apk","apk");
     }
 
-    private void init(String msg) {
-        homeUI.setUIEnable(true);
-        homeUI.setMessage(msg);
-        channelManager.setCyclicBarrier(cyclicBarrier);
+    private void finish(String msg) {
+        mainFrame.changeEnable(true);
+        mainFrame.setMessage(msg);
         cyclicBarrier.reset();
+        channelManager.setCyclicBarrier(cyclicBarrier);
     }
 
-    private void initUI() {
-        refreshHomeUI("", "", "", "", "", "", "", "",
-                channelManager.getDefaultMinSdk(), channelManager.getDefaultTargetSdk(), channelManager.getDefaultVersionCode(), channelManager.getDefaultVersionName());
+    private void refresh() {
+        mConfig = createConfig();
+        mainFrame.refreshUI(mConfig, apkPackageName);
+    }
+
+    private GameChannelConfig createConfig() {
+        GameChannelConfig config = GameChannelConfig.createDefaultConfig();
+        config.setAppInfo(createDefaultAppInfo());
+        return config;
+    }
+
+    private AppConfig createDefaultAppInfo() {
+        AppConfig appConfig = new AppConfig();
+        appConfig.setMinSdk(channelManager.getDefaultMinSdk());
+        appConfig.setTargetSdk(channelManager.getDefaultTargetSdk());
+        appConfig.setVersionCode(channelManager.getDefaultVersionCode());
+        appConfig.setVersionName(channelManager.getDefaultVersionName());
+        return appConfig;
     }
 
     @Override
     public void onClose() {
         Log.eln("" + cyclicBarrier.isBroken() + " num==" + cyclicBarrier.getNumberWaiting());
         if (cyclicBarrier.getNumberWaiting() > 0) {
-            homeUI.showDialog("<html>The thread is running.<br/> Do you want to exit?</html>", new HomeUI.OnDialogButtonClickListener() {
+            mainFrame.showDialog("<html>The thread is running.<br/> Do you want to exit?</html>", new MainFrame.OnDialogButtonClickListener() {
                 @Override
                 public void onPositive() {
                     System.exit(1);
@@ -97,34 +104,177 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
                 public void onNegative() {
 
                 }
-            }, null);
+            }, null, JOptionPane.WARNING_MESSAGE);
             return;
         }
         System.exit(0);
     }
 
+    private void showSaveDialog(String text, final GameChannelConfig config) {
+        mainFrame.showDialog(text, new MainFrame.OnDialogButtonClickListener() {
+
+            @Override
+            public void onPositive() {
+                confManager.saveConfig(apkPackageName, channelId, config);
+            }
+
+            @Override
+            public void onNegative() {
+
+            }
+        }, null);
+    }
+
     @Override
-    public void onClick(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String suffix) {
+    public void onChange(int id) {
+        channelId = id;
+        if (confManager.exists(apkPackageName, channelId)) {
+            //存在配置文件，则询问是否导入
+            showImportDialog();
+        } else {
+            refresh();
+        }
+    }
+
+    private void showImportDialog() {
+        mainFrame.showDialog("已存在该渠道配置，是否导入？", new MainFrame.OnDialogButtonClickListener() {
+            @Override
+            public void onPositive() {
+                GameChannelConfig config = confManager.readConfig(apkPackageName, channelId);
+                if (config != null) {
+                    mConfig = config;
+                    mainFrame.refreshUI(config, apkPackageName);
+                } else {
+                    mainFrame.showErrorDialog("导入配置失败！");
+                }
+            }
+
+            @Override
+            public void onNegative() {
+
+            }
+        }, null);
+    }
+
+    @Override
+    public void onFinish(int status) {
+        String tip = "Build Error!!";
+        switch (status) {
+            case STATUS_SUCCESS:
+                showKeystoreChooser(status);
+                break;
+            case STATUS_SIGN_SUCCESS:
+
+                break;
+            case STATUS_NO_FIND:
+                tip = "No find apk!";
+            default:
+                mainFrame.showDialog(tip);
+                finish("Finish!!");
+                break;
+        }
+    }
+
+    private void showKeystoreChooser(final int code) {
+        mainFrame.showDialog("Use default keystore?", new MainFrame.OnDialogButtonClickListener() {//弹窗按钮点击事件
+            @Override
+            public void onPositive() {
+                channelManager.sign();
+            }
+
+            @Override
+            public void onNegative() {
+                mainFrame.showSignChooseDialog(new MainFrame.OnSignSelectedClickListener() {
+                    @Override
+                    public void onSelected(String path, String passwords, String alias) {
+                        channelManager.sign(path, passwords, alias);
+                    }
+                }, new MainFrame.OnCloseListener() {
+                    @Override
+                    public void onClose() {
+                        onFinish(code);
+                    }
+                }, "Keystore", "jks", "keystore");
+            }
+        }, new MainFrame.OnCloseListener() {//弹窗关闭事件
+            @Override
+            public void onClose() {
+                if (code == STATUS_SUCCESS) {
+                    channelManager.sign();
+                }
+            }
+        });
+    }
+
+    @Override
+    public boolean onConfirm(String min, String target, String vcode, String vname) {
+        if (!checkSdkVersion(min, target)) {
+            return false;
+        }
+        if (!Utils.matches(VERSION_REGEX, vname)) {
+            mainFrame.showErrorDialog("versionName格式有误");
+            return false;
+        }
+        mConfig.updateAppInfo(min, target, vcode, vname);
+        return true;
+    }
+
+    private boolean checkSdkVersion(String min, String target) {
+        if (!StringUtils.isEmpty(min)) {
+            int minNum = Integer.valueOf(min);
+            if (minNum <= 0) {
+                mainFrame.showErrorDialog("minSdk的值有误");
+                return false;
+            }
+            if (minNum < 9) {
+                mainFrame.showErrorDialog("minSdk不能小于9");
+                return false;
+            }
+        }
+        if (!StringUtils.isEmpty(target)) {
+            int targetNum = Integer.valueOf(target);
+            if (targetNum <= 0) {
+                mainFrame.showErrorDialog("targetSdk的值有误");
+                return false;
+            }
+            if (targetNum > 29) {
+                mainFrame.showErrorDialog("targetSdk不能大于29");
+                return false;
+            }
+        }
+        if (!StringUtils.isEmpty(min) && !StringUtils.isEmpty(target)) {
+            int minNum = Integer.valueOf(min);
+            int targetNum = Integer.valueOf(target);
+            if (minNum > targetNum) {
+                mainFrame.showErrorDialog("minSdk的值不可大于targetSdk");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onClick(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String pkg, boolean suffix, boolean useDefault) {
         if (channelId == 0) {
-            homeUI.showDialog("Please choose the channel!");
+            mainFrame.showErrorDialog("Please choose the channel!");
             return;
         }
-        homeUI.setUIEnable(false);
-        homeUI.setMessage("Build apk.....");
-        updateConfig(appId, appKey, pubKey, secretKey, cpId, cpKey, suffix);
+        mainFrame.changeEnable(false);
+        updateConfig(drawable, appId, appKey, pubKey, secretKey, cpId, cpKey, pkg, suffix,useDefault);
+        channelManager.setChannelId(channelId);
+        channelManager.setConfig(mConfig);
         new Thread() {
             @Override
             public void run() {
                 channelManager.execute();
                 try {
                     cyclicBarrier.await();
-                    init("Finish!!");
-                    GameChannelConfig config = createGameConfig();
-                    if (!confManager.exists(packageName, channelId)) {
-                        showSaveDialog("是否保存当前配置？", config);
+                    finish("Finish!!");
+                    if (!confManager.exists(apkPackageName, channelId)) {
+                        showSaveDialog("是否保存当前配置？", mConfig);
                     } else {
-                        if (!confManager.readConfig(packageName, channelId).equals(config)) {
-                            showSaveDialog("配置修改，是否保存？", config);
+                        if (!confManager.readConfig(apkPackageName, channelId).equals(mConfig)) {
+                            showSaveDialog("配置修改，是否保存？", mConfig);
                         }
                     }
                 } catch (InterruptedException e) {
@@ -136,230 +286,17 @@ public class Main implements HomeUI.OnChangedChannelListener, HomeUI.OnSubmitCli
         }.start();
     }
 
-    private void updateConfig(String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String suffix) {
-        this.appId = appId;
-        this.appKey = appKey;
-        this.pubKey = pubKey;
-        this.secretKey = secretKey;
-        this.cpId = cpId;
-        this.cpKey = cpKey;
-        this.suffix = suffix;
-        drawablePath = homeUI.getDrawablePath();
-
-        channelManager.setAppId(appId);
-        channelManager.setAppKey(appKey);
-        channelManager.setPubKey(pubKey);
-        channelManager.setSecretKey(secretKey);
-        channelManager.setCpId(cpId);
-        channelManager.setCpKey(cpKey);
-        channelManager.setSuffix(suffix);
-        channelManager.setChannelId(channelId);
-        channelManager.setDrawableDir(drawablePath);
-        channelManager.setMinSdk(minSdk);
-        channelManager.setTargetSdk(targetSdk);
-        channelManager.setVersionCode(versionCode);
-        channelManager.setVersionName(versionName);
+    private void updateConfig(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String pkg, boolean suffix, boolean useDefault) {
+        mConfig.setChannelId(channelId);
+        mConfig.setDrawablePath(drawable);
+        mConfig.setAppId(appId);
+        mConfig.setAppKey(appKey);
+        mConfig.setPublicKey(pubKey);
+        mConfig.setSecretKey(secretKey);
+        mConfig.setCpId(cpId);
+        mConfig.setCpKey(cpKey);
+        mConfig.setSuffix(suffix);
+        mConfig.setUseDefaultPackage(useDefault);
+        mConfig.setPackageName(pkg);
     }
-
-    private void showSaveDialog(String text, final GameChannelConfig config) {
-        homeUI.showDialog(text, new HomeUI.OnDialogButtonClickListener() {
-
-            @Override
-            public void onPositive() {
-                confManager.saveConfig(packageName, channelId, config);
-            }
-
-            @Override
-            public void onNegative() {
-
-            }
-        }, null);
-    }
-
-    private GameChannelConfig createGameConfig() {
-        GameChannelConfig config = new GameChannelConfig();
-        config.setChannelId(channelId);
-        config.setDrawablePath(drawablePath);
-        config.setAppId(appId);
-        config.setAppKey(appKey);
-        config.setPublicKey(pubKey);
-        config.setSecretKey(secretKey);
-        config.setCpId(cpId);
-        config.setCpKey(cpKey);
-        config.setSuffix(suffix);
-        config.setMinSdk(minSdk);
-        config.setTargetSdk(targetSdk);
-        config.setVersionCode(versionCode);
-        config.setVersionName(versionName);
-        return config;
-    }
-
-    @Override
-    public void onChange(int id) {
-        channelId = id;
-        if (confManager.exists(packageName, channelId)) {
-            //存在配置文件，则询问是否导入
-            showImportDialog();
-        } else {
-            initUI();
-        }
-    }
-
-    private void showImportDialog() {
-        homeUI.showDialog("已存在该渠道配置，是否导入？", new HomeUI.OnDialogButtonClickListener() {
-            @Override
-            public void onPositive() {
-                GameChannelConfig config = confManager.readConfig(packageName, channelId);
-                if (config != null) {
-                    refreshHomeUI(config.getDrawablePath(), config.getAppId(), config.getAppKey(), config.getPublicKey(),
-                            config.getSecretKey(), config.getCpId(), config.getCpKey(), config.getSuffix(),
-                            config.getMinSdk(), config.getTargetSdk(), config.getVersionCode(), config.getVersionName());
-                }
-            }
-
-            @Override
-            public void onNegative() {
-
-            }
-        }, null);
-    }
-
-    private void refreshHomeUI(String drawablePath, String appId, String appKey, String publicKey, String secretKey
-            , String cpId, String cpKey, String suffix, String minSdk, String targetSdk, String versionCode, String versionName) {
-        homeUI.setDrawablePath(drawablePath);
-        homeUI.setAppIdText(appId);
-        homeUI.setAppKeyText(appKey);
-        homeUI.setPublicKeyText(publicKey);
-        homeUI.setSecretKeyText(secretKey);
-        homeUI.setCpIdText(cpId);
-        homeUI.setCpKeyText(cpKey);
-        homeUI.setSuffixText(suffix);
-        setApkInfo(minSdk, targetSdk, versionCode, versionName);
-    }
-
-    @Override
-    public void onFinish(int code) {
-        String tip = "Build Error!!";
-        switch (code) {
-            case CODE_SUCCESS:
-                showKeystoreChooser(code);
-                break;
-            case CODE_NO_FIND:
-                tip = "No find apk!";
-            default:
-                homeUI.showDialog(tip);
-                init("Finish!!");
-                break;
-        }
-    }
-
-    private void showKeystoreChooser(final int code) {
-        homeUI.showDialog("Use default keystore?", new HomeUI.OnDialogButtonClickListener() {//弹窗按钮点击事件
-            @Override
-            public void onPositive() {
-                homeUI.setMessage("Sign apk.....");
-                channelManager.sign();
-            }
-
-            @Override
-            public void onNegative() {
-                homeUI.setMessage("Sign apk.....");
-                homeUI.showSignChooseDialog(new HomeUI.OnSignChooseClickListener() {
-                    @Override
-                    public void onClick(JTextField text) {
-                        if (!text.getText().endsWith(".jks") && !text.getText().endsWith(".keystore")) {
-                            homeUI.showDialog("Illegal keystore path!");
-                            text.setText("");
-                            return;
-                        }
-                    }
-                }, new HomeUI.OnSignCompleteClickListener() {
-                    @Override
-                    public void onClick(String path, String passwords, String alias) {
-                        channelManager.sign(path, passwords, alias);
-                    }
-                }, new HomeUI.OnCloseListener() {
-                    @Override
-                    public void onClose() {
-                        onFinish(code);
-                    }
-                }, "Keystore", "jks", "keystore");
-            }
-        }, new HomeUI.OnCloseListener() {//弹窗关闭事件
-            @Override
-            public void onClose() {
-                if (code == CODE_SUCCESS) {
-                    homeUI.setMessage("Sign apk.....");
-                    channelManager.sign();
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onClick(BaseUI ui, String min, String target, String vcode, String vname) {
-        if (!checkSdk(ui, min, target)) {
-            return;
-        }
-        if (!Utils.matches(VERSION_REGEX, vname)) {
-            ui.showDialog("versionName格式有误");
-            return;
-        }
-        ui.close();
-        setApkInfo(min, target, vcode, vname);
-    }
-
-    private boolean checkSdk(BaseUI ui, String min, String target) {
-        if (!StringUtils.isEmpty(min)) {
-            int minNum = Integer.valueOf(min);
-            if (minNum <= 0) {
-                ui.showDialog("minSdk的值有误");
-                return false;
-            }
-            if (minNum < 9) {
-                ui.showDialog("minSdk不能小于9");
-                return false;
-            }
-        }
-        if (!StringUtils.isEmpty(target)) {
-            int targetNum = Integer.valueOf(target);
-            if (targetNum <= 0) {
-                ui.showDialog("targetSdk的值有误");
-                return false;
-            }
-            if (targetNum > 29) {
-                ui.showDialog("targetSdk不能大于29");
-                return false;
-            }
-        }
-        if (!StringUtils.isEmpty(min) && !StringUtils.isEmpty(target)) {
-            int minNum = Integer.valueOf(min);
-            int targetNum = Integer.valueOf(target);
-            if (minNum > targetNum) {
-                ui.showDialog("minSdk的值不可大于targetSdk");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void setApkInfo(String min, String target, String vcode, String vname) {
-        if (!StringUtils.isEmpty(min)) {
-            minSdk = min;
-        }
-        if (!StringUtils.isEmpty(target)) {
-            targetSdk = target;
-        }
-        if (!StringUtils.isEmpty(vcode)) {
-            versionCode = vcode;
-        }
-        if (!StringUtils.isEmpty(vname)) {
-            versionName = vname;
-        }
-        homeUI.setMinSDK(minSdk);
-        homeUI.setTargetSDK(targetSdk);
-        homeUI.setVersionCode(versionCode);
-        homeUI.setVersionName(versionName);
-    }
-
 }

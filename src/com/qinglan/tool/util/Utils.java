@@ -1,8 +1,10 @@
 package com.qinglan.tool.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qinglan.common.Log;
+import com.qinglan.tool.ChannelManager;
 
 import java.io.*;
 import java.util.Enumeration;
@@ -63,7 +65,7 @@ public class Utils {
         return outSteam.toByteArray();
     }
 
-    public static int execShell(String scriptPath, String... args) {
+    public static int execShell(ShellUtils.OnProgressListener listener, String scriptPath, String... args) {
 
         //解决脚本没有执行权限
 //            ProcessBuilder builder = new ProcessBuilder("/bin/chmod", "755",scriptPath);
@@ -77,9 +79,19 @@ public class Utils {
         String cmd = "cmd.exe /C start /b " + scriptPath + " " + argStr;
         Log.dln(cmd);
         Log.ln();
-        ShellUtils shell = new ShellUtils();
+        ShellUtils shell = null;
+        if (listener != null) {
+            shell = new ShellUtils(listener);
+        } else {
+            shell = new ShellUtils();
+        }
         int result = shell.execute(cmd);
         return result;
+
+    }
+
+    public static int execShell(String scriptPath, String... args) {
+        return execShell(null, scriptPath, args);
     }
 
     public static boolean matches(String regex, String input) {
@@ -95,8 +107,23 @@ public class Utils {
         return false;
     }
 
+
+    public static boolean equalsString(String currStr, String compareStr) {
+        if (null == currStr && null == compareStr) {
+            return true;
+        }
+        if (currStr != null && currStr.equals(compareStr)) {
+            return true;
+        }
+        return false;
+    }
+
     public static <T> T json2Obj(String json, Class<T> cls) {
+        if (isEmpty(json)){
+            return null;
+        }
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             return objectMapper.readValue(json, cls);
         } catch (IOException e) {
@@ -114,4 +141,5 @@ public class Utils {
         }
         return null;
     }
+
 }

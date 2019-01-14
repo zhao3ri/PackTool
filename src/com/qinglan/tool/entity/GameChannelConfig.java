@@ -2,6 +2,8 @@ package com.qinglan.tool.entity;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import static com.qinglan.tool.util.Utils.equalsString;
+
 public class GameChannelConfig {
     @JacksonXmlProperty
     int channelId;
@@ -28,19 +30,17 @@ public class GameChannelConfig {
     String cpKey;
 
     @JacksonXmlProperty
-    String suffix;
+    boolean useDefaultPackage = true;
 
     @JacksonXmlProperty
-    String minSdk;
+    String packageName;
 
     @JacksonXmlProperty
-    String targetSdk;
+    boolean suffix;
 
     @JacksonXmlProperty
-    String versionCode;
+    AppConfig appInfo;
 
-    @JacksonXmlProperty
-    String versionName;
 
     public GameChannelConfig() {
     }
@@ -54,11 +54,9 @@ public class GameChannelConfig {
         this.secretKey = config.secretKey;
         this.cpId = config.cpId;
         this.cpKey = config.cpKey;
+        this.packageName = config.packageName;
         this.suffix = config.suffix;
-        this.minSdk = config.minSdk;
-        this.targetSdk = config.targetSdk;
-        this.versionCode = config.versionCode;
-        this.versionName = config.versionName;
+        this.appInfo = config.appInfo;
     }
 
     public int getChannelId() {
@@ -125,44 +123,43 @@ public class GameChannelConfig {
         this.cpKey = cpKey;
     }
 
-    public String getSuffix() {
+    public boolean isUseDefaultPackage() {
+        return useDefaultPackage;
+    }
+
+    public void setUseDefaultPackage(boolean useDefaultPackage) {
+        this.useDefaultPackage = useDefaultPackage;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public boolean isSuffix() {
         return suffix;
     }
 
-    public void setSuffix(String suffix) {
+    public void setSuffix(boolean suffix) {
         this.suffix = suffix;
     }
 
-    public String getMinSdk() {
-        return minSdk;
+    public AppConfig getAppInfo() {
+        return appInfo;
     }
 
-    public void setMinSdk(String minSdk) {
-        this.minSdk = minSdk;
+    public void setAppInfo(AppConfig appInfo) {
+        this.appInfo = appInfo;
     }
 
-    public String getTargetSdk() {
-        return targetSdk;
-    }
-
-    public void setTargetSdk(String targetSdk) {
-        this.targetSdk = targetSdk;
-    }
-
-    public String getVersionCode() {
-        return versionCode;
-    }
-
-    public void setVersionCode(String versionCode) {
-        this.versionCode = versionCode;
-    }
-
-    public String getVersionName() {
-        return versionName;
-    }
-
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
+    public void updateAppInfo(String min, String target, String vcode, String vname) {
+        if (this.appInfo == null) {
+            this.appInfo = new AppConfig();
+        }
+        setAppInfo(this.appInfo.update(min, target, vcode, vname));
     }
 
     @Override
@@ -175,20 +172,24 @@ public class GameChannelConfig {
                 equalsString(this.secretKey, ((GameChannelConfig) obj).secretKey) &&
                 equalsString(this.cpId, ((GameChannelConfig) obj).cpId) &&
                 equalsString(this.cpKey, ((GameChannelConfig) obj).cpKey) &&
-                equalsString(this.suffix, ((GameChannelConfig) obj).suffix) &&
-                equalsString(this.minSdk, ((GameChannelConfig) obj).minSdk) &&
-                equalsString(this.targetSdk, ((GameChannelConfig) obj).targetSdk) &&
-                equalsString(this.versionCode, ((GameChannelConfig) obj).versionCode) &&
-                equalsString(this.versionName, ((GameChannelConfig) obj).versionName);
+                equalsString(this.packageName, ((GameChannelConfig) obj).packageName) &&
+                this.suffix == ((GameChannelConfig) obj).suffix &&
+                this.appInfo == ((GameChannelConfig) obj).appInfo;
     }
 
-    private boolean equalsString(String currStr, String compareStr) {
-        if (null == currStr && null == compareStr) {
-            return true;
-        }
-        if (currStr != null && currStr.equals(compareStr)) {
-            return true;
-        }
-        return false;
+    public static GameChannelConfig createDefaultConfig() {
+        GameChannelConfig config = new GameChannelConfig();
+        config.setChannelId(0);
+        config.setDrawablePath("");
+        config.setAppId("");
+        config.setAppKey("");
+        config.setPublicKey("");
+        config.setSecretKey("");
+        config.setCpId("");
+        config.setCpKey("");
+        config.setUseDefaultPackage(true);
+        config.setSuffix(false);
+        config.setPackageName("");
+        return config;
     }
 }

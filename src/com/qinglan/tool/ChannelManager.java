@@ -2,10 +2,8 @@ package com.qinglan.tool;
 
 import com.qinglan.common.Log;
 import com.qinglan.tool.entity.ApkInfo;
-import com.qinglan.tool.util.ApkUtils;
-import com.qinglan.tool.util.FileUtils;
-import com.qinglan.tool.util.SubThread;
-import com.qinglan.tool.util.Utils;
+import com.qinglan.tool.entity.GameChannelConfig;
+import com.qinglan.tool.util.*;
 import com.qinglan.tool.entity.ChannelList;
 import com.qinglan.tool.entity.Channel;
 import com.qinglan.tool.xml.XmlTool;
@@ -26,30 +24,21 @@ import static com.qinglan.tool.util.FileUtils.searchApk;
 public class ChannelManager {
     List<Channel> channels;
     private int channelId;
-    private String appId;
-    private String appKey;
-    private String pubKey;
-    private String secretKey;
-    private String cpId;
-    private String cpKey;
-    private String suffix;
-    private String buildApkPath;
-    private String apkName;
-    private String drawableDir;
     private CyclicBarrier cyclicBarrier;
     private OnBuildFinishListener listener;
+    private ShellUtils.OnProgressListener onProgressListener;
 
-    private String minSdk;
-    private String targetSdk;
-    private String versionCode;
-    private String versionName;
+    private GameChannelConfig config;
+    private String buildApkPath;
+    private String apkFileName;
     private ApkInfo mApkInfo;
     private String apkPath;
 
     private static final String CHANNEL_CONFIG_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
-    public static final int CODE_SUCCESS = 0;
-    public static final int CODE_NO_FIND = 1;
-    public static final int CODE_FAIL = 2;
+    public static final int STATUS_SUCCESS = 0;
+    public static final int STATUS_NO_FIND = 1;
+    public static final int STATUS_FAIL = 2;
+    public static final int STATUS_SIGN_SUCCESS = 4;
 
     public ChannelManager() {
         initChannel();
@@ -86,35 +75,37 @@ public class ChannelManager {
                 Log.dln("channel===" + channel);
                 if (mApkInfo == null) {
                     if (listener != null) {
-                        listener.onFinish(CODE_FAIL);
+                        listener.onFinish(STATUS_FAIL);
                     }
                     return;
                 }
+                int result = STATUS_FAIL;
                 try {
                     //初始化Decoder
-                    Decoder decoder = new Decoder(mApkInfo, channel, channels);
-                    decoder.setApkName(apkName);
-                    decoder.setMinSdk(minSdk);
-                    decoder.setTargetSdk(targetSdk);
-                    decoder.setVersionCode(versionCode);
-                    decoder.setVersionName(versionName);
-                    int result = decoder.decode(apkPath);
-                    if (result == CODE_SUCCESS) {
-                        decoder.updateConfig(appId, appKey, cpId, cpKey, suffix);
-                        Builder builder = new Builder(channel, channels);
-                        builder.setApkName(apkName);
-                        builder.setPackageName(getPackageName());
+                    Decoder decoder = new Decoder(mApkInfo, channel, channels, apkFileName);
+                    decoder.setConfig(config);
+                    decoder.setOnProgressListener(onProgressListener);
+                    updateProgress("Decode Apk...");
+                    result = decoder.decode(apkPath);
+                    if (result == STATUS_SUCCESS) {
+                        decoder.updateManifest();
+                        Builder builder = new Builder(channel, channels, apkFileName);
+                        builder.setConfig(config);
+                        builder.setApkPackageName(getDefaultPackageName());
                         builder.setApplicationIcons(getIcons());
-                        buildApkPath = builder.build(appId, appKey, pubKey, secretKey, cpId, cpKey, suffix, drawableDir);
+                        updateProgress("Build Apk...");
+                        buildApkPath = builder.build();
                         if (Utils.isEmpty(buildApkPath)) {
-                            result = CODE_FAIL;
+                            result = STATUS_FAIL;
                         }
-                    }
-                    if (listener != null) {
-                        listener.onFinish(result);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    result = STATUS_FAIL;
+                } finally {
+                    if (listener != null) {
+                        listener.onFinish(result);
+                    }
                 }
             }
         }.start();
@@ -123,12 +114,18 @@ public class ChannelManager {
     private String createOutDir() {
         File apk = searchApk(ROOT_PATH);
         if (apk != null) {
-            apkName = apk.getName().substring(0, apk.getName().indexOf("."));
-            createFileDir(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkName + File.separator);
+            apkFileName = apk.getName().substring(0, apk.getName().indexOf("."));
+            createFileDir(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkFileName + File.separator);
 //                FileUtils.createOutDir(apk, new File(outPath + apk.getName()));
             return apk.getAbsolutePath();
         }
         return null;
+    }
+
+    private void updateProgress(String msg) {
+        if (onProgressListener != null) {
+            onProgressListener.publishProgress(msg);
+        }
     }
 
     public void setChannelId(int id) {
@@ -137,6 +134,14 @@ public class ChannelManager {
 
     public List<Channel> getChannels() {
         return channels;
+    }
+
+    public void setConfig(GameChannelConfig config) {
+        this.config = config;
+    }
+
+    public void setOnProgressListener(ShellUtils.OnProgressListener onProgressListener) {
+        this.onProgressListener = onProgressListener;
     }
 
     public String getDefaultMinSdk() {
@@ -158,23 +163,7 @@ public class ChannelManager {
         return mApkInfo.getVersionName();
     }
 
-    public void setMinSdk(String min) {
-        minSdk = min;
-    }
-
-    public void setTargetSdk(String target) {
-        targetSdk = target;
-    }
-
-    public void setVersionCode(String code) {
-        versionCode = code;
-    }
-
-    public void setVersionName(String name) {
-        versionName = name;
-    }
-
-    public String getPackageName() {
+    public String getDefaultPackageName() {
         if (mApkInfo == null)
             return null;
         return mApkInfo.getPackageName();
@@ -204,49 +193,27 @@ public class ChannelManager {
         return null;
     }
 
-    public void sign(final String... args) {
+    public void sign() {
+        sign(null, null, null);
+    }
+
+    public void sign(final String keystorePath, final String keystorePass, final String keystoreAlias) {
         new SubThread(cyclicBarrier, "SignApk") {
             @Override
             public void execute() {
                 if (!Utils.isEmpty(buildApkPath)) {
-                    Signer signer = new Signer(channels);
-                    signer.setApkName(apkName);
-                    signer.sign(buildApkPath, args);
+                    Signer signer = new Signer(getChannel(channelId), channels, apkFileName);
+                    updateProgress("Sign Apk...");
+                    int result = signer.sign(buildApkPath, keystorePath, keystorePass, keystoreAlias);
+                    if (result == STATUS_SUCCESS) {
+                        result = STATUS_SIGN_SUCCESS;
+                    }
+                    if (listener != null) {
+                        listener.onFinish(result);
+                    }
                 }
             }
         }.start();
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public void setAppKey(String appKey) {
-        this.appKey = appKey;
-    }
-
-    public void setPubKey(String pubKey) {
-        this.pubKey = pubKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    public void setCpId(String cpId) {
-        this.cpId = cpId;
-    }
-
-    public void setCpKey(String cpKey) {
-        this.cpKey = cpKey;
-    }
-
-    public void setDrawableDir(String drawableDir) {
-        this.drawableDir = drawableDir;
-    }
-
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
     }
 
     public void setBuildFinishListener(OnBuildFinishListener listener) {
@@ -256,4 +223,5 @@ public class ChannelManager {
     public interface OnBuildFinishListener {
         void onFinish(int code);
     }
+
 }

@@ -237,12 +237,36 @@ public class FileUtils {
         return false;
     }
 
-    public static String[] findAllFiles(String path) {
-        File file = new File(path);
-        if (file.isDirectory()) {
-            return file.list();
+    public static void deleteEmptyDir(String path) {
+        File root = new File(path);
+        if (root.isDirectory()) {
+            File[] dirs = root.listFiles();
+            if (dirs != null && dirs.length > 0) {
+                for (int i = 0; i < dirs.length; i++) {
+                    removeEmptyDir(dirs[i]);
+                }
+            }
         }
-        return new String[]{file.getName()};
+    }
+
+    private static void removeEmptyDir(File dir) {
+        if (dir.isDirectory()) {
+            File[] fs = dir.listFiles();
+            if (fs != null && fs.length > 0) {
+                for (int i = 0; i < fs.length; i++) {
+                    File tmpFile = fs[i];
+                    if (tmpFile.isDirectory()) {
+                        removeEmptyDir(tmpFile);
+                    }
+                    if (tmpFile.isDirectory() && tmpFile.listFiles().length <= 0) {
+                        tmpFile.delete();
+                    }
+                }
+            }
+            if (dir.isDirectory() && dir.listFiles().length == 0) {
+                dir.delete();
+            }
+        }
     }
 
     public static String readFile(String path) {
@@ -258,6 +282,9 @@ public class FileUtils {
 
     public static String readAndReplaceFile(String path, String[] targets, String[] replaces) {
         File file = new File(path);
+        if (!file.exists()) {
+            return null;
+        }
         StringBuffer sb = new StringBuffer();
         if (!file.isFile()) {
             throw new IllegalArgumentException("the " + path + " is not a file");

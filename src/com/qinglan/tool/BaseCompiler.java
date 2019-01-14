@@ -1,6 +1,8 @@
 package com.qinglan.tool;
 
 import com.qinglan.tool.entity.Channel;
+import com.qinglan.tool.entity.GameChannelConfig;
+import com.qinglan.tool.util.ShellUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,15 +42,20 @@ public abstract class BaseCompiler {
 
     protected Channel currChannel;
     protected List<Channel> exceptChannels;
-    protected String decodeApkName;
+    protected String apkFileName;
+
+    protected GameChannelConfig config;
+
+    protected ShellUtils.OnProgressListener onProgressListener;
 
     private BaseCompiler() {
     }
 
-    public BaseCompiler(Channel c, List<Channel> channels) {
+    public BaseCompiler(Channel c, List<Channel> channels, String apkName) {
         currChannel = c;
         exceptChannels = new ArrayList<>(channels);
         exceptChannels.remove(currChannel);
+        apkFileName = apkName;
     }
 
     protected String getOutDirPath(String apkName) {
@@ -56,7 +63,14 @@ public abstract class BaseCompiler {
     }
 
     public void setApkName(String apk) {
-        decodeApkName = apk;
+        apkFileName = apk;
     }
 
+    public void setConfig(GameChannelConfig config) {
+        this.config = config;
+    }
+
+    public void setOnProgressListener(ShellUtils.OnProgressListener onProgressListener) {
+        this.onProgressListener = onProgressListener;
+    }
 }

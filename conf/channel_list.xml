@@ -18,7 +18,7 @@
                 </assets>
                 <!--渠道需要的jar和so包，支持通配符"*""?"，需要扩展名，如.jar/.aar/.so等-->
                 <libs>
-                    <lib>alipaySdk*.jar</lib>
+                    <lib>alipaySdk-*.jar</lib>
                     <lib>net-sdk-*.jar</lib>
                 </libs>
             </filter>
@@ -47,6 +47,9 @@
                     <name>hms*</name>
                     <name>hwpush*</name>
                 </res>
+                <meta-data>
+                    <item>com.huawei.*</item>
+                </meta-data>
             </filter>
         </channel>
 
@@ -63,6 +66,7 @@
                 <assets>
                     <asset>nox_data</asset>
                     <asset>data.bin</asset>
+                    <asset>3</asset>
                 </assets>
                 <!--渠道需要的jar和so包，支持通配符"*""?"，需要扩展名，如.jar/.aar/.so等-->
                 <libs>
@@ -95,6 +99,11 @@
                     <!--例如，yxf平台res下包括anim、drawable等使用的名称均以yxf开头，可写作yxf*，不需要扩展名-->
                     <name>yxf*</name>
                 </res>
+                <meta-data>
+                    <item>SDK_APPID</item>
+                    <item>SDK_GAMEID</item>
+                    <item>SDK_AGENT</item>
+                </meta-data>
             </filter>
         </channel>
 
@@ -102,11 +111,11 @@
         <channel id="5" name="57k">
             <class-name>HuoSdkChannel</class-name>
             <filter>
-                <package-list>
-                    <package base-name="com.game.sdk"/>
-                    <!--使用了imageloader-->
-                    <!--<package base-name="com.nostra13.universalimageloader"/>-->
-                </package-list>
+                <!--<package-list>-->
+                <!--<package base-name="com.game.sdk"/>-->
+                <!--使用了imageloader-->
+                <!--<package base-name="com.nostra13.universalimageloader"/>-->
+                <!--</package-list>-->
                 <libs>
                     <lib>HuoSusdk*.jar</lib>
                     <lib>libhs_sdk-lib.so</lib>
@@ -118,6 +127,9 @@
                     <name>floater_hide_tips_02</name>
                     <name>floater_hide_tips_03</name>
                 </res>
+                <meta-data>
+                    <item>HS_*</item>
+                </meta-data>
             </filter>
         </channel>
 
@@ -132,6 +144,7 @@
                 </package-list>
                 <assets>
                     <asset>yhsdk</asset>
+                    <asset>6</asset>
                 </assets>
                 <res>
                     <name>yhsdk*</name>
@@ -141,7 +154,11 @@
                     <lib>libentryexpro.so</lib>
                     <lib>libuptsmaddon.so</lib>
                     <lib>hf_*.jar</lib>
+                    <lib>ulo5sdk*.jar</lib>
                 </libs>
+                <meta-data>
+                    <item>hf_*</item>
+                </meta-data>
             </filter>
         </channel>
 
@@ -153,14 +170,21 @@
                     <package base-name="com.lion"/>
                     <package base-name="com.xbfxmedia.player"/>
                 </package-list>
+                <assets>
+                    <asset>7</asset>
+                </assets>
                 <res>
                     <name>lion*</name>
                 </res>
                 <libs>
                     <lib>libentryexpro.so</lib>
                     <lib>libuptsmaddon.so</lib>
-                    <lib>libXBFX*.so</lib>
+                    <lib>libXBFX(.*).so</lib>
                 </libs>
+                <meta-data>
+                    <item>developer_key</item>
+                    <item>app_id</item>
+                </meta-data>
             </filter>
         </channel>
     </channel-list>

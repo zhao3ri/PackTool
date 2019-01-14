@@ -164,16 +164,17 @@ public class ManifestHelper {
                 if (component.getNodeName().equals(ELEMENT_ACTIVITY)
                         || component.getNodeName().equals(ELEMENT_SERVICE)
                         || component.getNodeName().equals(ELEMENT_PROVIDER)
-                        || component.getNodeName().equals(ELEMENT_METADATA)
                         || component.getNodeName().equals(ELEMENT_RECEIVER)) {
-                    delElement(component, channel);
+                    deleteElement(component, channel);
+                } else if (component.getNodeName().equals(ELEMENT_METADATA)) {
+                    deleteMetaData(component, channel);
                 }
             }
         }
         XmlTool.saveXml(mDocument, manifestPath);
     }
 
-    private void delElement(Node item, Channel channel) {
+    private void deleteElement(Node item, Channel channel) {
         Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
         String attributeName = attributeNameNode.toString();
         if (null != channel.getFilter().getPackageNameList() && !channel.getFilter().getPackageNameList().isEmpty()) {
@@ -199,6 +200,20 @@ public class ManifestHelper {
                         item.getParentNode().removeChild(item);
                     }
                 }
+            }
+        }
+    }
+
+    private void deleteMetaData(Node item, Channel channel) {
+        if (null == channel.getFilter().getMetaData() || channel.getFilter().getMetaData().isEmpty()) {
+            return;
+        }
+        Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
+        String attributeName = attributeNameNode.getTextContent();
+        for (String name : channel.getFilter().getMetaData()) {
+            if (Utils.matches(name, attributeName)) {
+                item.getParentNode().removeChild(item);
+                Log.eln("delete:" + item.getNodeName() + " name=" + attributeName);
             }
         }
     }
