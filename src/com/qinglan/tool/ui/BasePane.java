@@ -16,11 +16,6 @@ import static javax.swing.JOptionPane.*;
 public abstract class BasePane<T extends Window> extends JComponent implements WindowListener, ActionListener {
     protected T win;
     protected IView view;
-    private Container container;
-
-    protected final int buttonHeight = 28;
-    protected final int buttonWidth = 75;
-    protected final int defaultHeight = 20;
 
     private PropertyChangeListener propertyChangeListener;
     private ActionListener actionListener;
@@ -30,7 +25,7 @@ public abstract class BasePane<T extends Window> extends JComponent implements W
     public static final int CODE_ACTION_CLICK_SUBMIT = 1;
     public static final int CODE_ACTION_CLICK_MORE = 2;
     public static final int CODE_ACTION_MORE_CONFIRM = 3;
-    public static final int CODE_ACTION_SIGN_CONFIRM = 4;
+    public static final int CODE_ACTION_FILE_CONFIRM = 4;
 
     public static final String CHANNEL_RADIO_CHANGED_PROPERTY = "ChannelRadioChangedProperty";
 
@@ -57,21 +52,17 @@ public abstract class BasePane<T extends Window> extends JComponent implements W
 
     protected abstract <V extends IView> V createView();
 
-    protected void addContentView(Component comp) {
-        if (container != null) {
-            container.add(comp);
-        }
+    protected IView getView() {
+        return view;
     }
 
-    protected void setContainer(Container c) {
-        this.container = c;
+    protected void resetView() {
+        this.view = createView();
     }
 
-    public void setLocation(Window win) {
-        int location[] = getLocation(win);
-        int x = location[0];
-        int y = location[1];
-        win.setLocation(x, y);
+    public void load() {
+        if (view != null)
+            view.load();
     }
 
     protected final Window getWindowForComponent(Component parent)
@@ -89,6 +80,13 @@ public abstract class BasePane<T extends Window> extends JComponent implements W
             return;
         }
         textField.setText(text);
+    }
+
+    public void setLocation(Window win) {
+        int location[] = getLocation(win);
+        int x = location[0];
+        int y = location[1];
+        win.setLocation(x, y);
     }
 
     protected int[] getLocation(Window win) {
@@ -162,8 +160,9 @@ public abstract class BasePane<T extends Window> extends JComponent implements W
         return event;
     }
 
-    protected int getReturnCode() {
-        return returnCode;
+    public void recycle() {
+        removeActionListener(this);
+        view.remove();
     }
 
     @Override

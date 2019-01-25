@@ -46,9 +46,14 @@ public class MorePane extends BasePane {
         dialog.setResizable(false);
         dialog.setSize(new Dimension(view.getWidth(), view.getHeight()));
         dialog.getContentPane().add(view.getContentView());
-        view.load();
         dialog.setLocationRelativeTo(win);
+        load();
         return dialog;
+    }
+
+    @Override
+    protected IMoreView getView() {
+        return (IMoreView) view;
     }
 
     @Override
@@ -58,6 +63,10 @@ public class MorePane extends BasePane {
             @Override
             public void actionPerformed(ActionEvent e) {
                 returnCode = CODE_ACTION_MORE_CONFIRM;
+                setMinSdk(getView().getMinSdkText());
+                setTargetSdk(getView().getTargetSdkText());
+                setVersionCode(getView().getVersionCodeText());
+                setVersionName(getView().getVersionNameText());
                 if (dialog != null) {
                     dialog.setVisible(false);
                 }
@@ -66,43 +75,43 @@ public class MorePane extends BasePane {
         return view;
     }
 
-    public void setMinSdkText(String min) {
+    public void setMinSdk(String min) {
         String old = minSdk;
         minSdk = min;
         firePropertyChange(MIN_SDK_TEXT_CHANGED_PROPERTY, old, minSdk);
     }
 
-    public void setTargetSdkText(String target) {
+    public void setTargetSdk(String target) {
         String old = targetSdk;
         targetSdk = target;
         firePropertyChange(TARGET_SDK_TEXT_CHANGED_PROPERTY, old, targetSdk);
     }
 
-    public void setVersionCodeText(String code) {
+    public void setVersionCode(String code) {
         String old = versionCode;
         versionCode = code;
         firePropertyChange(VERSION_CODE_TEXT_CHANGED_PROPERTY, old, versionCode);
     }
 
-    public void setVersionNameText(String name) {
+    public void setVersionName(String name) {
         String old = versionName;
         versionName = name;
         firePropertyChange(VERSION_NAME_TEXT_CHANGED_PROPERTY, old, versionName);
     }
 
-    public String getMinSDKText() {
+    public String getMinSDK() {
         return minSdk;
     }
 
-    public String getTargetSdkText() {
+    public String getTargetSdk() {
         return targetSdk;
     }
 
-    public String getVersionNameText() {
+    public String getVersionName() {
         return versionName;
     }
 
-    public String getVersionCodeText() {
+    public String getVersionCode() {
         return versionCode;
     }
 

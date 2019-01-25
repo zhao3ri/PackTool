@@ -10,12 +10,12 @@ import static com.qinglan.tool.util.Utils.isEmpty;
 
 public class ShellUtils {
     final CyclicBarrier barrier = new CyclicBarrier(2);
-    OnProgressListener onProgressListener;
+    ProgressListener onProgressListener;
 
     public ShellUtils() {
     }
 
-    public ShellUtils(OnProgressListener listener) {
+    public ShellUtils(ProgressListener listener) {
         onProgressListener = listener;
     }
 
@@ -110,7 +110,7 @@ public class ShellUtils {
         }
     }
 
-    public interface OnProgressListener {
+    public interface ProgressListener {
         void publishProgress(String values);
     }
 }

@@ -46,7 +46,7 @@ public abstract class BaseCompiler {
 
     protected GameChannelConfig config;
 
-    protected ShellUtils.OnProgressListener onProgressListener;
+    protected ShellUtils.ProgressListener progressListener;
 
     private BaseCompiler() {
     }
@@ -70,7 +70,7 @@ public abstract class BaseCompiler {
         this.config = config;
     }
 
-    public void setOnProgressListener(ShellUtils.OnProgressListener onProgressListener) {
-        this.onProgressListener = onProgressListener;
+    public void setProgressListener(ShellUtils.ProgressListener progressListener) {
+        this.progressListener = progressListener;
     }
 }

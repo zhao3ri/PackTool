@@ -12,11 +12,12 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import static com.qinglan.tool.ui.BasePane.*;
+import static com.qinglan.tool.ui.DialogOptionPane.TYPE_APK;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
     protected static final int FRAME_WIDTH = 500;
-    protected static final int FRAME_HEIGHT = 450;
+    protected static final int FRAME_HEIGHT = 455;
 
     private OnCloseListener closeListener;
     private OnSubmitClickListener submitClickListener;
@@ -50,18 +51,28 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             public void windowClosing(WindowEvent e) {
                 if (closeListener != null)
                     closeListener.onClose();
-                close();
+
             }
         });
         homePane = createHomePane(channelList);
     }
 
     public void open() {
-        setVisible(true);
+        this.setVisible(true);
+        homePane.load();
+//        DialogOptionPane optionPane = new DialogOptionPane(this, TYPE_APK);
+//        int result = optionPane.showDialog(currentPath, "apk", "apk");
+//        if (result == CODE_ACTION_FILE_CONFIRM) {
+//            this.setVisible(true);
+//            homePane.load();
+//        } else if (result == CODE_ACTION_CLOSE) {
+//            close();
+//            System.exit(0);
+//        }
     }
 
     private HomePane createHomePane(List<Channel> channelList) {
-        HomePane home = new HomePane(this, channelList, currentPath);
+        HomePane home = new HomePane(this, channelList);
         home.setPropertyChangeListener(this);
         home.setActionListener(this);
         return home;
@@ -78,10 +89,15 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setSecretKeyText(config.getSecretKey());
         homePane.setCpIdText(config.getCpId());
         homePane.setCpKeyText(config.getCpKey());
-        homePane.setDefaultPackageName(packageName);
-        homePane.setPackageSuffix(config.getPackageName());
-        homePane.setNewPackageName(config.getPackageName());
         homePane.selectedPackage(config.isUseDefaultPackage(), config.isSuffix());
+        homePane.setDefaultPackageName(packageName);
+        if (!config.isUseDefaultPackage()) {
+            if (config.isSuffix()) {
+                homePane.setPackageSuffix(config.getPackageName());
+            } else {
+                homePane.setNewPackageName(config.getPackageName());
+            }
+        }
         if (config.getAppInfo() != null) {
             setMinSdk(config.getAppInfo().getMinSdk());
             setTargetSdk(config.getAppInfo().getTargetSdk());
@@ -92,7 +108,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     public void close() {
 //        setVisible(false);
-        homePane.close();
+        homePane.recycle();
         getContentPane().removeAll();
         dispose();
     }
@@ -121,25 +137,29 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         int result = JOptionPane.showConfirmDialog(this, msg, "提示", JOptionPane.YES_NO_OPTION, msgType);
         switch (result) {
             case YES_OPTION:
-                if (listener != null)
+                if (listener != null) {
                     listener.onPositive();
+                }
                 break;
             case NO_OPTION:
-                if (listener != null)
+                if (listener != null) {
                     listener.onNegative();
+                }
                 break;
             case CLOSED_OPTION:
-                if (closeListener != null)
+                if (closeListener != null) {
                     closeListener.onClose();
+                }
                 break;
         }
+        Log.iln("result==" + result);
     }
 
     public void showSignChooseDialog(final OnSignSelectedClickListener completeClickListener
             , final OnCloseListener closeListener, final String filterDesc, final String... filters) {
         DialogOptionPane optionPane = new DialogOptionPane(this);
-        int result = optionPane.showSignDialog(currentPath, filterDesc, filters);
-        if (result == CODE_ACTION_SIGN_CONFIRM) {
+        int result = optionPane.showDialog(currentPath, filterDesc, filters);
+        if (result == CODE_ACTION_FILE_CONFIRM) {
             if (completeClickListener != null) {
                 completeClickListener.onSelected(optionPane.getSignPath(), optionPane.getPassword(), optionPane.getAlias());
             }
@@ -239,20 +259,21 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     private void openMorePanel() {
         MorePane morePane = new MorePane(this);
-        morePane.setMinSdkText(minSdk);
-        morePane.setTargetSdkText(targetSdk);
-        morePane.setVersionCodeText(versionCode);
-        morePane.setVersionNameText(versionName);
+        morePane.setMinSdk(minSdk);
+        morePane.setTargetSdk(targetSdk);
+        morePane.setVersionCode(versionCode);
+        morePane.setVersionName(versionName);
         int result = morePane.showDialog();
         Log.iln("result==" + result);
         if (result == CODE_ACTION_MORE_CONFIRM) {
             if (confirmClickListener != null) {
-                boolean confirm = confirmClickListener.onConfirm(morePane.getMinSDKText(), morePane.getTargetSdkText(), morePane.getVersionCodeText(), morePane.getVersionNameText());
+                boolean confirm = confirmClickListener.onConfirm(morePane.getMinSDK(), morePane.getTargetSdk(), morePane.getVersionCode(), morePane.getVersionName());
+                Log.iln("getTargetSdk==" + morePane.getTargetSdk());
                 if (confirm) {
-                    setMinSdk(morePane.getMinSDKText());
-                    setTargetSdk(morePane.getTargetSdkText());
-                    setVersionName(morePane.getVersionNameText());
-                    setVersionCode(morePane.getVersionCodeText());
+                    setMinSdk(morePane.getMinSDK());
+                    setTargetSdk(morePane.getTargetSdk());
+                    setVersionName(morePane.getVersionName());
+                    setVersionCode(morePane.getVersionCode());
                 }
             }
         }

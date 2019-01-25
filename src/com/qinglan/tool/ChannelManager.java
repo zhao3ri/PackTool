@@ -26,7 +26,7 @@ public class ChannelManager {
     private int channelId;
     private CyclicBarrier cyclicBarrier;
     private OnBuildFinishListener listener;
-    private ShellUtils.OnProgressListener onProgressListener;
+    private ShellUtils.ProgressListener progressListener;
 
     private GameChannelConfig config;
     private String buildApkPath;
@@ -41,17 +41,23 @@ public class ChannelManager {
     public static final int STATUS_SIGN_SUCCESS = 4;
 
     public ChannelManager() {
-        initChannel();
+        File apk = searchApk(ROOT_PATH);
+        initChannel(apk);
     }
 
-    private void initChannel() {
+    public ChannelManager(String apkPath) {
+        File apk = new File(apkPath);
+        initChannel(apk);
+    }
+
+    private void initChannel(File apkFile) {
         String xml = FileUtils.readFile(CHANNEL_CONFIG_PATH);
         ChannelList channelList = XmlTool.xml2Object(xml, ChannelList.class);
         if (channelList != null) {
             channels = channelList.getChannelList();
         }
         //查找当前目录下的apk，并创建输出目录
-        apkPath = createOutDir();
+        apkPath = createOutDir(apkFile);
         try {
             mApkInfo = new ApkUtils().getApkInfo(apkPath);
         } catch (Exception e) {
@@ -84,7 +90,7 @@ public class ChannelManager {
                     //初始化Decoder
                     Decoder decoder = new Decoder(mApkInfo, channel, channels, apkFileName);
                     decoder.setConfig(config);
-                    decoder.setOnProgressListener(onProgressListener);
+                    decoder.setProgressListener(progressListener);
                     updateProgress("Decode Apk...");
                     result = decoder.decode(apkPath);
                     if (result == STATUS_SUCCESS) {
@@ -111,8 +117,7 @@ public class ChannelManager {
         }.start();
     }
 
-    private String createOutDir() {
-        File apk = searchApk(ROOT_PATH);
+    private String createOutDir(File apk) {
         if (apk != null) {
             apkFileName = apk.getName().substring(0, apk.getName().indexOf("."));
             createFileDir(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkFileName + File.separator);
@@ -123,8 +128,8 @@ public class ChannelManager {
     }
 
     private void updateProgress(String msg) {
-        if (onProgressListener != null) {
-            onProgressListener.publishProgress(msg);
+        if (progressListener != null) {
+            progressListener.publishProgress(msg);
         }
     }
 
@@ -140,8 +145,8 @@ public class ChannelManager {
         this.config = config;
     }
 
-    public void setOnProgressListener(ShellUtils.OnProgressListener onProgressListener) {
-        this.onProgressListener = onProgressListener;
+    public void setProgressListener(ShellUtils.ProgressListener progressListener) {
+        this.progressListener = progressListener;
     }
 
     public String getDefaultMinSdk() {

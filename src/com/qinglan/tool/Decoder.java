@@ -34,7 +34,7 @@ public class Decoder extends BaseCompiler {
             createFileDir(OUT_PATH);
 //            apkDecode(path);
             String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/"%s d %s -o %s -f", APKTOOL_PATH, path, OUT_PATH);
-            result = Utils.execShell(onProgressListener, scriptPath);
+            result = Utils.execShell(progressListener, scriptPath);
             return 0;
         } catch (Exception e) {
             e.printStackTrace();

@@ -9,7 +9,6 @@ import com.qinglan.tool.util.ShellUtils;
 import com.qinglan.tool.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -23,7 +22,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
     private static final String VERSION_REGEX = "\\d+(\\.\\d+){0,2}";
 
     private ChannelManager channelManager;
-    private ConfigManager confManager;
+    private ConfigManager configManager;
     private int channelId;
     //    private HomePane homePane;
     private MainFrame mainFrame;
@@ -45,7 +44,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
 
             }
         });
-        confManager = new ConfigManager();
+        configManager = new ConfigManager();
         channelManager = new ChannelManager();
         List<Channel> channels = channelManager.getChannels();
         apkPackageName = channelManager.getDefaultPackageName();
@@ -53,14 +52,19 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
 
         mainFrame = new MainFrame(ROOT_PATH, channels);
         finish("Welcome!");
-        refresh();
-        mainFrame.setApkInfoText("apk: " + channelManager.getAppName() + ", versionName: " + channelManager.getDefaultVersionName());
         mainFrame.setCloseListener(this);
         mainFrame.setSubmitClickListener(this);
         mainFrame.setChangedChannelListener(this);
         mainFrame.setConfirmClickListener(this);
-//        mainFrame.open();
-        mainFrame.showSignChooseDialog(null,null,"apk","apk");
+        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
+            @Override
+            public void publishProgress(String values) {
+                mainFrame.setMessage(values);
+            }
+        });
+        mainFrame.setApkInfoText("apk: " + channelManager.getAppName() + ", versionName: " + channelManager.getDefaultVersionName());
+        mainFrame.open();
+        refresh();
     }
 
     private void finish(String msg) {
@@ -97,6 +101,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
             mainFrame.showDialog("<html>The thread is running.<br/> Do you want to exit?</html>", new MainFrame.OnDialogButtonClickListener() {
                 @Override
                 public void onPositive() {
+                    mainFrame.close();
                     System.exit(1);
                 }
 
@@ -104,9 +109,11 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 public void onNegative() {
 
                 }
-            }, null, JOptionPane.WARNING_MESSAGE);
+            }, null);
             return;
         }
+        Log.eln("exit!");
+        mainFrame.close();
         System.exit(0);
     }
 
@@ -115,7 +122,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
 
             @Override
             public void onPositive() {
-                confManager.saveConfig(apkPackageName, channelId, config);
+                configManager.saveConfig(apkPackageName, channelId, config);
             }
 
             @Override
@@ -128,7 +135,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
     @Override
     public void onChange(int id) {
         channelId = id;
-        if (confManager.exists(apkPackageName, channelId)) {
+        if (configManager.exists(apkPackageName, channelId)) {
             //存在配置文件，则询问是否导入
             showImportDialog();
         } else {
@@ -140,7 +147,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
         mainFrame.showDialog("已存在该渠道配置，是否导入？", new MainFrame.OnDialogButtonClickListener() {
             @Override
             public void onPositive() {
-                GameChannelConfig config = confManager.readConfig(apkPackageName, channelId);
+                GameChannelConfig config = configManager.readConfig(apkPackageName, channelId);
                 if (config != null) {
                     mConfig = config;
                     mainFrame.refreshUI(config, apkPackageName);
@@ -260,7 +267,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
             return;
         }
         mainFrame.changeEnable(false);
-        updateConfig(drawable, appId, appKey, pubKey, secretKey, cpId, cpKey, pkg, suffix,useDefault);
+        updateConfig(drawable, appId, appKey, pubKey, secretKey, cpId, cpKey, pkg, suffix, useDefault);
         channelManager.setChannelId(channelId);
         channelManager.setConfig(mConfig);
         new Thread() {
@@ -270,10 +277,10 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 try {
                     cyclicBarrier.await();
                     finish("Finish!!");
-                    if (!confManager.exists(apkPackageName, channelId)) {
+                    if (!configManager.exists(apkPackageName, channelId)) {
                         showSaveDialog("是否保存当前配置？", mConfig);
                     } else {
-                        if (!confManager.readConfig(apkPackageName, channelId).equals(mConfig)) {
+                        if (!configManager.readConfig(apkPackageName, channelId).equals(mConfig)) {
                             showSaveDialog("配置修改，是否保存？", mConfig);
                         }
                     }

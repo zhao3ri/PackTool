@@ -1,6 +1,6 @@
 package com.qinglan.tool.ui.widget.impl;
 
-import com.qinglan.tool.ui.BasePane;
+import com.qinglan.tool.ui.JHintTextField;
 import com.qinglan.tool.ui.MorePane;
 import com.qinglan.tool.ui.widget.IMoreView;
 import com.qinglan.tool.util.Utils;
@@ -17,10 +17,10 @@ import java.beans.PropertyChangeEvent;
 import java.text.ParseException;
 
 public class MoreView extends BaseView implements IMoreView {
-    private JFormattedTextField textMinSDK;
-    private JFormattedTextField textTargetSDK;
-    private JFormattedTextField textVersionCode;
-    private JTextField textVersionName;
+    private JHintTextField textMinSDK;
+    private JHintTextField textTargetSDK;
+    private JHintTextField textVersionCode;
+    private JHintTextField textVersionName;
     private JButton btnConfirm;
 
     private int contentPadding = 20;
@@ -47,10 +47,14 @@ public class MoreView extends BaseView implements IMoreView {
 
     @Override
     public void load() {
-        textMinSDK.setText(getParent().getMinSDKText());
-        textTargetSDK.setText(getParent().getTargetSdkText());
-        textVersionName.setText(getParent().getVersionNameText());
-        textVersionCode.setText(getParent().getVersionCodeText());
+        textMinSDK.setText(getParent().getMinSDK());
+        textMinSDK.setHintText(getParent().getMinSDK());
+        textTargetSDK.setText(getParent().getTargetSdk());
+        textTargetSDK.setHintText(getParent().getTargetSdk());
+        textVersionCode.setText(getParent().getVersionCode());
+        textVersionCode.setHintText(getParent().getVersionCode());
+        textVersionName.setText(getParent().getVersionName());
+        textVersionName.setHintText(getParent().getVersionName());
     }
 
     @Override
@@ -119,9 +123,9 @@ public class MoreView extends BaseView implements IMoreView {
 
     private <T extends JTextField> T createFormatTextField(boolean format) {
         JTextField textField;
+        textField = new JHintTextField();
         if (format) {
-            textField = new JFormattedTextField();
-            ((JFormattedTextField) textField).setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
+            ((JHintTextField) textField).setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
             textField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyReleased(KeyEvent e) {
@@ -143,8 +147,8 @@ public class MoreView extends BaseView implements IMoreView {
                     }
                 }
             });
-        } else {
-            textField = new JTextField();
+//        } else {
+//            textField = new JTextField();
         }
         textField.setSize(new Dimension(textWidth, defaultHeight));
         return (T) textField;
@@ -199,5 +203,32 @@ public class MoreView extends BaseView implements IMoreView {
     @Override
     public void setConfirmClickAction(ActionListener listener) {
         confirmClickActionListener = listener;
+    }
+
+    @Override
+    public String getMinSdkText() {
+        return getText(textMinSDK);
+    }
+
+    @Override
+    public String getTargetSdkText() {
+        return getText(textTargetSDK);
+    }
+
+    @Override
+    public String getVersionCodeText() {
+        return getText(textVersionCode);
+    }
+
+    @Override
+    public String getVersionNameText() {
+        return getText(textVersionName);
+    }
+
+    private String getText(JHintTextField textField) {
+        if (Utils.isEmpty(textField.getText())) {
+            return textField.getHintText();
+        }
+        return textField.getText();
     }
 }

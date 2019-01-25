@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
     private int itemLabelWidth = 60;
 
     private int defaultMargin = 10;
-    private int messageHeight = 50;
+    private int messageHeight = 55;
 
     private JButton btnSubmit;
     private JButton btnMore;
@@ -232,7 +231,7 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         parent.setLayout(null);
         btnSubmit = new JButton("提交");
         btnSubmit.setSize(buttonWidth, buttonHeight);
-        int x = (parent.getPreferredSize().width - buttonWidth * 2 - defaultMargin) / 2;
+        int x = (bodyWidth - buttonWidth * 2 - defaultMargin) / 2;
         btnSubmit.setLocation(x, defaultMargin);
         btnSubmit.addActionListener(this);
         parent.add(btnSubmit);
@@ -260,8 +259,7 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         panel.add(line);
 
         labMsg = new JLabel("", JLabel.CENTER);
-        labMsg.setMinimumSize(new Dimension(getWindowWidth(), 0));
-        labMsg.setMaximumSize(new Dimension(getWindowWidth(), labMsg.getFont().getSize() * 2));
+        labMsg.setPreferredSize(new Dimension(bodyWidth, labMsg.getFont().getSize() * 2));
         labMsg.setHorizontalAlignment(SwingConstants.LEFT);
         labMsg.setHorizontalTextPosition(SwingConstants.LEFT);
 //        Font fnt = new Font("Default", Font.BOLD, 30);
@@ -391,6 +389,7 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
     }
 
     private void setApkInfoText(String info) {
+        Log.iln(info);
         labApkInfo.setText(info);
     }
 

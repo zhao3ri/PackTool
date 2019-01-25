@@ -55,6 +55,7 @@ public class GameChannelConfig {
         this.cpId = config.cpId;
         this.cpKey = config.cpKey;
         this.packageName = config.packageName;
+        this.useDefaultPackage = config.useDefaultPackage;
         this.suffix = config.suffix;
         this.appInfo = config.appInfo;
     }
@@ -159,7 +160,7 @@ public class GameChannelConfig {
         if (this.appInfo == null) {
             this.appInfo = new AppConfig();
         }
-        setAppInfo(this.appInfo.update(min, target, vcode, vname));
+        this.appInfo.update(min, target, vcode, vname);
     }
 
     @Override
@@ -173,8 +174,9 @@ public class GameChannelConfig {
                 equalsString(this.cpId, ((GameChannelConfig) obj).cpId) &&
                 equalsString(this.cpKey, ((GameChannelConfig) obj).cpKey) &&
                 equalsString(this.packageName, ((GameChannelConfig) obj).packageName) &&
+                this.useDefaultPackage == ((GameChannelConfig) obj).useDefaultPackage &&
                 this.suffix == ((GameChannelConfig) obj).suffix &&
-                this.appInfo == ((GameChannelConfig) obj).appInfo;
+                this.appInfo.equals(((GameChannelConfig) obj).appInfo);
     }
 
     public static GameChannelConfig createDefaultConfig() {

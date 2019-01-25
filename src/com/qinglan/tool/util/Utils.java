@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qinglan.common.Log;
-import com.qinglan.tool.ChannelManager;
 
 import java.io.*;
 import java.util.Enumeration;
@@ -65,7 +64,7 @@ public class Utils {
         return outSteam.toByteArray();
     }
 
-    public static int execShell(ShellUtils.OnProgressListener listener, String scriptPath, String... args) {
+    public static int execShell(ShellUtils.ProgressListener listener, String scriptPath, String... args) {
 
         //解决脚本没有执行权限
 //            ProcessBuilder builder = new ProcessBuilder("/bin/chmod", "755",scriptPath);

@@ -27,7 +27,6 @@ public class HomePane extends BasePane {
     public static final String APK_INFO_CHANGED_PROPERTY = "HomePane.PackageSelectedChangedProperty";
     public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
 
-    private String currentPath;
     private String drawablePath;
     private String appId;
     private String appKey;
@@ -44,13 +43,10 @@ public class HomePane extends BasePane {
     private boolean isUseDefaultPackage;
     private boolean isEnable = true;
 
-    public HomePane(JFrame frame, List<Channel> channelList, String path) {
+    public HomePane(JFrame frame, List<Channel> channelList) {
         super(frame);
-        currentPath = path;
         getView().setChannelList(channelList);
-        setContainer(frame.getContentPane());
-        addContentView(view.getContentView());
-        view.load();
+        frame.getContentPane().add(view.getContentView());
     }
 
     @Override
@@ -61,13 +57,9 @@ public class HomePane extends BasePane {
         return view;
     }
 
-    private IHomeView getView() {
+    @Override
+    protected IHomeView getView() {
         return (IHomeView) view;
-    }
-
-    public void close() {
-        removeActionListener(this);
-        view.remove();
     }
 
     @Override
