@@ -12,7 +12,6 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import static com.qinglan.tool.ui.BasePane.*;
-import static com.qinglan.tool.ui.DialogOptionPane.TYPE_APK;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
