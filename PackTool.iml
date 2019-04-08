@@ -7,6 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="libs" level="project" />
+    <orderEntry type="library" name="apktool" level="project" />
+    <orderEntry type="library" name="jackson-core-2.9.8" level="project" />
+    <orderEntry type="library" name="jackson-annotations-2.9.8" level="project" />
+    <orderEntry type="library" name="jackson-databind-2.9.8" level="project" />
+    <orderEntry type="library" name="jackson-dataformat-xml-2.9.8" level="project" />
   </component>
 </module>
