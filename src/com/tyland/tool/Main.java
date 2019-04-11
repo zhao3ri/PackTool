@@ -13,11 +13,9 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
-import static com.tyland.tool.ChannelManager.STATUS_NO_FIND;
-import static com.tyland.tool.ChannelManager.STATUS_SIGN_SUCCESS;
-import static com.tyland.tool.ChannelManager.STATUS_SUCCESS;
+import static com.tyland.tool.ChannelManager.*;
 
-public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSubmitClickListener, MainFrame.OnCloseListener, ChannelManager.OnBuildFinishListener, MainFrame.OnConfirmClickListener {
+public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSubmitClickListener, MainFrame.OnCloseListener, ChannelManager.OnBuildFinishListener, MainFrame.OnConfirmClickListener, MainFrame.LoadApkListener {
     public static final String ROOT_PATH = ".";
     private static final String VERSION_REGEX = "\\d+(\\.\\d+){0,2}";
 
@@ -56,6 +54,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
         mainFrame.setSubmitClickListener(this);
         mainFrame.setChangedChannelListener(this);
         mainFrame.setConfirmClickListener(this);
+        mainFrame.setLoadApkListener(this);
         channelManager.setProgressListener(new ShellUtils.ProgressListener() {
             @Override
             public void publishProgress(String values) {
@@ -170,6 +169,10 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
             case STATUS_SUCCESS:
                 showKeystoreChooser(status);
                 break;
+            case STATUS_DECODE_SUCCESS:
+                Log.iln("反编译完成");
+                finish("Decode finish!!");
+                break;
             case STATUS_SIGN_SUCCESS:
 
                 break;
@@ -266,7 +269,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
 //            mainFrame.showErrorDialog("Please choose the channel!");
 //            return;
 //        }
-        if (!channelManager.isExistApk()){
+        if (!channelManager.isExistApk()) {
             mainFrame.showErrorDialog("当前无apk文件！");
             return;
         }
@@ -280,7 +283,6 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 channelManager.execute();
                 try {
                     cyclicBarrier.await();
-                    mainFrame.showDialog("反编译成功！");
                     finish("Finish!!");
                     if (!configManager.exists(apkPackageName, channelId)) {
                         showSaveDialog("是否保存当前配置？", mConfig);
@@ -310,5 +312,33 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
         mConfig.setSuffix(suffix);
         mConfig.setUseDefaultPackage(useDefault);
         mConfig.setPackageName(pkg);
+    }
+
+    @Override
+    public void onLoadStart() {
+        if (!channelManager.isExistApk()) {
+            mainFrame.showErrorDialog("当前无apk文件！");
+            return;
+        }
+        mainFrame.changeEnable(false);
+        mainFrame.setMessage("Decode apk....");
+        new Thread() {
+            @Override
+            public void run() {
+                channelManager.decodeApk();
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
+    @Override
+    public void onLoadEnd() {
+
     }
 }

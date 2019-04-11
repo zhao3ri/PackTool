@@ -16,13 +16,14 @@ import static com.tyland.tool.ui.DialogOptionPane.TYPE_APK;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
-    protected static final int FRAME_WIDTH = 500;
-    protected static final int FRAME_HEIGHT = 455;
+    protected static final int FRAME_WIDTH = 550;
+    protected static final int FRAME_HEIGHT = 555;
 
     private OnCloseListener closeListener;
     private OnSubmitClickListener submitClickListener;
     private OnChannelChangedListener changedChannelListener;
     private OnConfirmClickListener confirmClickListener;
+    private LoadApkListener loadApkListener;
 
     private HomePane homePane;
     private String currentPath;
@@ -64,9 +65,9 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         int result = optionPane.showDialog(currentPath, "apk", "apk");
         if (result == CODE_ACTION_FILE_CONFIRM) {
             this.setVisible(true);
-            homePane.setEnabled(false);
-            setMessage("Decode apk....");
             homePane.load();
+            if (loadApkListener != null)
+                loadApkListener.onLoadStart();
         } else if (result == CODE_ACTION_CLOSE) {
             close();
             System.exit(0);
@@ -245,42 +246,11 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         if (e.getSource() instanceof Integer) {
             int action = (int) e.getSource();
             Log.iln("action==" + action);
-            if (action == CODE_ACTION_CLICK_SUBMIT) {
-                if (submitClickListener != null) {
-                    String pkg = homePane.getPackageSuffix();
-                    if (!homePane.isUseSuffix()) {
-                        pkg = homePane.getNewPackageName();
-                    }
-                    submitClickListener.onClick(homePane.getDrawablePath(), homePane.getAppIdText(), homePane.getAppKeyText(), homePane.getPublicKeyText()
-                            , homePane.getSecretKeyText(), homePane.getCpIdText(), homePane.getCpKeyText(), pkg, homePane.isUseSuffix(), homePane.isUseDefaultPackage());
-                }
+            if (action == CODE_ACTION_CLICK_UPDATE) {
                 return;
             }
-            if (action == CODE_ACTION_CLICK_MORE) {
-                openMorePanel();
+            if (action == CODE_ACTION_CLICK_PACKAGE) {
                 return;
-            }
-        }
-    }
-
-    private void openMorePanel() {
-        MorePane morePane = new MorePane(this);
-        morePane.setMinSdk(minSdk);
-        morePane.setTargetSdk(targetSdk);
-        morePane.setVersionCode(versionCode);
-        morePane.setVersionName(versionName);
-        int result = morePane.showDialog();
-        Log.iln("result==" + result);
-        if (result == CODE_ACTION_MORE_CONFIRM) {
-            if (confirmClickListener != null) {
-                boolean confirm = confirmClickListener.onConfirm(morePane.getMinSDK(), morePane.getTargetSdk(), morePane.getVersionCode(), morePane.getVersionName());
-                Log.iln("getTargetSdk==" + morePane.getTargetSdk());
-                if (confirm) {
-                    setMinSdk(morePane.getMinSDK());
-                    setTargetSdk(morePane.getTargetSdk());
-                    setVersionName(morePane.getVersionName());
-                    setVersionCode(morePane.getVersionCode());
-                }
             }
         }
     }
@@ -295,6 +265,10 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     public void setApkInfoText(String text) {
         homePane.setApkInfo(text);
+    }
+
+    public void setLoadApkListener(LoadApkListener listener) {
+        loadApkListener = listener;
     }
 
     public interface OnCloseListener {
@@ -322,6 +296,12 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     public interface OnSignSelectedClickListener {
         void onSelected(String path, String passwords, String alias);
+    }
+
+    public interface LoadApkListener {
+        void onLoadStart();
+
+        void onLoadEnd();
     }
 
 //    public interface OnSignChooseClickListener {

@@ -62,8 +62,8 @@ public class HomePane extends BasePane {
     @Override
     protected IView createView() {
         IHomeView view = new HomeView(win, this);
-        view.setMoreClickAction(this);
-        view.setSubmitClickAction(this);
+        view.setPackageClickAction(this);
+        view.setUpdateClickAction(this);
         return view;
     }
 
@@ -75,11 +75,11 @@ public class HomePane extends BasePane {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == getView().getSubmitButton()) {
-            returnCode = CODE_ACTION_CLICK_SUBMIT;
-            fireActionPerformed(ACTION_SUBMIT_BUTTON_CLICK);
+            returnCode = CODE_ACTION_CLICK_UPDATE;
+            fireActionPerformed(ACTION_UPDATE_BUTTON_CLICK);
         } else if (e.getSource() == getView().getMoreButton()) {
-            returnCode = CODE_ACTION_CLICK_MORE;
-            fireActionPerformed(ACTION_MORE_CONFIRM_BUTTON_CLICK);
+            returnCode = CODE_ACTION_CLICK_PACKAGE;
+            fireActionPerformed(ACTION_PACKAGE_BUTTON_CLICK);
         }
     }
 

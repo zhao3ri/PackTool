@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.tyland.tool.ChannelManager.STATUS_DECODE_SUCCESS;
 import static com.tyland.tool.ChannelManager.STATUS_NO_FIND;
 import static com.tyland.tool.util.FileUtils.createFileDir;
 
@@ -33,9 +34,10 @@ public class Decoder extends BaseCompiler {
             FileUtils.delFolder(OUT_PATH);
             createFileDir(OUT_PATH);
 //            apkDecode(path);
-            String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/"%s d %s -o %s -f", APKTOOL_PATH, path, OUT_PATH);
+            String cmd = "%s d %s -o %s -f";
+            String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/cmd, APKTOOL_PATH, path, OUT_PATH);
             result = Utils.execShell(progressListener, scriptPath);
-            return 0;
+            return STATUS_DECODE_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();
         }

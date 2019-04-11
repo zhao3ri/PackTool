@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface IHomeView extends IView {
 
-    void setSubmitClickAction(ActionListener listener);
+    void setUpdateClickAction(ActionListener listener);
 
-    void setMoreClickAction(ActionListener listener);
+    void setPackageClickAction(ActionListener listener);
 
     void setChannelList(List<Channel> channels);
 

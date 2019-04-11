@@ -18,15 +18,15 @@ public abstract class BasePane<T extends Window> extends JComponent implements W
 
     protected int returnCode;
     public static final int CODE_ACTION_CLOSE = -1;
-    public static final int CODE_ACTION_CLICK_SUBMIT = 1;
-    public static final int CODE_ACTION_CLICK_MORE = 2;
+    public static final int CODE_ACTION_CLICK_UPDATE = 1;
+    public static final int CODE_ACTION_CLICK_PACKAGE = 2;
     public static final int CODE_ACTION_MORE_CONFIRM = 3;
     public static final int CODE_ACTION_FILE_CONFIRM = 4;
 
     public static final String CHANNEL_RADIO_CHANGED_PROPERTY = "ChannelRadioChangedProperty";
 
-    protected static final String ACTION_SUBMIT_BUTTON_CLICK = "SubmitButtonClickAction";
-    protected static final String ACTION_MORE_CONFIRM_BUTTON_CLICK = "MoreConfirmButtonClickAction";
+    protected static final String ACTION_UPDATE_BUTTON_CLICK = "UpdateButtonClickAction";
+    protected static final String ACTION_PACKAGE_BUTTON_CLICK = "PackageButtonClickAction";
 
     private BasePane() {
     }

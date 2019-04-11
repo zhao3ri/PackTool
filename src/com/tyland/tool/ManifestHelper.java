@@ -273,8 +273,6 @@ public class ManifestHelper {
         if (Utils.isEmpty(confPackage)) {
             return;
         }
-        String[] targets = new String[]{mApkInfo.getPackageName()};
-        String[] replaces = new String[]{confPackage};
-
+        updateManifestConfig(mApkInfo.getPackageName(), confPackage);
     }
 }

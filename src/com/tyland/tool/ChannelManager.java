@@ -33,12 +33,14 @@ public class ChannelManager {
     private String apkFileName;
     private ApkInfo mApkInfo;
     private String apkPath;
+    private Decoder mDecoder;
 
     private static final String CHANNEL_CONFIG_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
     public static final int STATUS_SUCCESS = 0;
     public static final int STATUS_NO_FIND = 1;
     public static final int STATUS_FAIL = 2;
     public static final int STATUS_SIGN_SUCCESS = 4;
+    public static final int STATUS_DECODE_SUCCESS = 5;
 
     public ChannelManager() {
         File apk = searchApk(ROOT_PATH);
@@ -99,7 +101,7 @@ public class ChannelManager {
                     updateProgress("Decode Apk...");
                     result = decoder.decode(apkPath);
                     if (result == STATUS_SUCCESS) {
-//                        decoder.updateManifest();
+//                        mDecoder.updateManifest();
 //                        Builder builder = new Builder(channel, channels, apkFileName);
 //                        builder.setConfig(config);
 //                        builder.setApkPackageName(getDefaultPackageName());
@@ -120,6 +122,45 @@ public class ChannelManager {
                 }
             }
         }.start();
+    }
+
+    public void decodeApk() {
+        new SubThread(cyclicBarrier, "BuildApk") {
+            @Override
+            public void execute() {
+                Channel channel = getChannel(channelId);
+                Log.dln("channel===" + channel);
+                int result = STATUS_FAIL;
+                if (mApkInfo == null) {
+                    if (listener != null) {
+                        listener.onFinish(result);
+                    }
+                    return;
+                }
+                try {
+                    //初始化Decoder
+                    if (mDecoder == null)
+                        mDecoder = new Decoder(mApkInfo, channel, channels, apkFileName);
+                    mDecoder.setConfig(config);
+                    mDecoder.setProgressListener(progressListener);
+                    result = mDecoder.decode(apkPath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    result = STATUS_FAIL;
+                } finally {
+                    if (listener != null) {
+                        listener.onFinish(result);
+                    }
+                }
+            }
+        }.start();
+    }
+
+    public void updateConfig(){
+        if (mDecoder==null){
+
+        }
+        mDecoder.updateManifest();
     }
 
     private String createOutDir(File apk) {
