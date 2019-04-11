@@ -24,7 +24,6 @@ public class HomePane extends BasePane {
     public static final String PACKAGE_SUFFIX_CHANGED_PROPERTY = "HomePane.PackageSuffixChangedProperty";
     public static final String PACKAGE_NAME_CHANGED_PROPERTY = "HomePane.PackageNameChangedProperty";
     public static final String PACKAGE_SELECT_CHANGED_PROPERTY = "HomePane.PackageSelectedChangedProperty";
-    public static final String APK_INFO_CHANGED_PROPERTY = "HomePane.PackageSelectedChangedProperty";
     public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
 
     public static final String MIN_SDK_TEXT_CHANGED_PROPERTY = "MorePane.MinSdkTextChangedProperty";
@@ -43,7 +42,6 @@ public class HomePane extends BasePane {
     private String message;
     private String defaultPackageName;
     private String newPackageName;
-    private String apkInfo;
     private boolean isUseSuffix;
     private boolean isUseDefaultPackage;
     private boolean isEnable = true;
@@ -176,16 +174,6 @@ public class HomePane extends BasePane {
 
     public String getMessage() {
         return message;
-    }
-
-    public void setApkInfo(String text) {
-        String old = apkInfo;
-        apkInfo = text;
-        firePropertyChange(APK_INFO_CHANGED_PROPERTY, old, apkInfo);
-    }
-
-    public String getApkInfo() {
-        return apkInfo;
     }
 
     public void setDefaultPackageName(String text) {

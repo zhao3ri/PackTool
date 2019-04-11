@@ -1,6 +1,7 @@
 package com.tyland.tool.ui;
 
 import com.tyland.common.Log;
+import com.tyland.tool.YJConfig;
 import com.tyland.tool.entity.Channel;
 import com.tyland.tool.entity.GameChannelConfig;
 
@@ -27,11 +28,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     private HomePane homePane;
     private String currentPath;
-
-    private String minSdk;
-    private String targetSdk;
-    private String versionCode;
-    private String versionName;
 
     public MainFrame(String path, List<Channel> channelList) {
         create(channelList);
@@ -67,7 +63,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             this.setVisible(true);
             homePane.load();
             if (loadApkListener != null)
-                loadApkListener.onLoadStart();
+                loadApkListener.onLoad();
         } else if (result == CODE_ACTION_CLOSE) {
             close();
             System.exit(0);
@@ -105,12 +101,17 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                 homePane.setNewPackageName(config.getPackageName());
             }
         }
-        if (config.getAppInfo() != null) {
-            setMinSdk(config.getAppInfo().getMinSdk());
-            setTargetSdk(config.getAppInfo().getTargetSdk());
-            setVersionCode(config.getAppInfo().getVersionCode());
-            setVersionName(config.getAppInfo().getVersionName());
+    }
+
+    public void refreshView(YJConfig config) {
+        if (homePane == null) {
+            return;
         }
+        homePane.setVersionName(config.apkInfo.getVersionName());
+        homePane.setVersionCode(config.apkInfo.getVersionCode());
+        homePane.setMinSdk(config.apkInfo.getMinSdk());
+        homePane.setTargetSdk(config.apkInfo.getTargetSdk());
+        homePane.setDefaultPackageName(config.packageName);
     }
 
     public void close() {
@@ -175,22 +176,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                 closeListener.onClose();
             }
         }
-    }
-
-    public void setMinSdk(String minSdk) {
-        this.minSdk = minSdk;
-    }
-
-    public void setTargetSdk(String targetSdk) {
-        this.targetSdk = targetSdk;
-    }
-
-    public void setVersionCode(String versionCode) {
-        this.versionCode = versionCode;
-    }
-
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
     }
 
     public void setCloseListener(OnCloseListener closeListener) {
@@ -263,10 +248,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setViewEnable(enable);
     }
 
-    public void setApkInfoText(String text) {
-        homePane.setApkInfo(text);
-    }
-
     public void setLoadApkListener(LoadApkListener listener) {
         loadApkListener = listener;
     }
@@ -299,9 +280,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface LoadApkListener {
-        void onLoadStart();
-
-        void onLoadEnd();
+        void onLoad();
     }
 
 //    public interface OnSignChooseClickListener {

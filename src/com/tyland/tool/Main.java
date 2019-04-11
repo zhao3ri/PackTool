@@ -36,7 +36,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
     }
 
     private void start() {
-        cyclicBarrier = new CyclicBarrier(3, new Runnable() {
+        cyclicBarrier = new CyclicBarrier(1, new Runnable() {
             @Override
             public void run() {
 
@@ -61,7 +61,6 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 mainFrame.setMessage(values);
             }
         });
-        mainFrame.setApkInfoText("apk: " + channelManager.getAppName() + ", versionName: " + channelManager.getDefaultVersionName());
         mainFrame.open();
         refresh();
     }
@@ -162,6 +161,8 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
         }, null);
     }
 
+    private YJConfig yjConfig;
+
     @Override
     public void onFinish(int status) {
         String tip = "Build Error!!";
@@ -172,6 +173,8 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
             case STATUS_DECODE_SUCCESS:
                 Log.iln("反编译完成");
                 finish("Decode finish!!");
+                yjConfig = channelManager.getYjConfig();
+                mainFrame.refreshView(yjConfig);
                 break;
             case STATUS_SIGN_SUCCESS:
 
@@ -315,7 +318,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
     }
 
     @Override
-    public void onLoadStart() {
+    public void onLoad() {
         if (!channelManager.isExistApk()) {
             mainFrame.showErrorDialog("当前无apk文件！");
             return;
@@ -335,10 +338,5 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 }
             }
         }.start();
-    }
-
-    @Override
-    public void onLoadEnd() {
-
     }
 }

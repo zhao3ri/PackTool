@@ -42,6 +42,8 @@ public class ChannelManager {
     public static final int STATUS_SIGN_SUCCESS = 4;
     public static final int STATUS_DECODE_SUCCESS = 5;
 
+    private YJConfig yjConfig;
+
     public ChannelManager() {
         File apk = searchApk(ROOT_PATH);
 //        initChannel(apk);
@@ -144,6 +146,9 @@ public class ChannelManager {
                     mDecoder.setConfig(config);
                     mDecoder.setProgressListener(progressListener);
                     result = mDecoder.decode(apkPath);
+                    if (result == STATUS_DECODE_SUCCESS) {
+                        yjConfig = mDecoder.createConfig();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     result = STATUS_FAIL;
@@ -156,11 +161,15 @@ public class ChannelManager {
         }.start();
     }
 
-    public void updateConfig(){
-        if (mDecoder==null){
-
+    public void updateConfig(YJConfig c) {
+        if (mDecoder == null) {
+            return;
         }
-        mDecoder.updateManifest();
+        mDecoder.updateManifest(c);
+    }
+
+    public YJConfig getYjConfig() {
+        return yjConfig;
     }
 
     private String createOutDir(File apk) {

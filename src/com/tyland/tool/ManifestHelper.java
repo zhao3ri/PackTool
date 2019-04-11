@@ -32,6 +32,9 @@ public class ManifestHelper {
     private ApkInfo mApkInfo;
     private String manifestPath;
     private String confPackage;
+    private String channelKey;
+    private String gameId;
+    private String gameKey;
 
     public ManifestHelper(ApkInfo apk, String path) {
         mApkInfo = apk;
@@ -45,6 +48,21 @@ public class ManifestHelper {
         //获得配置包的名称
         confPackage = root.getAttribute(ELEMENT_PACKAGE);
         Log.i("current package=" + mApkInfo.getPackageName() + ",config package=" + confPackage);
+        readMetaData(new OnReadContentListener() {
+            @Override
+            public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {
+                if (attributeName.equals(YJConfig.META_DATA_CHANNEL_KEY)) {
+                    channelKey = attributeValue;
+                    Log.iln("channelKey=" + channelKey);
+                } else if (attributeName.equals(YJConfig.META_DATA_GAME_ID)) {
+                    gameId = attributeValue;
+                    Log.iln("gameId=" + gameId);
+                } else if (attributeName.equals(YJConfig.META_DATA_GAME_KEY)) {
+                    gameKey = attributeValue;
+                    Log.iln("gameKey=" + gameKey);
+                }
+            }
+        });
     }
 
     public void addVersionInfo(String code, String name) {
@@ -187,30 +205,6 @@ public class ManifestHelper {
         XmlTool.saveXml(mDocument, manifestPath);
     }
 
-    public void updateMetaData(String name, String value) {
-        NodeList nodeList = getRootList();
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node node = nodeList.item(i);
-            if (!node.getNodeName().equals(ELEMENT_APPLICATION)) {
-                continue;
-            }
-            NodeList applicationList = node.getChildNodes();
-
-            for (int j = 0; j < applicationList.getLength(); j++) {
-                Node component = applicationList.item(j);
-                if (component.getNodeName().equals(ELEMENT_METADATA)) {
-                    Node attributeNameNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
-                    String attributeName = attributeNameNode.getTextContent();
-                    Node attributeValueNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_VALUE);
-                    String attributeValue = attributeValueNode.getTextContent();
-                    Log.eln("name=" + attributeName + ",value=" + attributeValue);
-                }
-            }
-        }
-        XmlTool.saveXml(mDocument, manifestPath);
-    }
-
     private void deleteElement(Node item, Channel channel) {
         Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
         String attributeName = attributeNameNode.toString();
@@ -255,6 +249,54 @@ public class ManifestHelper {
         }
     }
 
+    public void updateMetaData(String[] names, String[] values) {
+        if (null == names || null == values || names.length == 0 || values.length == 0) {
+            return;
+        }
+        readMetaData(new OnReadContentListener() {
+            @Override
+            public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {
+                for (int index = 0; index < names.length; index++) {
+                    if (names[index].equals(attributeName) && !attributeValue.equals(values[index])) {
+                        attributeValueNode.setTextContent(values[index]);
+                        Log.eln("name=" + attributeName + ",new value=" + values[index]);
+                    }
+                }
+            }
+        });
+        XmlTool.saveXml(mDocument, manifestPath);
+    }
+
+    private void readMetaData(OnReadContentListener listener) {
+        NodeList nodeList = getRootList();
+
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node = nodeList.item(i);
+            if (!node.getNodeName().equals(ELEMENT_APPLICATION)) {
+                continue;
+            }
+            NodeList applicationList = node.getChildNodes();
+
+            for (int j = 0; j < applicationList.getLength(); j++) {
+                Node component = applicationList.item(j);
+                if (component.getNodeName().equals(ELEMENT_METADATA)) {
+                    Node attributeNameNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
+                    String attributeName = attributeNameNode.getTextContent();
+                    Node attributeValueNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_VALUE);
+                    String attributeValue = attributeValueNode.getTextContent();
+                    Log.eln("name=" + attributeName + ",value=" + attributeValue);
+                    if (listener != null) {
+                        listener.onRead(attributeNameNode, attributeName, attributeValueNode, attributeValue);
+                    }
+                }
+            }
+        }
+    }
+
+    public interface OnReadContentListener {
+        void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue);
+    }
+
     public void updateManifestConfig(String targets, String replaces) {
         String manifest = FileUtils.replaceFile(manifestPath, targets, replaces);
         FileUtils.writer2File(manifestPath, manifest);
@@ -274,5 +316,24 @@ public class ManifestHelper {
             return;
         }
         updateManifestConfig(mApkInfo.getPackageName(), confPackage);
+    }
+
+    public void updateAppName(String appName) {
+        if (Utils.isEmpty(appName)) {
+            return;
+        }
+        updateManifestConfig(mApkInfo.getApplicationLable(), appName);
+    }
+
+    public String getChannelKey() {
+        return channelKey;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public String getGameKey() {
+        return gameKey;
     }
 }
