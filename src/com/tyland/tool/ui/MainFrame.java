@@ -12,6 +12,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import static com.tyland.tool.ui.BasePane.*;
+import static com.tyland.tool.ui.DialogOptionPane.TYPE_APK;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
@@ -57,17 +58,19 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public void open() {
-        this.setVisible(true);
-        homePane.load();
-//        DialogOptionPane optionPane = new DialogOptionPane(this, TYPE_APK);
-//        int result = optionPane.showDialog(currentPath, "apk", "apk");
-//        if (result == CODE_ACTION_FILE_CONFIRM) {
-//            this.setVisible(true);
-//            homePane.load();
-//        } else if (result == CODE_ACTION_CLOSE) {
-//            close();
-//            System.exit(0);
-//        }
+//        this.setVisible(true);
+//        homePane.load();
+        DialogOptionPane optionPane = new DialogOptionPane(this, TYPE_APK);
+        int result = optionPane.showDialog(currentPath, "apk", "apk");
+        if (result == CODE_ACTION_FILE_CONFIRM) {
+            this.setVisible(true);
+            homePane.setEnabled(false);
+            setMessage("Decode apk....");
+            homePane.load();
+        } else if (result == CODE_ACTION_CLOSE) {
+            close();
+            System.exit(0);
+        }
     }
 
     private HomePane createHomePane(List<Channel> channelList) {
@@ -82,12 +85,16 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             return;
         }
         homePane.setDrawablePath(config.getDrawablePath());
-        homePane.setAppIdText(config.getAppId());
-        homePane.setAppKeyText(config.getAppKey());
-        homePane.setPublicKeyText(config.getPublicKey());
-        homePane.setSecretKeyText(config.getSecretKey());
-        homePane.setCpIdText(config.getCpId());
-        homePane.setCpKeyText(config.getCpKey());
+//        homePane.setAppIdText(config.getAppId());
+//        homePane.setAppKeyText(config.getAppKey());
+//        homePane.setPublicKeyText(config.getPublicKey());
+//        homePane.setSecretKeyText(config.getSecretKey());
+//        homePane.setCpIdText(config.getCpId());
+//        homePane.setCpKeyText(config.getCpKey());
+        homePane.setVersionName(config.getAppInfo().getVersionName());
+        homePane.setVersionCode(config.getAppInfo().getVersionCode());
+        homePane.setMinSdk(config.getAppInfo().getMinSdk());
+        homePane.setTargetSdk(config.getAppInfo().getTargetSdk());
         homePane.selectedPackage(config.isUseDefaultPackage(), config.isSuffix());
         homePane.setDefaultPackageName(packageName);
         if (!config.isUseDefaultPackage()) {

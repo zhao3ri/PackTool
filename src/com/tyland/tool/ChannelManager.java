@@ -99,16 +99,16 @@ public class ChannelManager {
                     updateProgress("Decode Apk...");
                     result = decoder.decode(apkPath);
                     if (result == STATUS_SUCCESS) {
-                        decoder.updateManifest();
-                        Builder builder = new Builder(channel, channels, apkFileName);
-                        builder.setConfig(config);
-                        builder.setApkPackageName(getDefaultPackageName());
-                        builder.setApplicationIcons(getIcons());
-                        updateProgress("Build Apk...");
-                        buildApkPath = builder.build();
-                        if (Utils.isEmpty(buildApkPath)) {
-                            result = STATUS_FAIL;
-                        }
+//                        decoder.updateManifest();
+//                        Builder builder = new Builder(channel, channels, apkFileName);
+//                        builder.setConfig(config);
+//                        builder.setApkPackageName(getDefaultPackageName());
+//                        builder.setApplicationIcons(getIcons());
+//                        updateProgress("Build Apk...");
+//                        buildApkPath = builder.build();
+//                        if (Utils.isEmpty(buildApkPath)) {
+//                            result = STATUS_FAIL;
+//                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

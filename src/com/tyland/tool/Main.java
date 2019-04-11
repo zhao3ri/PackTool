@@ -280,6 +280,7 @@ public class Main implements MainFrame.OnChannelChangedListener, MainFrame.OnSub
                 channelManager.execute();
                 try {
                     cyclicBarrier.await();
+                    mainFrame.showDialog("反编译成功！");
                     finish("Finish!!");
                     if (!configManager.exists(apkPackageName, channelId)) {
                         showSaveDialog("是否保存当前配置？", mConfig);

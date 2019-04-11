@@ -255,10 +255,18 @@ public class HomePane extends BasePane {
         firePropertyChange(MIN_SDK_TEXT_CHANGED_PROPERTY, old, minSdk);
     }
 
+    public String getMinSDK() {
+        return minSdk;
+    }
+
     public void setTargetSdk(String target) {
         String old = targetSdk;
         targetSdk = target;
         firePropertyChange(TARGET_SDK_TEXT_CHANGED_PROPERTY, old, targetSdk);
+    }
+
+    public String getTargetSdk() {
+        return targetSdk;
     }
 
     public void setVersionCode(String code) {
@@ -267,25 +275,17 @@ public class HomePane extends BasePane {
         firePropertyChange(VERSION_CODE_TEXT_CHANGED_PROPERTY, old, versionCode);
     }
 
+    public String getVersionCode() {
+        return versionCode;
+    }
+
     public void setVersionName(String name) {
         String old = versionName;
         versionName = name;
         firePropertyChange(VERSION_NAME_TEXT_CHANGED_PROPERTY, old, versionName);
     }
 
-    public String getMinSDK() {
-        return minSdk;
-    }
-
-    public String getTargetSdk() {
-        return targetSdk;
-    }
-
     public String getVersionName() {
         return versionName;
-    }
-
-    public String getVersionCode() {
-        return versionCode;
     }
 }

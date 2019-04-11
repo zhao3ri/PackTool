@@ -379,24 +379,24 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         } else if (prop.equals(DRAWABLE_PATH_CHANGED_PROPERTY)) {
             String path = getParent().getDrawablePath();
             updateText(path, textDrawable);
-        } else if (prop.equals(APP_ID_CHANGED_PROPERTY)) {
-            String id = getParent().getAppIdText();
-//            updateText(id, textAppId);
-        } else if (prop.equals(APP_KEY_CHANGED_PROPERTY)) {
-            String key = getParent().getAppKeyText();
-//            updateText(key, textAppKey);
-        } else if (prop.equals(PUBLIC_KEY_CHANGED_PROPERTY)) {
-            String key = getParent().getPublicKeyText();
-//            updateText(key, textPubKey);
-        } else if (prop.equals(SECRET_KEY_CHANGED_PROPERTY)) {
-            String key = getParent().getSecretKeyText();
-//            updateText(key, textSecKey);
-        } else if (prop.equals(CP_ID_CHANGED_PROPERTY)) {
-            String id = getParent().getCpIdText();
-//            updateText(id, textCpId);
-        } else if (prop.equals(CP_KEY_CHANGED_PROPERTY)) {
-            String key = getParent().getCpKeyText();
-//            updateText(key, textCpKey);
+//        } else if (prop.equals(APP_ID_CHANGED_PROPERTY)) {
+//            String id = getParent().getAppIdText();
+////            updateText(id, textAppId);
+//        } else if (prop.equals(APP_KEY_CHANGED_PROPERTY)) {
+//            String key = getParent().getAppKeyText();
+////            updateText(key, textAppKey);
+//        } else if (prop.equals(PUBLIC_KEY_CHANGED_PROPERTY)) {
+//            String key = getParent().getPublicKeyText();
+////            updateText(key, textPubKey);
+//        } else if (prop.equals(SECRET_KEY_CHANGED_PROPERTY)) {
+//            String key = getParent().getSecretKeyText();
+////            updateText(key, textSecKey);
+//        } else if (prop.equals(CP_ID_CHANGED_PROPERTY)) {
+//            String id = getParent().getCpIdText();
+////            updateText(id, textCpId);
+//        } else if (prop.equals(CP_KEY_CHANGED_PROPERTY)) {
+//            String key = getParent().getCpKeyText();
+////            updateText(key, textCpKey);
         } else if (prop.equals(PACKAGE_DEFAULT_NAME_CHANGED_PROPERTY)) {
             String pkg = String.valueOf(evt.getNewValue());
             setDefaultPackageLabelText(pkg);
