@@ -58,11 +58,20 @@ public class Decoder extends BaseCompiler {
             manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
             manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
         }
-        manifestHelper.replaceLauncher(currChannel);
+        manifestHelper.updateMetaData("", "");
+        if (currChannel != null)
+            manifestHelper.replaceLauncher(currChannel);
         if (exceptChannels != null)
             for (Channel channel : exceptChannels) {
                 manifestHelper.deleteUnrelatedChannelInfo(channel);
             }
+
+        //必须在最后一步才进行替换，否则可能会导致错误
+//        replacePackage(manifestHelper);
+        manifestHelper.updatePackageName();
+    }
+
+    private void replacePackage(ManifestHelper manifestHelper) {
         String packageName = mApkInfo.getPackageName();
         String[] targets;
         String[] replaces;
@@ -77,7 +86,6 @@ public class Decoder extends BaseCompiler {
             targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, CP_KEY_TAG, LAUNCHER_TAG, packageName};
             replaces = new String[]{packageName, config.getAppId(), config.getCpId(), config.getAppKey(), config.getCpKey(), mApkInfo.getLaunchableActivity(), replacePkg};
         }
-        //必须在最后一步才进行替换，否则可能会导致错误
         manifestHelper.updateManifestConfig(targets, replaces);
     }
 }

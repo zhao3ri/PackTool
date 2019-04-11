@@ -4,16 +4,19 @@ import com.tyland.common.Log;
 import com.tyland.tool.entity.Channel;
 import com.tyland.tool.ui.BasePane;
 import com.tyland.tool.ui.HomePane;
+import com.tyland.tool.ui.JHintTextField;
 import com.tyland.tool.ui.widget.IHomeView;
+import com.tyland.tool.util.Utils;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
+import java.text.ParseException;
 import java.util.List;
 
 import static com.tyland.tool.ui.HomePane.*;
@@ -33,16 +36,13 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
 
     private int defaultMargin = 10;
     private int messageHeight = 55;
+    private int labelWidth = 110;
+    private int textWidth = 85;
+    private int contentPadding = 20;
+    private int itemHeight = 80;
 
     private JButton btnSubmit;
     private JButton btnMore;
-    private JPanel panelCheckBox;
-    private JTextField textAppId;
-    private JTextField textAppKey;
-    private JTextField textPubKey;
-    private JTextField textSecKey;
-    private JTextField textCpId;
-    private JTextField textCpKey;
     private JLabel labPackage;
     private JTextField textSuffix;
     private JTextField textPackage;
@@ -51,6 +51,12 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
     private JRadioButton radioPackage;
     private JTextField textDrawable;
     private JButton btnDrawableChoose;
+
+    private JHintTextField textMinSDK;
+    private JHintTextField textTargetSDK;
+    private JHintTextField textVersionCode;
+    private JHintTextField textVersionName;
+
     private JLabel labMsg;
     private JLabel labApkInfo;
 
@@ -72,17 +78,19 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         }
         setUIEnable(getParent().isViewEnable());
         updateText(getParent().getDrawablePath(), textDrawable);
-        updateText(getParent().getAppIdText(), textAppId);
-        updateText(getParent().getAppKeyText(), textAppKey);
-        updateText(getParent().getPublicKeyText(), textPubKey);
-        updateText(getParent().getSecretKeyText(), textSecKey);
-        updateText(getParent().getCpIdText(), textCpId);
-        updateText(getParent().getCpKeyText(), textCpKey);
         setDefaultPackageLabelText(getParent().getDefaultPackageName());
         updateText(getParent().getNewPackageName(), textPackage);
         selectPackage(getParent().isUseDefaultPackage(), getParent().isUseSuffix());
         setApkInfoText(getParent().getApkInfo());
         setMessage(getParent().getMessage());
+
+        updateText(getParent().getMinSDK(), textMinSDK);
+        textMinSDK.setHintText(getParent().getMinSDK());
+        updateText(getParent().getTargetSdk(), textTargetSDK);
+        updateText(getParent().getVersionCode(), textVersionCode);
+        textVersionCode.setHintText(getParent().getVersionCode());
+        updateText(getParent().getVersionName(), textVersionName);
+        textVersionName.setHintText(getParent().getVersionName());
     }
 
     @Override
@@ -90,10 +98,12 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         contentView = new JPanel();
         contentView.setLayout(new FlowLayout());
         contentView.setPreferredSize(new Dimension(getWidth(), getHeight()));
-        addChannelListCheckBox();
-        addChooseDrawableView();
-        addChannelConfigView();
+//        addChannelListCheckBox();
+//        addChooseDrawableView();
+//        addChannelConfigView();
         addPackageView();
+        addSDKInfoPane();
+        addVersionInfoPane();
         addButton();
         addLabel();
         return contentView;
@@ -118,30 +128,6 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         contentView.add(comp);
     }
 
-    private void addChannelListCheckBox() {
-        if (channelList == null) {
-            return;
-        }
-        panelCheckBox = new JPanel();
-        panelCheckBox.setBorder(BorderFactory.createTitledBorder("选择需要打包的渠道："));
-//        panelCheckBox.setLayout(new GridLayout()); // 设置组件的排版
-        ButtonGroup buttonGroup = new ButtonGroup();
-
-        for (Channel channel : channelList) {
-//            JCheckBox checkBox = new JCheckBox(channel.getName());
-            JRadioButton radioButton = new JRadioButton(channel.getName());
-            radioButton.setFont(window.getFont());
-            radioButton.setName(String.valueOf(channel.getId()));
-            radioButton.addItemListener(this);
-            buttonGroup.add(radioButton);
-            panelCheckBox.add(radioButton);
-        }
-
-        JScrollPane pane = new JScrollPane(panelCheckBox);
-        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        addContentView(panelCheckBox);
-    }
-
     private void addChooseDrawableView() {
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout());
@@ -152,19 +138,6 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         btnDrawableChoose = new JButton("选择");
         btnDrawableChoose.addActionListener(this);
         panel.add(btnDrawableChoose);
-        addContentView(panel);
-    }
-
-    private void addChannelConfigView() {
-        int columns = 20;
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(6, 1, 5, 5));
-        textAppId = getLabelWithTextView("AppId:", null, panel, columns);
-        textAppKey = getLabelWithTextView("AppKey:", null, panel, columns);
-        textPubKey = getLabelWithTextView("PublicKey:", null, panel, columns);
-        textSecKey = getLabelWithTextView("SecretKey:", null, panel, columns);
-        textCpId = getLabelWithTextView("CpId:", null, panel, columns);
-        textCpKey = getLabelWithTextView("CpKey:", null, panel, columns);
         addContentView(panel);
     }
 
@@ -215,6 +188,93 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         buttonPanel.add(radioPackage);
         panel.add(buttonPanel);
         addContentView(panel);
+    }
+
+    private void addSDKInfoPane() {
+        JPanel panel = new JPanel();
+        textMinSDK = createFormatTextField(true);
+        textTargetSDK = createFormatTextField(true);
+        panel = initRow(panel, "Android SDK", textMinSDK, "minSdkVersion:", textTargetSDK, "targetSdkVersion:");
+        addContentView(panel);
+    }
+
+    private void addVersionInfoPane() {
+        JPanel panel = new JPanel();
+        textVersionName = createFormatTextField(false);
+        textVersionCode = createFormatTextField(true);
+        panel = initRow(panel, "App Version", textVersionName, "versionName:", textVersionCode, "versionCode:");
+        addContentView(panel);
+    }
+
+    private JPanel initRow(JPanel item, String title, JTextField textFirstColumn, String firstLab, JTextField textSecondColumn, String secondLab) {
+        if (item == null) {
+            item = new JPanel();
+        }
+        item.setLayout(null);
+        item.setPreferredSize(new Dimension(getWidth() - contentPadding, itemHeight));
+        TitledBorder border = BorderFactory.createTitledBorder(title);
+        border.setTitleColor(Color.GRAY);
+        item.setBorder(border);
+
+        Dimension borderSize = border.getMinimumSize(parent);
+        Insets insets = border.getBorderInsets(parent);
+        int contentWidth = item.getPreferredSize().width - insets.left - insets.right;
+        int margin = contentWidth / 2 - labelWidth - textWidth;
+        int startX = insets.left + margin / 2;
+        int startY = (item.getPreferredSize().height - borderSize.height + insets.top) / 2;
+
+        setItemLocation(firstLab, item, textFirstColumn, startX, startY, startX + labelWidth, startY);
+
+        int labelX = startX + labelWidth + textWidth + margin;
+        int textX = startX + labelWidth * 2 + textWidth + margin;
+        setItemLocation(secondLab, item, textSecondColumn, labelX, startY, textX, startY);
+        return item;
+    }
+
+    private void setItemLocation(String text, JPanel panel, JTextField textField, int... locations) {
+        JLabel label = new JLabel(text);
+        label.setSize(new Dimension(labelWidth, defaultHeight));
+        if (locations != null && locations.length > 1) {
+            label.setLocation(locations[0], locations[1]);
+            if (locations.length > 3) {
+                textField.setLocation(locations[2], locations[3]);
+            }
+        }
+        panel.add(label);
+        panel.add(textField);
+    }
+
+    private <T extends JTextField> T createFormatTextField(boolean format) {
+        JTextField textField;
+        textField = new JHintTextField();
+        if (format) {
+            ((JHintTextField) textField).setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
+            textField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if (e.getSource() instanceof JFormattedTextField) {
+                        JFormattedTextField textField = (JFormattedTextField) e.getSource();
+                        String old = textField.getText();
+                        JFormattedTextField.AbstractFormatter formatter = textField.getFormatter();
+                        if (!Utils.isEmpty(old)) {
+                            if (formatter != null) {
+                                String str = textField.getText();
+                                try {
+                                    long page = (Long) formatter.stringToValue(str);
+                                    textField.setText(page + "");
+                                } catch (ParseException pe) {
+                                    textField.setText("");
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+//        } else {
+//            textField = new JTextField();
+        }
+        textField.setSize(new Dimension(textWidth, defaultHeight));
+        return (T) textField;
     }
 
     private JRadioButton getRadio(int width, int height, String text, String name) {
@@ -289,16 +349,14 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnSubmit) {
-            getParent().setDrawablePath(getDrawablePath());
-            getParent().setAppIdText(getAppIdText());
-            getParent().setAppKeyText(getAppKeyText());
-            getParent().setPublicKeyText(getPublicKeyText());
-            getParent().setSecretKeyText(getSecretKeyText());
-            getParent().setCpIdText(getCpIdText());
-            getParent().setCpKeyText(getCpKeyText());
+//            getParent().setDrawablePath(getDrawablePath());
             getParent().setNewPackageName(getPackageNameText());
             getParent().setPackageSuffix(getPackageSuffixText());
             getParent().selectedPackage(isSelectedDefault(), isSelectedSuffix());
+            getParent().setTargetSdk(getTargetSdkText());
+            getParent().setMinSdk(getMinSdkText());
+            getParent().setVersionName(getVersionNameText());
+            getParent().setVersionCode(getVersionCodeText());
             if (submitClickActionListener != null) {
                 submitClickActionListener.actionPerformed(e);
             }
@@ -323,22 +381,22 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
             updateText(path, textDrawable);
         } else if (prop.equals(APP_ID_CHANGED_PROPERTY)) {
             String id = getParent().getAppIdText();
-            updateText(id, textAppId);
+//            updateText(id, textAppId);
         } else if (prop.equals(APP_KEY_CHANGED_PROPERTY)) {
             String key = getParent().getAppKeyText();
-            updateText(key, textAppKey);
+//            updateText(key, textAppKey);
         } else if (prop.equals(PUBLIC_KEY_CHANGED_PROPERTY)) {
             String key = getParent().getPublicKeyText();
-            updateText(key, textPubKey);
+//            updateText(key, textPubKey);
         } else if (prop.equals(SECRET_KEY_CHANGED_PROPERTY)) {
             String key = getParent().getSecretKeyText();
-            updateText(key, textSecKey);
+//            updateText(key, textSecKey);
         } else if (prop.equals(CP_ID_CHANGED_PROPERTY)) {
             String id = getParent().getCpIdText();
-            updateText(id, textCpId);
+//            updateText(id, textCpId);
         } else if (prop.equals(CP_KEY_CHANGED_PROPERTY)) {
             String key = getParent().getCpKeyText();
-            updateText(key, textCpKey);
+//            updateText(key, textCpKey);
         } else if (prop.equals(PACKAGE_DEFAULT_NAME_CHANGED_PROPERTY)) {
             String pkg = String.valueOf(evt.getNewValue());
             setDefaultPackageLabelText(pkg);
@@ -354,33 +412,46 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         } else if (prop.equals(MESSAGE_TEXT_CHANGED_PROPERTY)) {
             String msg = String.valueOf(evt.getNewValue());
             setMessage(msg);
+        } else if (prop.equals(MIN_SDK_TEXT_CHANGED_PROPERTY)) {
+            String min = (String) evt.getNewValue();
+            setText(min, textMinSDK);
+        } else if (prop.equals(TARGET_SDK_TEXT_CHANGED_PROPERTY)) {
+            String target = (String) evt.getNewValue();
+            setText(target, textTargetSDK);
+        } else if (prop.equals(VERSION_CODE_TEXT_CHANGED_PROPERTY)) {
+            String code = (String) evt.getNewValue();
+            setText(code, textVersionCode);
+        } else if (prop.equals(VERSION_NAME_TEXT_CHANGED_PROPERTY)) {
+            String name = (String) evt.getNewValue();
+            setText(name, textVersionName);
         }
     }
 
     private void setUIEnable(boolean enable) {
-        if (panelCheckBox!=null) {
-            int count = panelCheckBox.getComponentCount();
-            for (int i = 0; i < count; i++) {
-                Object obj = panelCheckBox.getComponent(i);
-                if (obj instanceof JRadioButton) {
-                    ((JRadioButton) obj).setEnabled(enable);
-                }
-            }
-        }
-        textAppId.setEnabled(enable);
-        textAppKey.setEnabled(enable);
-        textPubKey.setEnabled(enable);
-        textSecKey.setEnabled(enable);
-        textCpId.setEnabled(enable);
-        textCpKey.setEnabled(enable);
-        textSuffix.setEnabled(enable);
-        textPackage.setEnabled(enable);
-        radioUseDefPackage.setEnabled(enable);
-        radioPackage.setEnabled(enable);
-        radioSuffix.setEnabled(enable);
-        btnSubmit.setEnabled(enable);
-        btnMore.setEnabled(enable);
-        btnDrawableChoose.setEnabled(enable);
+        if (textSuffix != null)
+            textSuffix.setEnabled(enable);
+        if (textPackage != null)
+            textPackage.setEnabled(enable);
+        if (radioUseDefPackage != null)
+            radioUseDefPackage.setEnabled(enable);
+        if (radioPackage != null)
+            radioPackage.setEnabled(enable);
+        if (radioSuffix != null)
+            radioSuffix.setEnabled(enable);
+        if (btnSubmit != null)
+            btnSubmit.setEnabled(enable);
+        if (btnMore != null)
+            btnMore.setEnabled(enable);
+        if (btnDrawableChoose != null)
+            btnDrawableChoose.setEnabled(enable);
+        if (textMinSDK != null)
+            textMinSDK.setEnabled(enable);
+        if (textTargetSDK != null)
+            textTargetSDK.setEnabled(enable);
+        if (textVersionCode != null)
+            textVersionCode.setEnabled(enable);
+        if (textVersionName != null)
+            textVersionName.setEnabled(enable);
     }
 
     private void updateText(String text, JTextField tf) {
@@ -463,30 +534,6 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
         return textDrawable.getText();
     }
 
-    private String getAppIdText() {
-        return textAppId.getText();
-    }
-
-    private String getAppKeyText() {
-        return textAppKey.getText();
-    }
-
-    private String getPublicKeyText() {
-        return textPubKey.getText();
-    }
-
-    private String getSecretKeyText() {
-        return textSecKey.getText();
-    }
-
-    private String getCpIdText() {
-        return textCpId.getText();
-    }
-
-    private String getCpKeyText() {
-        return textCpKey.getText();
-    }
-
     private String getPackageSuffixText() {
         return textSuffix.getText();
     }
@@ -511,5 +558,32 @@ public class HomeView extends BaseView implements IHomeView, ItemListener, Actio
     @Override
     public JButton getSubmitButton() {
         return btnSubmit;
+    }
+
+    @Override
+    public String getMinSdkText() {
+        return getText(textMinSDK);
+    }
+
+    @Override
+    public String getTargetSdkText() {
+        return getText(textTargetSDK);
+    }
+
+    @Override
+    public String getVersionCodeText() {
+        return getText(textVersionCode);
+    }
+
+    @Override
+    public String getVersionNameText() {
+        return getText(textVersionName);
+    }
+
+    private String getText(JHintTextField textField) {
+        if (Utils.isEmpty(textField.getText())) {
+            return textField.getHintText();
+        }
+        return textField.getText();
     }
 }

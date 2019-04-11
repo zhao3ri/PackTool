@@ -299,7 +299,7 @@ public class FileUtils {
                 }
                 if (null != replaces && replaces.length != 0 && null != targets && targets.length != 0 && targets.length == replaces.length) {
                     for (int i = 0; i < targets.length; i++) {
-                        if (line.contains(targets[i]) && !Utils.isEmpty(replaces[i])) {
+                        if (line.contains(targets[i]) && !Utils.isEmpty(replaces[i]) && !targets[i].equals(replaces[i])) {
                             line = line.replace(targets[i], replaces[i]);
                         }
                     }

@@ -67,7 +67,7 @@ public class Builder extends BaseCompiler {
             delUnrelatedLibs();
             delChannelClass();
             updatePackage();
-//            addChannelFile();
+            addChannelFile();
             String apkPath = buildApk();
             return apkPath;
         } catch (IOException | BrutException e) {
@@ -120,7 +120,7 @@ public class Builder extends BaseCompiler {
      */
     private void delUnrelatedLibs() throws IOException {
         List<String> exceptLibs = getExceptChannelLibs();
-        if (exceptLibs.isEmpty())
+        if (exceptLibs == null || exceptLibs.isEmpty())
             return;
 
         File libsDir = new File(LIBS_PATH);
@@ -134,6 +134,8 @@ public class Builder extends BaseCompiler {
     }
 
     private List<String> getExceptChannelLibs() {
+        if (exceptChannels == null)
+            return null;
         List<String> exceptLibs = new ArrayList<>();
         for (Channel channel : exceptChannels) {
             if (channel.getFilter().getLibsName() == null
@@ -175,6 +177,8 @@ public class Builder extends BaseCompiler {
     }
 
     private void delChannelClass() throws IOException {
+        if (currChannel == null)
+            return;
         File channelDir = new File(SMALI_PATH + File.separator + replacePackageSeparator(CHANNEL_PACKAGE_NAME, File.separator));
         Iterator<File> iterator = Arrays.asList(channelDir.listFiles()).iterator();
         while (iterator.hasNext()) {
@@ -186,7 +190,7 @@ public class Builder extends BaseCompiler {
     }
 
     private void updatePackage() throws IOException {
-        if (exceptChannels == null)
+        if (exceptChannels == null || exceptChannels.isEmpty())
             return;
         for (Channel channel : exceptChannels) {
             if (null == channel.getFilter().getPackageNameList() || channel.getFilter().getPackageNameList().isEmpty()) {
@@ -251,6 +255,8 @@ public class Builder extends BaseCompiler {
      * 添加渠道文件qlsdk_[channelId]
      */
     private void addChannelFile() throws IOException {
+        if (currChannel == null)
+            return;
         String channelFile = FileUtils.findFile(ASSETS_PATH, CHANNEL_REGEX);
         if (channelFile != null) {
             int id = Integer.valueOf(channelFile.substring(channelFile.indexOf(CHANNEL_PREFIX) + CHANNEL_PREFIX.length()));
@@ -271,9 +277,23 @@ public class Builder extends BaseCompiler {
     private String buildApk() throws BrutException {
         String apkName = DEFAULT_APK_NAME;
         if (!Utils.isEmpty(apkFileName)) {
-            apkName = String.format("%s-%s.apk", apkFileName, currChannel.getName());
+            if (currChannel != null) {
+                apkName = String.format("%s-%s.apk", apkFileName, currChannel.getName());
+            } else {
+                apkName = String.format("%s-%s.apk", apkFileName, "out");
+
+            }
         }
 
+        String apkPath = BIN_PATH + File.separator + apkName;
+        execBuild(apkPath);
+
+        return apkPath;
+    }
+
+    private static final String APK_FILE_NAME = "game.apk";
+
+    private void execBuild(String apkPath) throws BrutException {
         Androlib androlib = new Androlib();
         File appDir = new File(OUT_PATH);
         MetaInfo metaInfo = androlib.readMetaFile(new ExtFile(appDir));
@@ -281,19 +301,23 @@ public class Builder extends BaseCompiler {
         if (app != null) {
             metaInfo.versionInfo.versionCode = app.getVersionCode();
             metaInfo.versionInfo.versionName = app.getVersionName();
+            metaInfo.apkFileName = APK_FILE_NAME;
             metaInfo.sdkInfo.put(MIN_SDK, app.getMinSdk());
-            metaInfo.sdkInfo.put(TARGET_SDK, app.getTargetSdk());
+            if (!Utils.isEmpty(app.getMinSdk()))
+                metaInfo.sdkInfo.put(TARGET_SDK, app.getTargetSdk());
         }
         androlib.writeMetaFile(appDir, metaInfo);
-        androlib.buildResourcesFull(appDir, metaInfo.usesFramework);
-        FileUtils.delFolder(RES_PATH);
-        FileUtils.deleteFile(MANIFEST_PATH);
-        FileUtils.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
-        FileUtils.delFolder(BUILD_PATH);
-        String apkPath = BIN_PATH + File.separator + apkName;
+//        androlib.buildResourcesFull(appDir, metaInfo.usesFramework);
+//        FileUtils.delFolder(RES_PATH);
+//        FileUtils.deleteFile(MANIFEST_PATH);
+//        FileUtils.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
+//        FileUtils.delFolder(BUILD_PATH);
+        Log.iln("apkPath=" + apkPath);
         androlib.build(appDir, new File(apkPath));
-//        String scriptPath = String.format("%s b %s -o %s -a %s", APKTOOL_PATH, OUT_PATH, apkPath, BIN_PATH + File.separator + "aapt.exe");
-//        Utils.execShell(scriptPath);
-        return apkPath;
+    }
+
+    private void executeBuild(String apkPath) {
+        String scriptPath = String.format("%s b %s -o %s -a %s", APKTOOL_PATH, OUT_PATH, apkPath, BIN_PATH + File.separator + "aapt.exe");
+        Utils.execShell(scriptPath);
     }
 }

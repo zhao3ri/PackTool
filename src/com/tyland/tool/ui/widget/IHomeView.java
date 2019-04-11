@@ -17,4 +17,12 @@ public interface IHomeView extends IView {
     JButton getMoreButton();
 
     JButton getSubmitButton();
+
+    String getMinSdkText();
+
+    String getTargetSdkText();
+
+    String getVersionCodeText();
+
+    String getVersionNameText();
 }

@@ -45,6 +45,8 @@ public abstract class BaseView<T extends BasePane> implements IView, PropertyCha
     protected abstract Component createView();
 
     protected void setText(String text, JTextField textField) {
+        if (textField == null)
+            return;
         if (text == null) {
             textField.setText("");
             return;

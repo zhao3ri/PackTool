@@ -17,23 +17,34 @@ public class ManifestHelper {
     private static final String ELEMENT_RECEIVER = "receiver";
     private static final String ELEMENT_METADATA = "meta-data";
     private static final String ATTRIBUTE_ANDROID_NAME = "android:name";
+    private static final String ATTRIBUTE_ANDROID_VALUE = "android:value";
     private static final String ATTRIBUTE_ANDROID_RESOURCE = "android:resource";
     private static final String ATTRIBUTE_ANDROID_LABEL = "android:label";
     private static final String ATTRIBUTE_ANDROID_VERSION_CODE = "android:versionCode";
     private static final String ATTRIBUTE_ANDROID_VERSION_NAME = "android:versionName";
 
     private static final String ELEMENT_USE_SDK = "uses-sdk";
+    private static final String ELEMENT_PACKAGE = "package";
     private static final String ATTRIBUTE_ANDROID_MIN_SDK = "android:minSdkVersion";
     private static final String ATTRIBUTE_ANDROID_TARGET_SDK = "android:targetSdkVersion";
 
     private Document mDocument;
     private ApkInfo mApkInfo;
     private String manifestPath;
+    private String confPackage;
 
     public ManifestHelper(ApkInfo apk, String path) {
         mApkInfo = apk;
         mDocument = XmlTool.createDocument(path);
         manifestPath = path;
+        init();
+    }
+
+    private void init() {
+        Element root = mDocument.getDocumentElement();
+        //获得配置包的名称
+        confPackage = root.getAttribute(ELEMENT_PACKAGE);
+        Log.i("current package=" + mApkInfo.getPackageName() + ",config package=" + confPackage);
     }
 
     public void addVersionInfo(String code, String name) {
@@ -95,8 +106,10 @@ public class ManifestHelper {
         if (Utils.isEmpty(minSdk)) {
             minSdk = mApkInfo.getSdkVersion();
         }
-        if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
-            minSdk = targetSdk;
+        if (!Utils.isEmpty(minSdk) && !Utils.isEmpty(targetSdk)) {
+            if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
+                minSdk = targetSdk;
+            }
         }
         return new String[]{minSdk, targetSdk};
     }
@@ -109,7 +122,7 @@ public class ManifestHelper {
      * 替换入口activity
      */
     public void replaceLauncher(Channel channel) {
-        if (Utils.isEmpty(channel.getLauncher())) {
+        if (channel == null || Utils.isEmpty(channel.getLauncher())) {
             return;
         }
         NodeList nodeList = getRootList();
@@ -174,6 +187,30 @@ public class ManifestHelper {
         XmlTool.saveXml(mDocument, manifestPath);
     }
 
+    public void updateMetaData(String name, String value) {
+        NodeList nodeList = getRootList();
+
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node = nodeList.item(i);
+            if (!node.getNodeName().equals(ELEMENT_APPLICATION)) {
+                continue;
+            }
+            NodeList applicationList = node.getChildNodes();
+
+            for (int j = 0; j < applicationList.getLength(); j++) {
+                Node component = applicationList.item(j);
+                if (component.getNodeName().equals(ELEMENT_METADATA)) {
+                    Node attributeNameNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
+                    String attributeName = attributeNameNode.getTextContent();
+                    Node attributeValueNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_VALUE);
+                    String attributeValue = attributeValueNode.getTextContent();
+                    Log.eln("name=" + attributeName + ",value=" + attributeValue);
+                }
+            }
+        }
+        XmlTool.saveXml(mDocument, manifestPath);
+    }
+
     private void deleteElement(Node item, Channel channel) {
         Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
         String attributeName = attributeNameNode.toString();
@@ -218,8 +255,26 @@ public class ManifestHelper {
         }
     }
 
+    public void updateManifestConfig(String targets, String replaces) {
+        String manifest = FileUtils.replaceFile(manifestPath, targets, replaces);
+        FileUtils.writer2File(manifestPath, manifest);
+    }
+
     public void updateManifestConfig(String[] targets, String[] replaces) {
         String manifest = FileUtils.readAndReplaceFile(manifestPath, targets, replaces);
         FileUtils.writer2File(manifestPath, manifest);
+    }
+
+    public String getConfigPackageName() {
+        return confPackage;
+    }
+
+    public void updatePackageName() {
+        if (Utils.isEmpty(confPackage)) {
+            return;
+        }
+        String[] targets = new String[]{mApkInfo.getPackageName()};
+        String[] replaces = new String[]{confPackage};
+
     }
 }

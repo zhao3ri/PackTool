@@ -27,6 +27,11 @@ public class HomePane extends BasePane {
     public static final String APK_INFO_CHANGED_PROPERTY = "HomePane.PackageSelectedChangedProperty";
     public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
 
+    public static final String MIN_SDK_TEXT_CHANGED_PROPERTY = "MorePane.MinSdkTextChangedProperty";
+    public static final String TARGET_SDK_TEXT_CHANGED_PROPERTY = "MorePane.TargetSdkTextChangedProperty";
+    public static final String VERSION_NAME_TEXT_CHANGED_PROPERTY = "MorePane.VersionNameTextChangedProperty";
+    public static final String VERSION_CODE_TEXT_CHANGED_PROPERTY = "MorePane.VersionCodeTextChangedProperty";
+
     private String drawablePath;
     private String appId;
     private String appKey;
@@ -42,6 +47,11 @@ public class HomePane extends BasePane {
     private boolean isUseSuffix;
     private boolean isUseDefaultPackage;
     private boolean isEnable = true;
+
+    private String minSdk;
+    private String targetSdk;
+    private String versionCode;
+    private String versionName;
 
     public HomePane(JFrame frame, List<Channel> channelList) {
         super(frame);
@@ -237,5 +247,45 @@ public class HomePane extends BasePane {
 
     public boolean isViewEnable() {
         return isEnable;
+    }
+
+    public void setMinSdk(String min) {
+        String old = minSdk;
+        minSdk = min;
+        firePropertyChange(MIN_SDK_TEXT_CHANGED_PROPERTY, old, minSdk);
+    }
+
+    public void setTargetSdk(String target) {
+        String old = targetSdk;
+        targetSdk = target;
+        firePropertyChange(TARGET_SDK_TEXT_CHANGED_PROPERTY, old, targetSdk);
+    }
+
+    public void setVersionCode(String code) {
+        String old = versionCode;
+        versionCode = code;
+        firePropertyChange(VERSION_CODE_TEXT_CHANGED_PROPERTY, old, versionCode);
+    }
+
+    public void setVersionName(String name) {
+        String old = versionName;
+        versionName = name;
+        firePropertyChange(VERSION_NAME_TEXT_CHANGED_PROPERTY, old, versionName);
+    }
+
+    public String getMinSDK() {
+        return minSdk;
+    }
+
+    public String getTargetSdk() {
+        return targetSdk;
+    }
+
+    public String getVersionName() {
+        return versionName;
+    }
+
+    public String getVersionCode() {
+        return versionCode;
     }
 }
