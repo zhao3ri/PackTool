@@ -115,9 +115,11 @@ public class DialogView extends BaseView implements IDialogView, ActionListener 
 
         Dimension labSize = new Dimension(labWidth, inputItemHeight);
         Dimension textFieldSize = new Dimension(getBodyWidth() - labWidth - margin, inputItemHeight);
-        final JTextField textPass = getLabelWithTextView("请输入密码", labSize, inputPanel, 0, 0, 0, labWidth, 0);
+        final JTextField textPass = new JTextField();
+        getLabelWithTextView(textPass, "请输入密码", labSize, inputPanel, 0, 0, 0, labWidth, 0);
         textPass.setSize(new Dimension(textFieldSize));
-        final JTextField textAlias = getLabelWithTextView("请输入别名", labSize, inputPanel, 0, 0, inputItemHeight + margin, labWidth, inputItemHeight + margin);
+        final JTextField textAlias = new JTextField();
+        getLabelWithTextView(textAlias, "请输入别名", labSize, inputPanel, 0, 0, inputItemHeight + margin, labWidth, inputItemHeight + margin);
         textAlias.setSize(textFieldSize);
         btnCompleted = new JButton("完成");
         btnCompleted.setSize(buttonWidth, buttonHeight);

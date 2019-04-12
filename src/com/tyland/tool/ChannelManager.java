@@ -41,6 +41,7 @@ public class ChannelManager {
     public static final int STATUS_FAIL = 2;
     public static final int STATUS_SIGN_SUCCESS = 4;
     public static final int STATUS_DECODE_SUCCESS = 5;
+    public static final int STATUS_BUILD_SUCCESS = 6;
 
     private YJConfig yjConfig;
 
@@ -147,7 +148,7 @@ public class ChannelManager {
                     mDecoder.setProgressListener(progressListener);
                     result = mDecoder.decode(apkPath);
                     if (result == STATUS_DECODE_SUCCESS) {
-                        yjConfig = mDecoder.createConfig();
+                        yjConfig = mDecoder.updateConfig(yjConfig);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -161,10 +162,30 @@ public class ChannelManager {
         }.start();
     }
 
+    public void buildApk() {
+        new SubThread(cyclicBarrier, "BuildApk") {
+
+            @Override
+            public void execute() {
+                int result = STATUS_FAIL;
+                Builder builder = new Builder(null, channels, apkFileName);
+                builder.setProgressListener(progressListener);
+                builder.setConfig(getYjConfig());
+                result = builder.build();
+                if (result == STATUS_BUILD_SUCCESS) {
+                }
+                if (listener != null) {
+                    listener.onFinish(result);
+                }
+            }
+        }.start();
+    }
+
     public void updateConfig(YJConfig c) {
         if (mDecoder == null) {
             return;
         }
+        yjConfig = c;
         mDecoder.updateManifest(c);
     }
 
@@ -241,7 +262,7 @@ public class ChannelManager {
         return mApkInfo.getPackageName();
     }
 
-    public String getAppName() {
+    public String getDefaultAppName() {
         if (mApkInfo == null)
             return null;
         return mApkInfo.getApplicationLable();

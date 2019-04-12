@@ -46,6 +46,8 @@ public abstract class BaseCompiler {
 
     protected GameChannelConfig config;
 
+    protected YJConfig yjConfig;
+
     protected ShellUtils.ProgressListener progressListener;
 
     private BaseCompiler() {
@@ -70,6 +72,10 @@ public abstract class BaseCompiler {
 
     public void setConfig(GameChannelConfig config) {
         this.config = config;
+    }
+
+    public void setConfig(YJConfig config) {
+        this.yjConfig = config;
     }
 
     public void setProgressListener(ShellUtils.ProgressListener progressListener) {

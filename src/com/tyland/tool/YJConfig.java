@@ -7,7 +7,7 @@ import static com.tyland.tool.util.Utils.equalsString;
 public class YJConfig {
     public static final String META_DATA_CHANNEL_KEY = "GAORE_CHANNEL_KEY";
     public static final String META_DATA_GAME_ID = "GAORE_GAME_ID";
-    public static final String META_DATA_GAME_KEY = "GAORE_APP_KEY ";
+    public static final String META_DATA_GAME_KEY = "GAORE_APP_KEY";
 
     public String appName;
     public String packageName;
@@ -24,5 +24,12 @@ public class YJConfig {
                 equalsString(this.gameId, ((YJConfig) obj).gameId) &&
                 equalsString(this.gameKey, ((YJConfig) obj).gameKey) &&
                 this.apkInfo.equals(((YJConfig) obj).apkInfo);
+    }
+
+    public void updateAppInfo(String min, String target, String vcode, String vname) {
+        if (this.apkInfo == null) {
+            this.apkInfo = new AppConfig();
+        }
+        this.apkInfo.update(min, target, vcode, vname);
     }
 }

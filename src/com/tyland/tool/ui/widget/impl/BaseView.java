@@ -13,7 +13,7 @@ import java.io.File;
 public abstract class BaseView<T extends BasePane> implements IView, PropertyChangeListener {
     protected Window window;
     protected final int buttonHeight = 28;
-    protected final int buttonWidth = 75;
+    protected final int buttonWidth = 100;
     protected final int defaultHeight = 20;
 
     protected T parent;
@@ -54,7 +54,7 @@ public abstract class BaseView<T extends BasePane> implements IView, PropertyCha
         textField.setText(text);
     }
 
-    protected JTextField getLabelWithTextView(String text, Dimension labSize, JPanel panel, int columns, int... locations) {
+    protected <K extends JTextField> void getLabelWithTextView(K textField, String text, Dimension labSize, JPanel panel, int columns, int... locations) {
         JLabel label = new JLabel(text);
 //        label.setHorizontalAlignment(SwingConstants.CENTER);
         if (labSize != null) {
@@ -64,7 +64,6 @@ public abstract class BaseView<T extends BasePane> implements IView, PropertyCha
                 label.setPreferredSize(labSize);
             }
         }
-        JTextField textField = new JTextField();
         textField.setFont(window.getFont());
         if (locations != null && locations.length > 1) {
             label.setLocation(locations[0], locations[1]);
@@ -77,7 +76,7 @@ public abstract class BaseView<T extends BasePane> implements IView, PropertyCha
         }
         panel.add(label);
         panel.add(textField);
-        return textField;
+//        return textField;
     }
 
     protected JFileChooser createFileChooser(int mode, String path, String filterDesc, String... filters) {

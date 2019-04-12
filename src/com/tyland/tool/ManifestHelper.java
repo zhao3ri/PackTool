@@ -47,7 +47,7 @@ public class ManifestHelper {
         Element root = mDocument.getDocumentElement();
         //获得配置包的名称
         confPackage = root.getAttribute(ELEMENT_PACKAGE);
-        Log.i("current package=" + mApkInfo.getPackageName() + ",config package=" + confPackage);
+        Log.iln("current package=" + mApkInfo.getPackageName() + ",config package=" + confPackage);
         readMetaData(new OnReadContentListener() {
             @Override
             public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {
@@ -96,9 +96,9 @@ public class ManifestHelper {
         if (Utils.isEmpty(minSdk)) {
             minSdk = sdkInfo[0];
         }
-        if (Utils.isEmpty(targetSdk)) {
-            targetSdk = sdkInfo[1];
-        }
+//        if (Utils.isEmpty(targetSdk)) {
+//            targetSdk = sdkInfo[1];
+//        }
         if (mDocument.getElementsByTagName(ELEMENT_USE_SDK) != null) {
             NodeList nodeList = mDocument.getElementsByTagName(ELEMENT_USE_SDK);
             for (int i = 0; i < nodeList.getLength(); i++) {
@@ -112,9 +112,11 @@ public class ManifestHelper {
         minSdkAttr.setValue(minSdk);
         sdkElm.setAttributeNode(minSdkAttr);
 
-        Attr targetSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_TARGET_SDK);
-        targetSdkAttr.setValue(targetSdk);
-        sdkElm.setAttributeNode(targetSdkAttr);
+        if (!Utils.isEmpty(targetSdk)) {
+            Attr targetSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_TARGET_SDK);
+            targetSdkAttr.setValue(targetSdk);
+            sdkElm.setAttributeNode(targetSdkAttr);
+        }
         XmlTool.addElement(mDocument, sdkElm);
     }
 
@@ -123,6 +125,9 @@ public class ManifestHelper {
         String targetSdk = mApkInfo.getTargetSdkVersion();
         if (Utils.isEmpty(minSdk)) {
             minSdk = mApkInfo.getSdkVersion();
+        }
+        if (Utils.isEmpty(targetSdk)) {
+            targetSdk = minSdk;
         }
         if (!Utils.isEmpty(minSdk) && !Utils.isEmpty(targetSdk)) {
             if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
@@ -284,7 +289,6 @@ public class ManifestHelper {
                     String attributeName = attributeNameNode.getTextContent();
                     Node attributeValueNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_VALUE);
                     String attributeValue = attributeValueNode.getTextContent();
-                    Log.eln("name=" + attributeName + ",value=" + attributeValue);
                     if (listener != null) {
                         listener.onRead(attributeNameNode, attributeName, attributeValueNode, attributeValue);
                     }

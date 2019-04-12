@@ -17,8 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.tyland.tool.ChannelManager.STATUS_DECODE_SUCCESS;
-import static com.tyland.tool.ChannelManager.STATUS_NO_FIND;
+import static com.tyland.tool.ChannelManager.*;
 import static com.tyland.tool.YJConfig.META_DATA_CHANNEL_KEY;
 import static com.tyland.tool.YJConfig.META_DATA_GAME_ID;
 import static com.tyland.tool.YJConfig.META_DATA_GAME_KEY;
@@ -34,7 +33,7 @@ public class Decoder extends BaseCompiler {
     }
 
     public int decode(String path) {
-        int result = -1;
+        int result = STATUS_FAIL;
         if (Utils.isEmpty(path)) {
             return STATUS_NO_FIND;
         }
@@ -45,7 +44,10 @@ public class Decoder extends BaseCompiler {
             String cmd = "%s d %s -o %s -f";
             String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/cmd, APKTOOL_PATH, path, OUT_PATH);
             result = Utils.execShell(progressListener, scriptPath);
-            return STATUS_DECODE_SUCCESS;
+            if (result == STATUS_SUCCESS) {
+                return STATUS_DECODE_SUCCESS;
+            }
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -61,9 +63,12 @@ public class Decoder extends BaseCompiler {
         decoder.decode();
     }
 
-    public YJConfig createConfig() {
-        YJConfig c = new YJConfig();
-        c.apkInfo = new AppConfig(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
+    public YJConfig updateConfig(YJConfig c) {
+        if (c == null) {
+            c = new YJConfig();
+            c.appName = mApkInfo.getApplicationLable();
+            c.apkInfo = new AppConfig(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
+        }
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
         c.channelKey = manifestHelper.getChannelKey();
         c.gameId = manifestHelper.getGameId();
@@ -72,28 +77,9 @@ public class Decoder extends BaseCompiler {
         return c;
     }
 
-    public void updateManifest() {
-        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
-        AppConfig app = config.getAppInfo();
-        if (app != null) {
-            manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
-            manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
-        }
-        if (currChannel != null)
-            manifestHelper.replaceLauncher(currChannel);
-        if (exceptChannels != null)
-            for (Channel channel : exceptChannels) {
-                manifestHelper.deleteUnrelatedChannelInfo(channel);
-            }
-
-        //必须在最后一步才进行替换，否则可能会导致错误
-//        replacePackage(manifestHelper);
-        manifestHelper.updatePackageName();
-    }
-
     public void updateManifest(YJConfig c) {
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
-        AppConfig app = config.getAppInfo();
+        AppConfig app = c.apkInfo;
         if (app != null) {
             manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
             manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
@@ -158,23 +144,5 @@ public class Decoder extends BaseCompiler {
             }
         }
         XmlTool.saveXml(document, path);
-    }
-
-    private void replacePackage(ManifestHelper manifestHelper) {
-        String packageName = mApkInfo.getPackageName();
-        String[] targets;
-        String[] replaces;
-        if (Utils.isEmpty(config.getPackageName())) {
-            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, CP_KEY_TAG, LAUNCHER_TAG};
-            replaces = new String[]{packageName, config.getAppId(), config.getCpId(), config.getAppKey(), config.getCpKey(), mApkInfo.getLaunchableActivity()};
-        } else {
-            String replacePkg = config.getPackageName();
-            if (config.isSuffix()) {
-                replacePkg = String.format("%s.%s", packageName, config.getPackageName());
-            }
-            targets = new String[]{PACKAGE_NAME_TAG, APP_ID_TAG, CP_ID_TAG, APP_KEY_TAG, CP_KEY_TAG, LAUNCHER_TAG, packageName};
-            replaces = new String[]{packageName, config.getAppId(), config.getCpId(), config.getAppKey(), config.getCpKey(), mApkInfo.getLaunchableActivity(), replacePkg};
-        }
-        manifestHelper.updateManifestConfig(targets, replaces);
     }
 }

@@ -21,10 +21,9 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     protected static final int FRAME_HEIGHT = 555;
 
     private OnCloseListener closeListener;
-    private OnSubmitClickListener submitClickListener;
-    private OnChannelChangedListener changedChannelListener;
-    private OnConfirmClickListener confirmClickListener;
     private LoadApkListener loadApkListener;
+    private OnUpdateClickListener updateClickListener;
+    private OnPackageClickListener packageClickListener;
 
     private HomePane homePane;
     private String currentPath;
@@ -77,41 +76,19 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         return home;
     }
 
-    public void refreshUI(GameChannelConfig config, String packageName) {
-        if (homePane == null) {
-            return;
-        }
-        homePane.setDrawablePath(config.getDrawablePath());
-//        homePane.setAppIdText(config.getAppId());
-//        homePane.setAppKeyText(config.getAppKey());
-//        homePane.setPublicKeyText(config.getPublicKey());
-//        homePane.setSecretKeyText(config.getSecretKey());
-//        homePane.setCpIdText(config.getCpId());
-//        homePane.setCpKeyText(config.getCpKey());
-        homePane.setVersionName(config.getAppInfo().getVersionName());
-        homePane.setVersionCode(config.getAppInfo().getVersionCode());
-        homePane.setMinSdk(config.getAppInfo().getMinSdk());
-        homePane.setTargetSdk(config.getAppInfo().getTargetSdk());
-        homePane.selectedPackage(config.isUseDefaultPackage(), config.isSuffix());
-        homePane.setDefaultPackageName(packageName);
-        if (!config.isUseDefaultPackage()) {
-            if (config.isSuffix()) {
-                homePane.setPackageSuffix(config.getPackageName());
-            } else {
-                homePane.setNewPackageName(config.getPackageName());
-            }
-        }
-    }
-
     public void refreshView(YJConfig config) {
         if (homePane == null) {
             return;
         }
+        homePane.setAppPackageText(config.packageName);
+        homePane.setAppNameText(config.appName);
+        homePane.setChannelKeyText(config.channelKey);
+        homePane.setGameIdText(config.gameId);
+        homePane.setGameKeyText(config.gameKey);
         homePane.setVersionName(config.apkInfo.getVersionName());
         homePane.setVersionCode(config.apkInfo.getVersionCode());
         homePane.setMinSdk(config.apkInfo.getMinSdk());
         homePane.setTargetSdk(config.apkInfo.getTargetSdk());
-        homePane.setDefaultPackageName(config.packageName);
     }
 
     public void close() {
@@ -182,16 +159,12 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         this.closeListener = closeListener;
     }
 
-    public void setSubmitClickListener(OnSubmitClickListener submitClickListener) {
-        this.submitClickListener = submitClickListener;
+    public void setPackageClickListener(OnPackageClickListener packageClickListener) {
+        this.packageClickListener = packageClickListener;
     }
 
-    public void setChangedChannelListener(OnChannelChangedListener changedChannelListener) {
-        this.changedChannelListener = changedChannelListener;
-    }
-
-    public void setConfirmClickListener(OnConfirmClickListener listener) {
-        this.confirmClickListener = listener;
+    public void setUpdateClickListener(OnUpdateClickListener updateClickListener) {
+        this.updateClickListener = updateClickListener;
     }
 
     @Override
@@ -218,12 +191,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     public void propertyChange(PropertyChangeEvent evt) {
         String prop = evt.getPropertyName();
         String newValue = String.valueOf(evt.getNewValue());
-        if (prop.equals(CHANNEL_RADIO_CHANGED_PROPERTY)) {
-            if (changedChannelListener != null) {
-                changedChannelListener.onChange(Integer.valueOf(newValue));
-            }
-            return;
-        }
     }
 
     @Override
@@ -232,9 +199,17 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             int action = (int) e.getSource();
             Log.iln("action==" + action);
             if (action == CODE_ACTION_CLICK_UPDATE) {
+                //点击更新
+                if (updateClickListener != null)
+                    updateClickListener.onClickUpdate(homePane.getAppNameText(), homePane.getChannelKeyText(), homePane.getGameIdText(),
+                            homePane.getGameKeyText(), homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
                 return;
             }
             if (action == CODE_ACTION_CLICK_PACKAGE) {
+                //点击打包
+                if (packageClickListener != null) {
+                    packageClickListener.onClickPackage();
+                }
                 return;
             }
         }
@@ -262,17 +237,21 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         void onNegative();
     }
 
-    public interface OnConfirmClickListener {
-        boolean onConfirm(String min, String target, String vcode, String vname);
+//    public interface OnConfirmClickListener {
+//        boolean onConfirm(String min, String target, String vcode, String vname);
+//    }
+//
+//    public interface OnSubmitClickListener {
+//        void onClick(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey,
+//                     String pkg, boolean suffix, boolean useDefault);
+//    }
+
+    public interface OnUpdateClickListener {
+        void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String min, String target, String vcode, String vname);
     }
 
-    public interface OnSubmitClickListener {
-        void onClick(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey,
-                     String pkg, boolean suffix, boolean useDefault);
-    }
-
-    public interface OnChannelChangedListener {
-        void onChange(int id);
+    public interface OnPackageClickListener {
+        void onClickPackage();
     }
 
     public interface OnSignSelectedClickListener {

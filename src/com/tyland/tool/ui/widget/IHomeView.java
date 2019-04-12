@@ -18,6 +18,14 @@ public interface IHomeView extends IView {
 
     JButton getSubmitButton();
 
+    String getAppNameText();
+
+    String getChannelKeyText();
+
+    String getGameIdText();
+
+    String getGameKeyText();
+
     String getMinSdkText();
 
     String getTargetSdkText();
