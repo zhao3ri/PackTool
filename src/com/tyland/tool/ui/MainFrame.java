@@ -28,12 +28,12 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     private HomePane homePane;
     private String currentPath;
 
-    public MainFrame(String path, List<Channel> channelList) {
-        create(channelList);
+    public MainFrame(String path) {
+        create();
         currentPath = path;
     }
 
-    private void create(List<Channel> channelList) {
+    private void create() {
         setTitle("打包工具");
         setLayout(new FlowLayout());
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT)); //设置窗口的大小
@@ -50,7 +50,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
             }
         });
-        homePane = createHomePane(channelList);
+        homePane = createHomePane();
     }
 
     public void open() {
@@ -62,15 +62,15 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             this.setVisible(true);
             homePane.load();
             if (loadApkListener != null)
-                loadApkListener.onLoad();
+                loadApkListener.onLoad(optionPane.getView().getChooseFilePath());
         } else if (result == CODE_ACTION_CLOSE) {
             close();
             System.exit(0);
         }
     }
 
-    private HomePane createHomePane(List<Channel> channelList) {
-        HomePane home = new HomePane(this, channelList);
+    private HomePane createHomePane() {
+        HomePane home = new HomePane(this);
         home.setPropertyChangeListener(this);
         home.setActionListener(this);
         return home;
@@ -237,15 +237,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         void onNegative();
     }
 
-//    public interface OnConfirmClickListener {
-//        boolean onConfirm(String min, String target, String vcode, String vname);
-//    }
-//
-//    public interface OnSubmitClickListener {
-//        void onClick(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey,
-//                     String pkg, boolean suffix, boolean useDefault);
-//    }
-
     public interface OnUpdateClickListener {
         void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String min, String target, String vcode, String vname);
     }
@@ -259,11 +250,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface LoadApkListener {
-        void onLoad();
+        void onLoad(String apk);
     }
-
-//    public interface OnSignChooseClickListener {
-//        void onSelected(JTextField text);
-//    }
 
 }

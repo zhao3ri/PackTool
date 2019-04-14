@@ -7,7 +7,6 @@ import brut.common.BrutException;
 import com.tyland.common.Log;
 import com.tyland.tool.entity.AppConfig;
 import com.tyland.tool.util.Utils;
-import com.tyland.tool.entity.Channel;
 
 import java.io.File;
 import java.util.*;
@@ -15,10 +14,8 @@ import java.util.*;
 import static com.tyland.tool.ChannelManager.*;
 
 public class Builder extends BaseCompiler {
-    private static final String CHANNEL_PREFIX = "qlsdk_";
-    private static final String CHANNEL_REGEX = CHANNEL_PREFIX + "\\d+";
-    private static final String BUILD_PATH = OUT_PATH + File.separator + "build";
-    private static final String BUILD_APK_PATH = BUILD_PATH + File.separator + "apk";
+//    private static final String BUILD_PATH = OUT_PATH + File.separator + "build";
+//    private static final String BUILD_APK_PATH = BUILD_PATH + File.separator + "apk";
     private static final String DEFAULT_APK_NAME = "build.apk";
     private static final String MIN_SDK = "minSdkVersion";
     private static final String TARGET_SDK = "targetSdkVersion";
@@ -27,19 +24,16 @@ public class Builder extends BaseCompiler {
 
     private static final String APK_FILE_NAME = "game.apk";
 
-    public Builder(Channel c, List<Channel> channels, String apkName) {
-        super(c, channels, apkName);
-    }
-
     private String apkBuildPath;
+
+    public Builder(String apkName) {
+        super(apkName);
+    }
 
     public int build() {
         int result = STATUS_FAIL;
         try {
             result = buildApk(yjConfig);
-            if (result == STATUS_SUCCESS) {
-                return STATUS_BUILD_SUCCESS;
-            }
             return result;
         } catch (BrutException e) {
             e.printStackTrace();
@@ -59,13 +53,13 @@ public class Builder extends BaseCompiler {
             apkName = String.format("%s-%s.apk", apkFileName, "unsigned");
         }
 
-        apkBuildPath = BIN_PATH + File.separator + apkName;
+        apkBuildPath = getOutDirPath() + apkName;
         return execBuild(config.apkInfo);
     }
 
     private int execBuild(AppConfig app) throws BrutException {
         Androlib androlib = new Androlib();
-        File appDir = new File(OUT_PATH);
+        File appDir = new File(getDecodeApkPath());
         MetaInfo metaInfo = androlib.readMetaFile(new ExtFile(appDir));
         if (app != null) {
             metaInfo.versionInfo.versionCode = app.getVersionCode();
@@ -89,7 +83,7 @@ public class Builder extends BaseCompiler {
     private int executeBuild(String apkPath) {
 //        String cmd="%s b %s -o %s -a %s";
         String cmd = "%s b %s -o %s";
-        String scriptPath = String.format(cmd, APKTOOL_PATH, OUT_PATH, apkPath/*, BIN_PATH + File.separator + "aapt.exe"*/);
+        String scriptPath = String.format(cmd, APKTOOL_PATH, getDecodeApkPath(), apkPath/*, BIN_PATH + File.separator + "aapt.exe"*/);
         return Utils.execShell(progressListener, scriptPath);
     }
 }

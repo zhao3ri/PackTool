@@ -20,7 +20,6 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
     private static final String VERSION_REGEX = "\\d+(\\.\\d+){0,2}";
 
     private ChannelManager channelManager;
-    private ConfigManager configManager;
     //    private HomePane homePane;
     private MainFrame mainFrame;
     private CyclicBarrier cyclicBarrier;
@@ -41,24 +40,12 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
 
             }
         });
-        configManager = new ConfigManager();
-        channelManager = new ChannelManager();
-        List<Channel> channels = channelManager.getChannels();
-        apkPackageName = channelManager.getDefaultPackageName();
-        channelManager.setBuildFinishListener(this);
-
-        mainFrame = new MainFrame(ROOT_PATH, channels);
-        finish("Welcome!");
+        mainFrame = new MainFrame(ROOT_PATH);
         mainFrame.setCloseListener(this);
         mainFrame.setUpdateClickListener(this);
         mainFrame.setPackageClickListener(this);
         mainFrame.setLoadApkListener(this);
-        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
-            @Override
-            public void publishProgress(String values) {
-                mainFrame.setMessage(values);
-            }
-        });
+
         mainFrame.open();
         refresh();
     }
@@ -67,7 +54,8 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         mainFrame.changeEnable(true);
         mainFrame.setMessage(msg);
         cyclicBarrier.reset();
-        channelManager.setCyclicBarrier(cyclicBarrier);
+        if (channelManager != null)
+            channelManager.setCyclicBarrier(cyclicBarrier);
     }
 
     private void refresh() {
@@ -115,48 +103,10 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         System.exit(0);
     }
 
-    private void showSaveDialog(String text, final GameChannelConfig config) {
-        mainFrame.showDialog(text, new MainFrame.OnDialogButtonClickListener() {
-
-            @Override
-            public void onPositive() {
-//                configManager.saveConfig(apkPackageName, channelId, config);
-            }
-
-            @Override
-            public void onNegative() {
-
-            }
-        }, null);
-    }
-
-    private void showImportDialog() {
-        mainFrame.showDialog("已存在该渠道配置，是否导入？", new MainFrame.OnDialogButtonClickListener() {
-            @Override
-            public void onPositive() {
-//                GameChannelConfig config = configManager.readConfig(apkPackageName, channelId);
-//                if (config != null) {
-//                    mConfig = config;
-//                    mainFrame.refreshUI(config, apkPackageName);
-//                } else {
-//                    mainFrame.showErrorDialog("导入配置失败！");
-//                }
-            }
-
-            @Override
-            public void onNegative() {
-
-            }
-        }, null);
-    }
-
     @Override
     public void onFinish(int status) {
-        String tip = "Build Error!!";
+        String tip = "Error!!";
         switch (status) {
-            case STATUS_SUCCESS:
-                showKeystoreChooser(status);
-                break;
             case STATUS_DECODE_SUCCESS:
                 Log.iln("反编译完成");
                 finish("Decode finish!!");
@@ -166,8 +116,11 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
             case STATUS_BUILD_SUCCESS:
                 Log.iln("打包完成");
                 finish("Build finish!!");
+                sign();
                 break;
             case STATUS_SIGN_SUCCESS:
+                Log.iln("签名完成");
+                finish("Signed finish!!");
                 break;
             case STATUS_NO_FIND:
                 tip = "No find apk!";
@@ -178,35 +131,20 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         }
     }
 
-    private void showKeystoreChooser(final int code) {
-        mainFrame.showDialog("Use default keystore?", new MainFrame.OnDialogButtonClickListener() {//弹窗按钮点击事件
+    private void sign() {
+        new Thread() {
             @Override
-            public void onPositive() {
+            public void run() {
                 channelManager.sign();
-            }
-
-            @Override
-            public void onNegative() {
-                mainFrame.showSignChooseDialog(new MainFrame.OnSignSelectedClickListener() {
-                    @Override
-                    public void onSelected(String path, String passwords, String alias) {
-                        channelManager.sign(path, passwords, alias);
-                    }
-                }, new MainFrame.OnCloseListener() {
-                    @Override
-                    public void onClose() {
-                        onFinish(code);
-                    }
-                }, "Keystore", "jks", "keystore");
-            }
-        }, new MainFrame.OnCloseListener() {//弹窗关闭事件
-            @Override
-            public void onClose() {
-                if (code == STATUS_SUCCESS) {
-                    channelManager.sign();
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
                 }
             }
-        });
+        }.start();
     }
 
 //    @Override
@@ -256,80 +194,6 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         return true;
     }
 
-//    @Override
-//    public void onClick(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String pkg, boolean suffix, boolean useDefault) {
-////        if (channelId == 0) {
-////            mainFrame.showErrorDialog("Please choose the channel!");
-////            return;
-////        }
-//        if (!channelManager.isExistApk()) {
-//            mainFrame.showErrorDialog("当前无apk文件！");
-//            return;
-//        }
-//        mainFrame.changeEnable(false);
-//        updateConfig(drawable, appId, appKey, pubKey, secretKey, cpId, cpKey, pkg, suffix, useDefault);
-////        channelManager.setChannelId(channelId);
-////        channelManager.setConfig(mConfig);
-//        new Thread() {
-//            @Override
-//            public void run() {
-//                channelManager.execute();
-//                try {
-//                    cyclicBarrier.await();
-//                    finish("Finish!!");
-////                    if (!configManager.exists(apkPackageName, channelId)) {
-//////                        showSaveDialog("是否保存当前配置？", mConfig);
-////                    } else {
-////                        if (!configManager.readConfig(apkPackageName, channelId).equals(mConfig)) {
-//////                            showSaveDialog("配置修改，是否保存？", mConfig);
-////                        }
-////                    }
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                } catch (BrokenBarrierException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
-//    }
-
-    private void updateConfig(String drawable, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey, String pkg, boolean suffix, boolean useDefault) {
-//        mConfig.setChannelId(channelId);
-//        mConfig.setDrawablePath(drawable);
-//        mConfig.setAppId(appId);
-//        mConfig.setAppKey(appKey);
-//        mConfig.setPublicKey(pubKey);
-//        mConfig.setSecretKey(secretKey);
-//        mConfig.setCpId(cpId);
-//        mConfig.setCpKey(cpKey);
-//        mConfig.setSuffix(suffix);
-//        mConfig.setUseDefaultPackage(useDefault);
-//        mConfig.setPackageName(pkg);
-    }
-
-    @Override
-    public void onLoad() {
-        if (!channelManager.isExistApk()) {
-            mainFrame.showErrorDialog("当前无apk文件！");
-            return;
-        }
-        mainFrame.changeEnable(false);
-        mainFrame.setMessage("Decode apk....");
-        new Thread() {
-            @Override
-            public void run() {
-                channelManager.decodeApk();
-                try {
-                    cyclicBarrier.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
-
     @Override
     public void onClickPackage() {
         mainFrame.changeEnable(false);
@@ -361,5 +225,37 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         mConfig.apkInfo.setVersionCode(vcode);
         mConfig.apkInfo.setVersionName(vname);
         channelManager.updateConfig(mConfig);
+    }
+
+    @Override
+    public void onLoad(String apk) {
+        channelManager = new ChannelManager(apk);
+        apkPackageName = channelManager.getDefaultPackageName();
+        channelManager.setBuildFinishListener(this);
+
+        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
+            @Override
+            public void publishProgress(String values) {
+                mainFrame.setMessage(values);
+            }
+        });
+        if (!channelManager.isExistApk()) {
+            mainFrame.showErrorDialog("当前无apk文件！");
+            return;
+        }
+        finish("Decode apk....");
+        new Thread() {
+            @Override
+            public void run() {
+                channelManager.decodeApk();
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 }

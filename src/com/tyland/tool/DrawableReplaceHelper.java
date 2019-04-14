@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.tyland.tool.BaseCompiler.DRAWABLE_ICON_LAUNCHER;
-import static com.tyland.tool.BaseCompiler.RES_PATH;
 import static com.tyland.tool.entity.ApkInfo.*;
 
 /**
@@ -94,7 +93,8 @@ public class DrawableReplaceHelper {
             Log.eln("replace drawable is null");
             return;
         }
-        File resFile = new File(RES_PATH);
+//        File resFile = new File(RES_PATH);
+        File resFile = new File("");
         File[] drawableFiles = resFile.listFiles(new DrawableFilter());
         Iterator<File> iterator = Arrays.asList(drawableFiles).iterator();
         while (iterator.hasNext()) {

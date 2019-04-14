@@ -27,8 +27,8 @@ import static com.tyland.tool.util.FileUtils.getPath;
 public class Decoder extends BaseCompiler {
     private ApkInfo mApkInfo;
 
-    public Decoder(ApkInfo apkInfo, Channel c, List<Channel> channels, String apkName) {
-        super(c, channels, apkName);
+    public Decoder(ApkInfo apkInfo, String apkName) {
+        super(apkName);
         mApkInfo = apkInfo;
     }
 
@@ -38,15 +38,12 @@ public class Decoder extends BaseCompiler {
             return STATUS_NO_FIND;
         }
         try {
-            FileUtils.delFolder(OUT_PATH);
-            createFileDir(OUT_PATH);
+            FileUtils.delFolder(getDecodeApkPath());
+            createFileDir(getDecodeApkPath());
 //            apkDecode(path);
             String cmd = "%s d %s -o %s -f";
-            String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/cmd, APKTOOL_PATH, path, OUT_PATH);
+            String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/cmd, APKTOOL_PATH, path, getDecodeApkPath());
             result = Utils.execShell(progressListener, scriptPath);
-            if (result == STATUS_SUCCESS) {
-                return STATUS_DECODE_SUCCESS;
-            }
             return result;
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +55,7 @@ public class Decoder extends BaseCompiler {
         ApkDecoder decoder = new ApkDecoder();
         decoder.setForceDelete(true);
         decoder.setDecodeSources((short) 0);
-        decoder.setOutDir(new File(OUT_PATH));
+        decoder.setOutDir(new File(getDecodeApkPath()));
         decoder.setApkFile(new File(apkPath));
         decoder.decode();
     }
@@ -69,7 +66,7 @@ public class Decoder extends BaseCompiler {
             c.appName = mApkInfo.getApplicationLable();
             c.apkInfo = new AppConfig(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
         }
-        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
+        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
         c.channelKey = manifestHelper.getChannelKey();
         c.gameId = manifestHelper.getGameId();
         c.gameKey = manifestHelper.getGameKey();
@@ -78,7 +75,7 @@ public class Decoder extends BaseCompiler {
     }
 
     public void updateManifest(YJConfig c) {
-        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, MANIFEST_PATH);
+        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
         AppConfig app = c.apkInfo;
         if (app != null) {
             manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
@@ -99,7 +96,7 @@ public class Decoder extends BaseCompiler {
     private static final String RES_VALUE = "value";
 
     public boolean updateResourceAppName(String appName) {
-        File resDirFile = new File(RES_PATH);
+        File resDirFile = new File(getResDirPath());
         if (resDirFile.exists() && resDirFile.isDirectory()) {
             String[] resStringNames = resDirFile.list();
             for (String name : resStringNames) {

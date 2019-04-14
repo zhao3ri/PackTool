@@ -37,9 +37,8 @@ public class HomePane extends BasePane {
     private boolean isEnable = true;
 
 
-    public HomePane(JFrame frame, List<Channel> channelList) {
+    public HomePane(JFrame frame) {
         super(frame);
-        getView().setChannelList(channelList);
         frame.getContentPane().add(view.getContentView());
     }
 

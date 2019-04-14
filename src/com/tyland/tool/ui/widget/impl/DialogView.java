@@ -182,6 +182,11 @@ public class DialogView extends BaseView implements IDialogView, ActionListener 
     }
 
     @Override
+    public String getChooseFilePath() {
+        return textPath.getText();
+    }
+
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
 
     }

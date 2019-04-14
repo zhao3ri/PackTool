@@ -8,4 +8,6 @@ public interface IDialogView extends IView {
     void setCurrentPath(String path);
 
     void setFilter(String filterDesc, String... filters);
+
+    String getChooseFilePath();
 }
