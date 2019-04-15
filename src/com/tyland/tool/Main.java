@@ -45,7 +45,8 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         mainFrame.setUpdateClickListener(this);
         mainFrame.setPackageClickListener(this);
         mainFrame.setLoadApkListener(this);
-
+        mainFrame.changeEnable(false);
+        mainFrame.setMessage("Waiting...");
         mainFrame.open();
         refresh();
     }
@@ -69,6 +70,39 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         config.packageName = channelManager.getDefaultPackageName();
         config.apkInfo = createDefaultAppInfo();
         return config;
+    }
+
+    @Override
+    public void onLoad(String apk) {
+        channelManager = new ChannelManager(apk);
+        apkPackageName = channelManager.getDefaultPackageName();
+        channelManager.setBuildFinishListener(this);
+
+        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
+            @Override
+            public void publishProgress(String values) {
+                mainFrame.setMessage(values);
+            }
+        });
+        if (!channelManager.isExistApk()) {
+            mainFrame.showErrorDialog("当前无apk文件！");
+            return;
+        }
+        finish("Decode apk....");
+        mainFrame.changeEnable(false);
+        new Thread() {
+            @Override
+            public void run() {
+                channelManager.decodeApk();
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     private AppConfig createDefaultAppInfo() {
@@ -135,7 +169,8 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         new Thread() {
             @Override
             public void run() {
-                channelManager.sign();
+                mainFrame.changeEnable(false);
+                mainFrame.setMessage("Sign apk....");
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {
@@ -214,48 +249,18 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
 
     }
 
+
     @Override
-    public void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String min, String target, String vcode, String vname) {
+    public void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String gameVersion, String min, String target, String vcode, String vname) {
         mConfig.appName = appName;
         mConfig.channelKey = channelKey;
         mConfig.gameId = gameId;
         mConfig.gameKey = gameKey;
+        mConfig.gameVersion = gameVersion;
         mConfig.apkInfo.setMinSdk(min);
         mConfig.apkInfo.setTargetSdk(target);
         mConfig.apkInfo.setVersionCode(vcode);
         mConfig.apkInfo.setVersionName(vname);
         channelManager.updateConfig(mConfig);
-    }
-
-    @Override
-    public void onLoad(String apk) {
-        channelManager = new ChannelManager(apk);
-        apkPackageName = channelManager.getDefaultPackageName();
-        channelManager.setBuildFinishListener(this);
-
-        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
-            @Override
-            public void publishProgress(String values) {
-                mainFrame.setMessage(values);
-            }
-        });
-        if (!channelManager.isExistApk()) {
-            mainFrame.showErrorDialog("当前无apk文件！");
-            return;
-        }
-        finish("Decode apk....");
-        new Thread() {
-            @Override
-            public void run() {
-                channelManager.decodeApk();
-                try {
-                    cyclicBarrier.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 }

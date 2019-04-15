@@ -85,6 +85,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setChannelKeyText(config.channelKey);
         homePane.setGameIdText(config.gameId);
         homePane.setGameKeyText(config.gameKey);
+        homePane.setGameVersionText(config.gameVersion);
         homePane.setVersionName(config.apkInfo.getVersionName());
         homePane.setVersionCode(config.apkInfo.getVersionCode());
         homePane.setMinSdk(config.apkInfo.getMinSdk());
@@ -202,7 +203,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                 //点击更新
                 if (updateClickListener != null)
                     updateClickListener.onClickUpdate(homePane.getAppNameText(), homePane.getChannelKeyText(), homePane.getGameIdText(),
-                            homePane.getGameKeyText(), homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
+                            homePane.getGameKeyText(), homePane.getGameVersionText(), homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
                 return;
             }
             if (action == CODE_ACTION_CLICK_PACKAGE) {
@@ -238,7 +239,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface OnUpdateClickListener {
-        void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String min, String target, String vcode, String vname);
+        void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String gameVersion, String min, String target, String vcode, String vname);
     }
 
     public interface OnPackageClickListener {

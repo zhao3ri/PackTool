@@ -17,6 +17,7 @@ import static com.tyland.tool.entity.ApkInfo.*;
  */
 public class DrawableReplaceHelper {
     private String replacePath;
+    private String resPath;
     private Map<String, String> replaceIcons;
     private Map<String, String> replaceScreens;
     //    private Map<String, String> applicationIcons;
@@ -37,7 +38,8 @@ public class DrawableReplaceHelper {
     private DrawableReplaceHelper() {
     }
 
-    public DrawableReplaceHelper(Map<String, String> icons, String path) {
+    public DrawableReplaceHelper(Map<String, String> icons, String res, String path) {
+        resPath = res;
         replacePath = path;
         dpiContainer = new HashMap<>();
         dpiContainer.put(0, DRAWABLE_MDPI);
@@ -93,8 +95,7 @@ public class DrawableReplaceHelper {
             Log.eln("replace drawable is null");
             return;
         }
-//        File resFile = new File(RES_PATH);
-        File resFile = new File("");
+        File resFile = new File(resPath);
         File[] drawableFiles = resFile.listFiles(new DrawableFilter());
         Iterator<File> iterator = Arrays.asList(drawableFiles).iterator();
         while (iterator.hasNext()) {

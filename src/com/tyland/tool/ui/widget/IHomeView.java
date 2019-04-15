@@ -26,6 +26,8 @@ public interface IHomeView extends IView {
 
     String getGameKeyText();
 
+    String getGameVersionText();
+
     String getMinSdkText();
 
     String getTargetSdkText();

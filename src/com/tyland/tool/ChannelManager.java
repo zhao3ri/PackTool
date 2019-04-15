@@ -1,15 +1,11 @@
 package com.tyland.tool;
 
-import com.tyland.common.Log;
+import brut.androlib.AndrolibException;
 import com.tyland.tool.entity.ApkInfo;
-import com.tyland.tool.entity.GameChannelConfig;
 import com.tyland.tool.util.*;
-import com.tyland.tool.entity.ChannelList;
-import com.tyland.tool.entity.Channel;
-import com.tyland.tool.xml.XmlTool;
 
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 
@@ -142,6 +138,11 @@ public class ChannelManager {
         }
         yjConfig = c;
         mDecoder.updateManifest(c);
+        try {
+            mDecoder.updateYml(c.apkInfo);
+        } catch (AndrolibException e) {
+            e.printStackTrace();
+        }
     }
 
     public YJConfig getYjConfig() {
@@ -215,9 +216,14 @@ public class ChannelManager {
                     Signer signer = new Signer(apkFileName);
                     signer.setProgressListener(progressListener);
                     updateProgress("Sign Apk...");
-                    int result = signer.sign(buildApkPath);
-                    if (result == STATUS_SUCCESS) {
-                        result = STATUS_SIGN_SUCCESS;
+                    int result = STATUS_FAIL;
+                    try {
+                        result = signer.sign(buildApkPath);
+                        if (result == STATUS_SUCCESS) {
+                            result = STATUS_SIGN_SUCCESS;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                     if (listener != null) {
                         listener.onFinish(result);

@@ -14,15 +14,9 @@ import java.util.*;
 import static com.tyland.tool.ChannelManager.*;
 
 public class Builder extends BaseCompiler {
-//    private static final String BUILD_PATH = OUT_PATH + File.separator + "build";
-//    private static final String BUILD_APK_PATH = BUILD_PATH + File.separator + "apk";
     private static final String DEFAULT_APK_NAME = "build.apk";
-    private static final String MIN_SDK = "minSdkVersion";
-    private static final String TARGET_SDK = "targetSdkVersion";
     private String mApkPackageName;
     private Map<String, String> applicationIcons;
-
-    private static final String APK_FILE_NAME = "game.apk";
 
     private String apkBuildPath;
 
@@ -58,18 +52,6 @@ public class Builder extends BaseCompiler {
     }
 
     private int execBuild(AppConfig app) throws BrutException {
-        Androlib androlib = new Androlib();
-        File appDir = new File(getDecodeApkPath());
-        MetaInfo metaInfo = androlib.readMetaFile(new ExtFile(appDir));
-        if (app != null) {
-            metaInfo.versionInfo.versionCode = app.getVersionCode();
-            metaInfo.versionInfo.versionName = app.getVersionName();
-            metaInfo.apkFileName = APK_FILE_NAME;
-            metaInfo.sdkInfo.put(MIN_SDK, app.getMinSdk());
-            if (!Utils.isEmpty(app.getTargetSdk()))
-                metaInfo.sdkInfo.put(TARGET_SDK, app.getTargetSdk());
-        }
-        androlib.writeMetaFile(appDir, metaInfo);
 //        androlib.buildResourcesFull(appDir, metaInfo.usesFramework);
 //        FileUtils.delFolder(RES_PATH);
 //        FileUtils.deleteFile(MANIFEST_PATH);

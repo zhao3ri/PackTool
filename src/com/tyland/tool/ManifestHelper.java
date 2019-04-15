@@ -35,6 +35,7 @@ public class ManifestHelper {
     private String channelKey;
     private String gameId;
     private String gameKey;
+    private String gameVersion;
 
     public ManifestHelper(ApkInfo apk, String path) {
         mApkInfo = apk;
@@ -60,6 +61,9 @@ public class ManifestHelper {
                 } else if (attributeName.equals(YJConfig.META_DATA_GAME_KEY)) {
                     gameKey = attributeValue;
                     Log.iln("gameKey=" + gameKey);
+                } else if (attributeName.equals(YJConfig.META_DATA_GAME_VERSION)) {
+                    gameVersion = attributeValue;
+                    Log.iln("gameVersion=" + gameVersion);
                 }
             }
         });
@@ -319,7 +323,7 @@ public class ManifestHelper {
         if (Utils.isEmpty(confPackage)) {
             return;
         }
-        updateManifestConfig(mApkInfo.getPackageName(), confPackage);
+//        updateManifestConfig(mApkInfo.getPackageName(), confPackage);
     }
 
     public void updateAppName(String appName) {
@@ -339,5 +343,9 @@ public class ManifestHelper {
 
     public String getGameKey() {
         return gameKey;
+    }
+
+    public String getGameVersion() {
+        return gameVersion;
     }
 }

@@ -42,6 +42,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     private JHintTextField textChannelKey;
     private JHintTextField textGameId;
     private JHintTextField textGameKey;
+    private JHintTextField textGameVersion;
 
     private JHintTextField textMinSDK;
     private JHintTextField textTargetSDK;
@@ -81,6 +82,9 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
 
         setText(getParent().getGameKeyText(), textGameKey);
         textGameKey.setHintText(getParent().getGameKeyText());
+
+        setText(getParent().getGameVersionText(), textGameVersion);
+        textGameVersion.setHintText(getParent().getGameVersionText());
 
         setText(getParent().getMinSDK(), textMinSDK);
         textMinSDK.setHintText(getParent().getMinSDK());
@@ -155,12 +159,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     private void addMetaDataView() {
         JPanel metaDataItem = new JPanel();
         metaDataItem.setLayout(null);
-        int height = 130;
+        int height = 135;
         metaDataItem.setPreferredSize(new Dimension(getWidth() - contentPadding, height));
         TitledBorder border = createBorder(metaDataItem, "meta-data");
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1, 5, 5));
+        panel.setLayout(new GridLayout(4, 1, 5, 5));
         panel.setSize(new Dimension(getWidth() - contentPadding - defaultMargin * 2, height - defaultMargin * 3));
 
         Insets insets = border.getBorderInsets(parent);
@@ -177,7 +181,9 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         panel.add(textGameId);
         textGameKey = new JHintTextField();
         getLabelWithTextView(textGameKey, YJConfig.META_DATA_GAME_KEY, null, panel, 20);
-        panel.add(textGameKey);
+        textGameVersion = new JHintTextField();
+        getLabelWithTextView(textGameVersion, YJConfig.META_DATA_GAME_VERSION, null, panel, 20);
+        panel.add(textGameVersion);
         metaDataItem.add(panel);
         addContentView(metaDataItem);
     }
@@ -345,6 +351,9 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         } else if (prop.equals(GAME_KEY_CHANGED_PROPERTY)) {
             String key = (String) evt.getNewValue();
             setText(key, textGameKey);
+        } else if (prop.equals(GAME_VERSION_CHANGED_PROPERTY)) {
+            String key = (String) evt.getNewValue();
+            setText(key, textGameVersion);
         } else if (prop.equals(MESSAGE_TEXT_CHANGED_PROPERTY)) {
             String msg = String.valueOf(evt.getNewValue());
             setMessage(msg);
@@ -393,6 +402,9 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
 
         if (textGameKey != null)
             textGameKey.setEnabled(enable);
+
+        if (textGameVersion != null)
+            textGameVersion.setEnabled(enable);
     }
 
     private void setMessage(String msg) {
@@ -453,6 +465,11 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     @Override
     public String getGameKeyText() {
         return getText(textGameKey);
+    }
+
+    @Override
+    public String getGameVersionText() {
+        return getText(textGameVersion);
     }
 
     @Override

@@ -17,6 +17,7 @@ public class HomePane extends BasePane {
     public static final String CHANNEL_KEY_CHANGED_PROPERTY = "HomePane.ChannelKeyChangedProperty";
     public static final String GAME_ID_CHANGED_PROPERTY = "HomePane.GameIdChangedProperty";
     public static final String GAME_KEY_CHANGED_PROPERTY = "HomePane.GameKeyChangedProperty";
+    public static final String GAME_VERSION_CHANGED_PROPERTY = "HomePane.GameVersionChangedProperty";
     public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
 
     public static final String MIN_SDK_TEXT_CHANGED_PROPERTY = "MorePane.MinSdkTextChangedProperty";
@@ -29,6 +30,7 @@ public class HomePane extends BasePane {
     private String channelKey;
     private String gameId;
     private String gameKey;
+    private String gameVersion;
     private String minSdk;
     private String targetSdk;
     private String versionCode;
@@ -118,6 +120,17 @@ public class HomePane extends BasePane {
     public String getGameKeyText() {
         gameKey = getView().getGameKeyText();
         return gameKey;
+    }
+
+    public void setGameVersionText(String version) {
+        String old = gameVersion;
+        gameVersion = version;
+        firePropertyChange(GAME_VERSION_CHANGED_PROPERTY, old, gameVersion);
+    }
+
+    public String getGameVersionText() {
+        gameVersion = getView().getGameVersionText();
+        return gameVersion;
     }
 
     public void setMessage(String msg) {
