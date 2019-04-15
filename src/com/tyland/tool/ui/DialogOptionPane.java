@@ -12,57 +12,21 @@ import java.awt.event.WindowEvent;
 
 
 public class DialogOptionPane extends BasePane {
-    public static final int TYPE_SIGN = 0;
-    public static final int TYPE_APK = 1;
-
-    private String signPath;
-    private String password;
-    private String alias;
-    private int dialogType;
 
     public DialogOptionPane(Window win) {
-        this(win, TYPE_SIGN);
-    }
-
-    public DialogOptionPane(Window win, int type) {
         super(win);
-        this.dialogType = type;
         resetView();
     }
 
     @Override
     protected IDialogView createView() {
-        IDialogView view = new DialogView(win, this, dialogType);
+        IDialogView view = new DialogView(win, this);
         return view;
     }
 
     @Override
     protected IDialogView getView() {
         return (IDialogView) view;
-    }
-
-    public String getSignPath() {
-        return signPath;
-    }
-
-    public void setSignPath(String signPath) {
-        this.signPath = signPath;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
     }
 
     public int showDialog(String currentPath, String filterDesc, String... filters) {

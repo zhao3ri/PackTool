@@ -2,18 +2,15 @@ package com.tyland.tool.ui;
 
 import com.tyland.common.Log;
 import com.tyland.tool.YJConfig;
-import com.tyland.tool.entity.Channel;
-import com.tyland.tool.entity.GameChannelConfig;
+import com.tyland.tool.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 
 import static com.tyland.tool.ui.BasePane.*;
-import static com.tyland.tool.ui.DialogOptionPane.TYPE_APK;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
@@ -46,7 +43,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             @Override
             public void windowClosing(WindowEvent e) {
                 if (closeListener != null)
-                    closeListener.onClose();
+                    closeListener.onClose(CLOSED_OPTION);
 
             }
         });
@@ -56,11 +53,13 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     public void open() {
 //        this.setVisible(true);
 //        homePane.load();
-        DialogOptionPane optionPane = new DialogOptionPane(this, TYPE_APK);
+        DialogOptionPane optionPane = new DialogOptionPane(this);
         int result = optionPane.showDialog(currentPath, "apk", "apk");
         if (result == CODE_ACTION_FILE_CONFIRM) {
-            this.setVisible(true);
-            homePane.load();
+            if (!Utils.isEmpty(optionPane.getView().getChooseFilePath())) {
+                this.setVisible(true);
+                homePane.load();
+            }
             if (loadApkListener != null)
                 loadApkListener.onLoad(optionPane.getView().getChooseFilePath());
         } else if (result == CODE_ACTION_CLOSE) {
@@ -107,12 +106,26 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         showDialog(msg, JOptionPane.ERROR_MESSAGE);
     }
 
+    public void showErrorDialog(String msg, OnCloseListener closeListener) {
+        showDialog(msg, JOptionPane.ERROR_MESSAGE, closeListener);
+    }
+
     public void showWarningDialog(String msg) {
         showDialog(msg, JOptionPane.WARNING_MESSAGE);
     }
 
     private void showDialog(String msg, int messageType) {
-        JOptionPane.showMessageDialog(this, msg, "提示", messageType);
+        this.showDialog(msg, messageType, null);
+    }
+
+    private void showDialog(String msg, int messageType, OnCloseListener closeListener) {
+//        JOptionPane.showMessageDialog(this, msg, "提示", messageType);
+        int result = JOptionPane.showOptionDialog(this, msg, "提示", DEFAULT_OPTION,
+                messageType, null, null, null);
+        if (result == CLOSED_OPTION || result == YES_OPTION) {
+            if (closeListener != null)
+                closeListener.onClose(result);
+        }
     }
 
     public void showDialog(String msg, final OnDialogButtonClickListener listener, final OnCloseListener closeListener) {
@@ -134,26 +147,11 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                 break;
             case CLOSED_OPTION:
                 if (closeListener != null) {
-                    closeListener.onClose();
+                    closeListener.onClose(result);
                 }
                 break;
         }
         Log.iln("result==" + result);
-    }
-
-    public void showSignChooseDialog(final OnSignSelectedClickListener completeClickListener
-            , final OnCloseListener closeListener, final String filterDesc, final String... filters) {
-        DialogOptionPane optionPane = new DialogOptionPane(this);
-        int result = optionPane.showDialog(currentPath, filterDesc, filters);
-        if (result == CODE_ACTION_FILE_CONFIRM) {
-            if (completeClickListener != null) {
-                completeClickListener.onSelected(optionPane.getSignPath(), optionPane.getPassword(), optionPane.getAlias());
-            }
-        } else if (result == CODE_ACTION_CLOSE) {
-            if (closeListener != null) {
-                closeListener.onClose();
-            }
-        }
     }
 
     public void setCloseListener(OnCloseListener closeListener) {
@@ -229,7 +227,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface OnCloseListener {
-        void onClose();
+        void onClose(int result);
     }
 
     public interface OnDialogButtonClickListener {
@@ -244,10 +242,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     public interface OnPackageClickListener {
         void onClickPackage();
-    }
-
-    public interface OnSignSelectedClickListener {
-        void onSelected(String path, String passwords, String alias);
     }
 
     public interface LoadApkListener {

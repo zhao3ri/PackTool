@@ -2,18 +2,16 @@ package com.tyland.tool;
 
 import com.tyland.common.Log;
 import com.tyland.tool.entity.AppConfig;
-import com.tyland.tool.entity.GameChannelConfig;
 import com.tyland.tool.ui.MainFrame;
-import com.tyland.tool.entity.Channel;
 import com.tyland.tool.util.ShellUtils;
 import com.tyland.tool.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import static com.tyland.tool.ChannelManager.*;
+import static javax.swing.JOptionPane.CLOSED_OPTION;
 
 public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseListener, ChannelManager.OnBuildFinishListener, MainFrame.OnPackageClickListener, MainFrame.LoadApkListener {
     public static final String ROOT_PATH = ".";
@@ -48,7 +46,6 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         mainFrame.changeEnable(false);
         mainFrame.setMessage("Waiting...");
         mainFrame.open();
-        refresh();
     }
 
     private void finish(String msg) {
@@ -74,20 +71,20 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
 
     @Override
     public void onLoad(String apk) {
-        channelManager = new ChannelManager(apk);
-        apkPackageName = channelManager.getDefaultPackageName();
-        channelManager.setBuildFinishListener(this);
-
-        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
-            @Override
-            public void publishProgress(String values) {
-                mainFrame.setMessage(values);
-            }
-        });
-        if (!channelManager.isExistApk()) {
-            mainFrame.showErrorDialog("当前无apk文件！");
+        if (Utils.isEmpty(apk)) {
+            mainFrame.showErrorDialog("未选择apk!", new MainFrame.OnCloseListener() {
+                @Override
+                public void onClose(int result) {
+                    if (result == CLOSED_OPTION) {
+                        Main.this.onClose(result);
+                        return;
+                    }
+                    mainFrame.open();
+                }
+            });
             return;
         }
+        initChannelManager(apk);
         finish("Decode apk....");
         mainFrame.changeEnable(false);
         new Thread() {
@@ -105,6 +102,24 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         }.start();
     }
 
+    private void initChannelManager(String apk) {
+        channelManager = new ChannelManager(apk);
+        apkPackageName = channelManager.getDefaultPackageName();
+        channelManager.setBuildFinishListener(this);
+        refresh();
+
+        channelManager.setProgressListener(new ShellUtils.ProgressListener() {
+            @Override
+            public void publishProgress(String values) {
+                mainFrame.setMessage(values);
+            }
+        });
+        if (!channelManager.isExistApk()) {
+            mainFrame.showErrorDialog("当前无apk文件！");
+            return;
+        }
+    }
+
     private AppConfig createDefaultAppInfo() {
         AppConfig appConfig = new AppConfig();
         appConfig.setMinSdk(channelManager.getDefaultMinSdk());
@@ -115,7 +130,7 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
     }
 
     @Override
-    public void onClose() {
+    public void onClose(int result) {
         Log.eln("" + cyclicBarrier.isBroken() + " num==" + cyclicBarrier.getNumberWaiting());
         if (cyclicBarrier.getNumberWaiting() > 0) {
             mainFrame.showDialog("<html>The thread is running.<br/> Do you want to exit?</html>", new MainFrame.OnDialogButtonClickListener() {
