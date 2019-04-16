@@ -39,7 +39,7 @@ public class GameChannelConfig {
     boolean suffix;
 
     @JacksonXmlProperty
-    AppConfig appInfo;
+    AppVersionInfo appInfo;
 
 
     public GameChannelConfig() {
@@ -148,17 +148,17 @@ public class GameChannelConfig {
         this.suffix = suffix;
     }
 
-    public AppConfig getAppInfo() {
+    public AppVersionInfo getAppInfo() {
         return appInfo;
     }
 
-    public void setAppInfo(AppConfig appInfo) {
+    public void setAppInfo(AppVersionInfo appInfo) {
         this.appInfo = appInfo;
     }
 
     public void updateAppInfo(String min, String target, String vcode, String vname) {
         if (this.appInfo == null) {
-            this.appInfo = new AppConfig();
+            this.appInfo = new AppVersionInfo();
         }
         this.appInfo.update(min, target, vcode, vname);
     }

@@ -1,7 +1,7 @@
 package com.tyland.tool.ui;
 
 import com.tyland.common.Log;
-import com.tyland.tool.YJConfig;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.Utils;
 
 import javax.swing.*;
@@ -85,10 +85,10 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setGameIdText(config.gameId);
         homePane.setGameKeyText(config.gameKey);
         homePane.setGameVersionText(config.gameVersion);
-        homePane.setVersionName(config.apkInfo.getVersionName());
-        homePane.setVersionCode(config.apkInfo.getVersionCode());
-        homePane.setMinSdk(config.apkInfo.getMinSdk());
-        homePane.setTargetSdk(config.apkInfo.getTargetSdk());
+        homePane.setVersionName(config.appInfo.getVersionName());
+        homePane.setVersionCode(config.appInfo.getVersionCode());
+        homePane.setMinSdk(config.appInfo.getMinSdk());
+        homePane.setTargetSdk(config.appInfo.getTargetSdk());
     }
 
     public void close() {

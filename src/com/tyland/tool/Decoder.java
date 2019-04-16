@@ -7,10 +7,10 @@ import brut.androlib.meta.MetaInfo;
 import brut.androlib.res.util.ExtFile;
 import brut.directory.DirectoryException;
 import com.tyland.tool.entity.ApkInfo;
-import com.tyland.tool.entity.AppConfig;
+import com.tyland.tool.entity.AppVersionInfo;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
-import com.tyland.tool.entity.Channel;
 import com.tyland.tool.xml.XmlTool;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -18,10 +18,9 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static com.tyland.tool.ChannelManager.*;
-import static com.tyland.tool.YJConfig.*;
+import static com.tyland.tool.entity.YJConfig.*;
 import static com.tyland.tool.util.FileUtils.createFileDir;
 import static com.tyland.tool.util.FileUtils.getPath;
 
@@ -65,7 +64,7 @@ public class Decoder extends BaseCompiler {
         if (c == null) {
             c = new YJConfig();
             c.appName = mApkInfo.getApplicationLable();
-            c.apkInfo = new AppConfig(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
+            c.appInfo = new AppVersionInfo(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
         }
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
         c.channelKey = manifestHelper.getChannelKey();
@@ -78,7 +77,7 @@ public class Decoder extends BaseCompiler {
 
     public void updateManifest(YJConfig c) {
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
-        AppConfig app = c.apkInfo;
+        AppVersionInfo app = c.appInfo;
         if (app != null) {
             manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
             manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
@@ -149,7 +148,7 @@ public class Decoder extends BaseCompiler {
     private static final String MIN_SDK = "minSdkVersion";
     private static final String TARGET_SDK = "targetSdkVersion";
 
-    public void updateYml(AppConfig app) throws AndrolibException {
+    public void updateYml(AppVersionInfo app) throws AndrolibException {
         Androlib androlib = new Androlib();
         File appDir = new File(getDecodeApkPath());
         MetaInfo metaInfo = androlib.readMetaFile(new ExtFile(appDir));

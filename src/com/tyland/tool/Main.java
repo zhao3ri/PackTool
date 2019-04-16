@@ -1,7 +1,8 @@
 package com.tyland.tool;
 
 import com.tyland.common.Log;
-import com.tyland.tool.entity.AppConfig;
+import com.tyland.tool.entity.AppVersionInfo;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.ui.MainFrame;
 import com.tyland.tool.util.ShellUtils;
 import com.tyland.tool.util.Utils;
@@ -65,7 +66,7 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         YJConfig config = new YJConfig();
         config.appName = channelManager.getDefaultAppName();
         config.packageName = channelManager.getDefaultPackageName();
-        config.apkInfo = createDefaultAppInfo();
+        config.appInfo = createDefaultAppInfo();
         return config;
     }
 
@@ -120,13 +121,13 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         }
     }
 
-    private AppConfig createDefaultAppInfo() {
-        AppConfig appConfig = new AppConfig();
-        appConfig.setMinSdk(channelManager.getDefaultMinSdk());
-        appConfig.setTargetSdk(channelManager.getDefaultTargetSdk());
-        appConfig.setVersionCode(channelManager.getDefaultVersionCode());
-        appConfig.setVersionName(channelManager.getDefaultVersionName());
-        return appConfig;
+    private AppVersionInfo createDefaultAppInfo() {
+        AppVersionInfo appVersionInfo = new AppVersionInfo();
+        appVersionInfo.setMinSdk(channelManager.getDefaultMinSdk());
+        appVersionInfo.setTargetSdk(channelManager.getDefaultTargetSdk());
+        appVersionInfo.setVersionCode(channelManager.getDefaultVersionCode());
+        appVersionInfo.setVersionName(channelManager.getDefaultVersionName());
+        return appVersionInfo;
     }
 
     @Override
@@ -272,10 +273,10 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
         mConfig.gameId = gameId;
         mConfig.gameKey = gameKey;
         mConfig.gameVersion = gameVersion;
-        mConfig.apkInfo.setMinSdk(min);
-        mConfig.apkInfo.setTargetSdk(target);
-        mConfig.apkInfo.setVersionCode(vcode);
-        mConfig.apkInfo.setVersionName(vname);
+        mConfig.appInfo.setMinSdk(min);
+        mConfig.appInfo.setTargetSdk(target);
+        mConfig.appInfo.setVersionCode(vcode);
+        mConfig.appInfo.setVersionName(vname);
         channelManager.updateConfig(mConfig);
     }
 }

@@ -1,14 +1,11 @@
 package com.tyland.tool;
 
-import brut.androlib.Androlib;
-import brut.androlib.meta.MetaInfo;
-import brut.androlib.res.util.ExtFile;
 import brut.common.BrutException;
 import com.tyland.common.Log;
-import com.tyland.tool.entity.AppConfig;
+import com.tyland.tool.entity.AppVersionInfo;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.Utils;
 
-import java.io.File;
 import java.util.*;
 
 import static com.tyland.tool.ChannelManager.*;
@@ -48,10 +45,10 @@ public class Builder extends BaseCompiler {
         }
 
         apkBuildPath = getOutDirPath() + apkName;
-        return execBuild(config.apkInfo);
+        return execBuild(config.appInfo);
     }
 
-    private int execBuild(AppConfig app) throws BrutException {
+    private int execBuild(AppVersionInfo app) throws BrutException {
 //        androlib.buildResourcesFull(appDir, metaInfo.usesFramework);
 //        FileUtils.delFolder(RES_PATH);
 //        FileUtils.deleteFile(MANIFEST_PATH);

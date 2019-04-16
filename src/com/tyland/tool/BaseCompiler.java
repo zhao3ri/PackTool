@@ -1,12 +1,9 @@
 package com.tyland.tool;
 
-import com.tyland.tool.entity.Channel;
-import com.tyland.tool.entity.GameChannelConfig;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.ShellUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.tyland.tool.Main.ROOT_PATH;
 

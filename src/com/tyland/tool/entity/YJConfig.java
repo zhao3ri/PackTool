@@ -1,6 +1,4 @@
-package com.tyland.tool;
-
-import com.tyland.tool.entity.AppConfig;
+package com.tyland.tool.entity;
 
 import static com.tyland.tool.util.Utils.equalsString;
 
@@ -16,7 +14,7 @@ public class YJConfig {
     public String gameId;
     public String gameKey;
     public String gameVersion;
-    public AppConfig apkInfo;
+    public AppVersionInfo appInfo;
 
     @Override
     public boolean equals(Object obj) {
@@ -26,13 +24,13 @@ public class YJConfig {
                 equalsString(this.gameId, ((YJConfig) obj).gameId) &&
                 equalsString(this.gameVersion, ((YJConfig) obj).gameVersion) &&
                 equalsString(this.gameKey, ((YJConfig) obj).gameKey) &&
-                this.apkInfo.equals(((YJConfig) obj).apkInfo);
+                this.appInfo.equals(((YJConfig) obj).appInfo);
     }
 
     public void updateAppInfo(String min, String target, String vcode, String vname) {
-        if (this.apkInfo == null) {
-            this.apkInfo = new AppConfig();
+        if (this.appInfo == null) {
+            this.appInfo = new AppVersionInfo();
         }
-        this.apkInfo.update(min, target, vcode, vname);
+        this.appInfo.update(min, target, vcode, vname);
     }
 }

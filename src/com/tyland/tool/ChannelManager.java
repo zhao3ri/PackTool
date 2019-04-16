@@ -2,6 +2,7 @@ package com.tyland.tool;
 
 import brut.androlib.AndrolibException;
 import com.tyland.tool.entity.ApkInfo;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.*;
 
 import java.io.File;
@@ -41,26 +42,23 @@ public class ChannelManager {
 
     public ChannelManager() {
         File apk = searchApk(ROOT_PATH);
-//        initChannel(apk);
         initApk(apk);
     }
 
     public ChannelManager(String apkPath) {
         File apk = new File(apkPath);
-//        initChannel(apk);
         initApk(apk);
     }
 
     private void initApk(File apkFile) {
         //查找当前目录下的apk，并创建输出目录
-        apkPath = createOutDir(apkFile);
         try {
+            apkPath = createOutDir(apkFile);
             mApkInfo = new ApkUtils().getApkInfo(apkPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 
     private String createOutDir(File apk) {
         if (apk != null) {
@@ -139,7 +137,7 @@ public class ChannelManager {
         yjConfig = c;
         mDecoder.updateManifest(c);
         try {
-            mDecoder.updateYml(c.apkInfo);
+            mDecoder.updateYml(c.appInfo);
         } catch (AndrolibException e) {
             e.printStackTrace();
         }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import static com.tyland.tool.util.Utils.equalsString;
 
-public class AppConfig {
+public class AppVersionInfo {
     @JacksonXmlProperty
     String minSdk;
 
@@ -17,14 +17,14 @@ public class AppConfig {
     @JacksonXmlProperty
     String versionName;
 
-    public AppConfig() {
+    public AppVersionInfo() {
     }
 
-    public AppConfig(AppConfig app) {
+    public AppVersionInfo(AppVersionInfo app) {
         this(app.targetSdk, app.minSdk, app.versionCode, app.versionName);
     }
 
-    public AppConfig(String minSdk, String targetSdk, String versionCode, String versionName) {
+    public AppVersionInfo(String minSdk, String targetSdk, String versionCode, String versionName) {
         this.minSdk = minSdk;
         this.targetSdk = targetSdk;
         this.versionCode = versionCode;
@@ -63,7 +63,7 @@ public class AppConfig {
         this.versionName = versionName;
     }
 
-    public AppConfig update(String min, String target, String vcode, String vname) {
+    public AppVersionInfo update(String min, String target, String vcode, String vname) {
         this.setMinSdk(min);
         this.setTargetSdk(target);
         this.setVersionCode(vcode);
@@ -73,9 +73,9 @@ public class AppConfig {
 
     @Override
     public boolean equals(Object obj) {
-        return equalsString(this.minSdk, ((AppConfig) obj).minSdk) &&
-                equalsString(this.targetSdk, ((AppConfig) obj).targetSdk) &&
-                equalsString(this.versionCode, ((AppConfig) obj).versionCode) &&
-                equalsString(this.versionName, ((AppConfig) obj).versionName);
+        return equalsString(this.minSdk, ((AppVersionInfo) obj).minSdk) &&
+                equalsString(this.targetSdk, ((AppVersionInfo) obj).targetSdk) &&
+                equalsString(this.versionCode, ((AppVersionInfo) obj).versionCode) &&
+                equalsString(this.versionName, ((AppVersionInfo) obj).versionName);
     }
 }

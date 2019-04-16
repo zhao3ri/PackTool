@@ -2,6 +2,7 @@ package com.tyland.tool;
 
 import com.tyland.common.Log;
 import com.tyland.tool.entity.ApkInfo;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
 import com.tyland.tool.entity.Channel;
@@ -48,7 +49,6 @@ public class ManifestHelper {
         Element root = mDocument.getDocumentElement();
         //获得配置包的名称
         confPackage = root.getAttribute(ELEMENT_PACKAGE);
-        Log.iln("current package=" + mApkInfo.getPackageName() + ",config package=" + confPackage);
         readMetaData(new OnReadContentListener() {
             @Override
             public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {

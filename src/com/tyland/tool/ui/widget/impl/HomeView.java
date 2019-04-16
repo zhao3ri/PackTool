@@ -1,7 +1,6 @@
 package com.tyland.tool.ui.widget.impl;
 
-import com.tyland.common.Log;
-import com.tyland.tool.YJConfig;
+import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.entity.Channel;
 import com.tyland.tool.ui.BasePane;
 import com.tyland.tool.ui.HomePane;
@@ -16,7 +15,6 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
-import java.io.File;
 import java.text.ParseException;
 import java.util.List;
 

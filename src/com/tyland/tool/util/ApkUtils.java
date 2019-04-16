@@ -48,7 +48,7 @@ public class ApkUtils {
 	 * 
 	 * @param apkPath
 	 *            apk的路径。
-	 * @return apkInfo 一个Apk的信息。
+	 * @return appInfo 一个Apk的信息。
 	 */
 	public ApkInfo getApkInfo(String apkPath) throws Exception {
 		Process process = mBuilder.command(mAaptPath, "d", "badging", apkPath)
