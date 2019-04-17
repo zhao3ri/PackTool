@@ -187,6 +187,7 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
             public void run() {
                 mainFrame.changeEnable(false);
                 mainFrame.setMessage("Sign apk....");
+                channelManager.sign();
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {

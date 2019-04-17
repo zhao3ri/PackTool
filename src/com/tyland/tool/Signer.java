@@ -27,9 +27,8 @@ public class Signer extends BaseCompiler {
         String scriptPath = BIN_PATH + File.separator + "Sign.bat";
 
         String apkName = apkFileName + SUFFIX_NAME;
-        File signApkFile = new File(getOutDirPath() + apkName);
-        String signApkPath = signApkFile.getCanonicalPath();
-//        FileUtils.deleteFile(signApkPath);
+        String signApkPath = getOutDirPath() + apkName;
+        FileUtils.deleteFile(signApkPath);
         Log.iln("sign apk path: " + signApkPath);
         int result = Utils.execShell(progressListener, scriptPath, unsignedApkPath, apkName);
 //        FileUtils.deleteFile(apkPath);
