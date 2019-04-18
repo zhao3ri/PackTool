@@ -14,7 +14,7 @@ import java.util.concurrent.CyclicBarrier;
 import static com.tyland.tool.ChannelManager.*;
 import static javax.swing.JOptionPane.CLOSED_OPTION;
 
-public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseListener, ChannelManager.OnBuildFinishListener, MainFrame.OnPackageClickListener, MainFrame.LoadApkListener {
+public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseListener, OnExecuteFinishListener, MainFrame.OnPackageClickListener, MainFrame.LoadApkListener {
     public static final String ROOT_PATH = ".";
     private static final String VERSION_REGEX = "\\d+(\\.\\d+){0,2}";
 
@@ -106,7 +106,7 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
     private void initChannelManager(String apk) {
         channelManager = new ChannelManager(apk);
         apkPackageName = channelManager.getDefaultPackageName();
-        channelManager.setBuildFinishListener(this);
+        channelManager.setExecuteFinishListener(this);
         refresh();
 
         channelManager.setProgressListener(new ShellUtils.ProgressListener() {
@@ -187,7 +187,7 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
             public void run() {
                 mainFrame.changeEnable(false);
                 mainFrame.setMessage("Sign apk....");
-                channelManager.sign();
+                channelManager.signApk();
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {
@@ -198,19 +198,6 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
             }
         }.start();
     }
-
-//    @Override
-//    public boolean onConfirm(String min, String target, String vcode, String vname) {
-//        if (!checkSdkVersion(min, target)) {
-//            return false;
-//        }
-//        if (!Utils.matches(VERSION_REGEX, vname)) {
-//            mainFrame.showErrorDialog("versionName格式有误");
-//            return false;
-//        }
-//        mConfig.updateAppInfo(min, target, vcode, vname);
-//        return true;
-//    }
 
     private boolean checkSdkVersion(String min, String target) {
         if (!StringUtils.isEmpty(min)) {
@@ -266,18 +253,11 @@ public class Main implements MainFrame.OnUpdateClickListener, MainFrame.OnCloseL
 
     }
 
-
     @Override
-    public void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String gameVersion, String min, String target, String vcode, String vname) {
-        mConfig.appName = appName;
-        mConfig.channelKey = channelKey;
-        mConfig.gameId = gameId;
-        mConfig.gameKey = gameKey;
-        mConfig.gameVersion = gameVersion;
-        mConfig.appInfo.setMinSdk(min);
-        mConfig.appInfo.setTargetSdk(target);
-        mConfig.appInfo.setVersionCode(vcode);
-        mConfig.appInfo.setVersionName(vname);
-        channelManager.updateConfig(mConfig);
+    public void onClickUpdate(YJConfig config) {
+        if (config != null && !mConfig.equals(config)) {
+            channelManager.updateConfig(config);
+        }
+        finish("updated");
     }
 }

@@ -21,7 +21,7 @@ import static com.tyland.tool.util.FileUtils.searchApk;
  */
 public class ChannelManager {
     private CyclicBarrier cyclicBarrier;
-    private OnBuildFinishListener listener;
+    private OnExecuteFinishListener listener;
     private ShellUtils.ProgressListener progressListener;
 
     private String buildApkPath;
@@ -31,7 +31,7 @@ public class ChannelManager {
     private Decoder mDecoder;
 
     private static final String CHANNEL_CONFIG_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
-    public static final int STATUS_SUCCESS = 0;
+    private static final int STATUS_SUCCESS = 0;
     public static final int STATUS_NO_FIND = 1;
     public static final int STATUS_FAIL = 2;
     public static final int STATUS_SIGN_SUCCESS = 4;
@@ -95,7 +95,7 @@ public class ChannelManager {
                     result = mDecoder.decode(apkPath);
                     if (result == STATUS_SUCCESS) {
                         result = STATUS_DECODE_SUCCESS;
-                        yjConfig = mDecoder.updateConfig(yjConfig);
+                        yjConfig = mDecoder.getDecodeResult(yjConfig);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -114,11 +114,10 @@ public class ChannelManager {
 
             @Override
             public void execute() {
-                int result = STATUS_FAIL;
                 Builder builder = new Builder(apkFileName);
                 builder.setProgressListener(progressListener);
                 builder.setConfig(getYjConfig());
-                result = builder.build();
+                int result = builder.build();
                 if (result == STATUS_SUCCESS) {
                     result = STATUS_BUILD_SUCCESS;
                     buildApkPath = builder.getApkBuildPath();
@@ -206,15 +205,15 @@ public class ChannelManager {
         return mApkInfo.getApplicationIcons();
     }
 
-    public void sign() {
+    public void signApk() {
         new SubThread(cyclicBarrier, "SignApk") {
             @Override
             public void execute() {
+                int result = STATUS_FAIL;
                 if (!Utils.isEmpty(buildApkPath)) {
                     Signer signer = new Signer(apkFileName);
                     signer.setProgressListener(progressListener);
                     updateProgress("Sign Apk...");
-                    int result = STATUS_FAIL;
                     try {
                         result = signer.sign(buildApkPath);
                         if (result == STATUS_SUCCESS) {
@@ -223,19 +222,19 @@ public class ChannelManager {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if (listener != null) {
-                        listener.onFinish(result);
-                    }
+                }
+                if (listener != null) {
+                    listener.onFinish(result);
                 }
             }
         }.start();
     }
 
-    public void setBuildFinishListener(OnBuildFinishListener listener) {
+    public void setExecuteFinishListener(OnExecuteFinishListener listener) {
         this.listener = listener;
     }
 
-    public interface OnBuildFinishListener {
+    public interface OnExecuteFinishListener {
         void onFinish(int code);
     }
 

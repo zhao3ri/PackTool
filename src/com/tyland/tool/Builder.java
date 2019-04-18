@@ -4,6 +4,7 @@ import brut.common.BrutException;
 import com.tyland.common.Log;
 import com.tyland.tool.entity.AppVersionInfo;
 import com.tyland.tool.entity.YJConfig;
+import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
 
 import java.util.*;
@@ -24,7 +25,7 @@ public class Builder extends BaseCompiler {
     public int build() {
         int result = STATUS_FAIL;
         try {
-            result = buildApk(yjConfig);
+            result = buildApk();
             return result;
         } catch (BrutException e) {
             e.printStackTrace();
@@ -38,17 +39,18 @@ public class Builder extends BaseCompiler {
         return apkBuildPath;
     }
 
-    private int buildApk(YJConfig config) throws BrutException {
+    private int buildApk() throws BrutException {
         String apkName = DEFAULT_APK_NAME;
         if (!Utils.isEmpty(apkFileName)) {
             apkName = String.format("%s-%s.apk", apkFileName, "unsigned");
         }
 
         apkBuildPath = getOutDirPath() + apkName;
-        return execBuild(config.appInfo);
+        FileUtils.deleteFile(apkBuildPath);
+        return execBuild();
     }
 
-    private int execBuild(AppVersionInfo app) throws BrutException {
+    private int execBuild() throws BrutException {
 //        androlib.buildResourcesFull(appDir, metaInfo.usesFramework);
 //        FileUtils.delFolder(RES_PATH);
 //        FileUtils.deleteFile(MANIFEST_PATH);
@@ -56,13 +58,9 @@ public class Builder extends BaseCompiler {
 //        FileUtils.delFolder(BUILD_PATH);
         Log.iln("build path=" + apkBuildPath);
 //        androlib.build(appDir, new File(apkPath));
-        return executeBuild(apkBuildPath);
-    }
-
-    private int executeBuild(String apkPath) {
-//        String cmd="%s b %s -o %s -a %s";
+        //        String cmd="%s b %s -o %s -a %s";
         String cmd = "%s b %s -o %s";
-        String scriptPath = String.format(cmd, APKTOOL_PATH, getDecodeApkPath(), apkPath/*, BIN_PATH + File.separator + "aapt.exe"*/);
+        String scriptPath = String.format(cmd, APKTOOL_PATH, getDecodeApkPath(), apkBuildPath/*, BIN_PATH + File.separator + "aapt.exe"*/);
         return Utils.execShell(progressListener, scriptPath);
     }
 }

@@ -21,6 +21,7 @@ public class ResourceHelper {
     private static final String RES_VALUE = "value";
     private static final String RES_DRAWABLE = "drawable";
     private static final String ATTRIBUTE_NAME = "name";
+    private static final String ATTRIBUTE_VALUES_APP_NAME = "app_name";
 
     /**
      * 第三方渠道res配置文件名
@@ -41,15 +42,54 @@ public class ResourceHelper {
     private String cpId;
     private String cpKey;
 
-    public ResourceHelper(String path, String appId, String appKey, String pubKey, String secretKey, String cpId, String cpKey) {
+    public ResourceHelper(String path) {
         resPath = path;
         resDirFile = new File(resPath);
-        this.appId = appId;
-        this.appKey = appKey;
-        this.pubKey = pubKey;
-        this.secretKey = secretKey;
-        this.cpId = cpId;
-        this.cpKey = cpKey;
+    }
+
+    public boolean updateResourceAppName(String appName) {
+        File resDirFile = new File(resPath);
+        if (resDirFile.exists() && resDirFile.isDirectory()) {
+            String[] resStringNames = resDirFile.list();
+            for (String name : resStringNames) {
+                String resPath = resDirFile.getAbsolutePath() + File.separator + name;
+                if (name.startsWith(RES_VALUE)) {
+                    readValues(resPath, appName);
+                }
+            }
+        }//if
+        return true;
+    }
+
+    private void readValues(String resName, String appName) {
+        File valueFile = new File(resName);
+        if (valueFile.exists() && valueFile.isDirectory()) {
+            String[] files = valueFile.list();
+            for (String file : files) {
+                updateValueXmlAppName(getPath(valueFile.getAbsolutePath()) + file, appName);
+            }
+        }
+    }
+
+
+    private void updateValueXmlAppName(String path, String appName) {
+        Document document = XmlTool.createDocument(path);
+        NodeList nodeList = XmlTool.getDocumentRootNodeList(document);
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node item = nodeList.item(i);
+            if (item.getAttributes() != null && item.getAttributes().getNamedItem(ATTRIBUTE_NAME) != null) {
+                //获取android:name的值
+                Node attributeNode = item.getAttributes().getNamedItem(ATTRIBUTE_NAME);
+                String name = attributeNode.getTextContent();
+                //若当前是string资源，则查找替换渠道配置
+                if (item.getNodeName().equals(ELEMENT_VALUES_STRING)) {
+                    if (name.equals(ATTRIBUTE_VALUES_APP_NAME) && !Utils.isEmpty(appName)) {
+                        item.setTextContent(appName);
+                    }
+                }
+            }
+        }
+        XmlTool.saveXml(document, path);
     }
 
     public boolean deleteUnrelatedChannelResource(Channel channel) throws IOException {

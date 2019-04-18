@@ -29,7 +29,7 @@ public class Signer extends BaseCompiler {
         String apkName = apkFileName + SUFFIX_NAME;
         String signApkPath = getOutDirPath() + apkName;
         FileUtils.deleteFile(signApkPath);
-        Log.iln("sign apk path: " + signApkPath);
+        Log.iln("signApk apk path: " + signApkPath);
         int result = Utils.execShell(progressListener, scriptPath, unsignedApkPath, apkName);
 //        FileUtils.deleteFile(apkPath);
         return result;

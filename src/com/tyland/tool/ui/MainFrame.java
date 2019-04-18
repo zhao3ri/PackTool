@@ -1,6 +1,7 @@
 package com.tyland.tool.ui;
 
 import com.tyland.common.Log;
+import com.tyland.tool.entity.AppVersionInfo;
 import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.Utils;
 
@@ -199,9 +200,16 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             Log.iln("action==" + action);
             if (action == CODE_ACTION_CLICK_UPDATE) {
                 //点击更新
-                if (updateClickListener != null)
-                    updateClickListener.onClickUpdate(homePane.getAppNameText(), homePane.getChannelKeyText(), homePane.getGameIdText(),
-                            homePane.getGameKeyText(), homePane.getGameVersionText(), homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
+                if (updateClickListener != null) {
+                    YJConfig config = new YJConfig();
+                    config.appName = homePane.getAppNameText();
+                    config.channelKey = homePane.getChannelKeyText();
+                    config.gameId = homePane.getGameIdText();
+                    config.gameKey = homePane.getGameKeyText();
+                    config.gameVersion = homePane.getGameVersionText();
+                    config.appInfo = new AppVersionInfo(homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
+                    updateClickListener.onClickUpdate(config);
+                }
                 return;
             }
             if (action == CODE_ACTION_CLICK_PACKAGE) {
@@ -237,7 +245,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface OnUpdateClickListener {
-        void onClickUpdate(String appName, String channelKey, String gameId, String gameKey, String gameVersion, String min, String target, String vcode, String vname);
+        void onClickUpdate(YJConfig config);
     }
 
     public interface OnPackageClickListener {
