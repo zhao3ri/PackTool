@@ -1,5 +1,6 @@
 package com.tyland.tool;
 
+import brut.androlib.Androlib;
 import brut.common.BrutException;
 import com.tyland.common.Log;
 import com.tyland.tool.entity.AppVersionInfo;
@@ -7,6 +8,7 @@ import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
 
+import java.io.File;
 import java.util.*;
 
 import static com.tyland.tool.ChannelManager.*;
@@ -48,6 +50,7 @@ public class Builder extends BaseCompiler {
         apkBuildPath = getOutDirPath() + apkName;
         FileUtils.deleteFile(apkBuildPath);
         return execBuild();
+//        return execBuild(apkBuildPath);
     }
 
     private int execBuild() throws BrutException {
@@ -55,12 +58,23 @@ public class Builder extends BaseCompiler {
 //        FileUtils.delFolder(RES_PATH);
 //        FileUtils.deleteFile(MANIFEST_PATH);
 //        FileUtils.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
-//        FileUtils.delFolder(BUILD_PATH);
         Log.iln("build path=" + apkBuildPath);
-//        androlib.build(appDir, new File(apkPath));
         //        String cmd="%s b %s -o %s -a %s";
         String cmd = "%s b %s -o %s";
         String scriptPath = String.format(cmd, APKTOOL_PATH, getDecodeApkPath(), apkBuildPath/*, BIN_PATH + File.separator + "aapt.exe"*/);
         return Utils.execShell(progressListener, scriptPath);
+    }
+
+    private int execBuild(String buildPath) {
+        int result = STATUS_FAIL;
+        Androlib androlib = new Androlib();
+        File appDir = new File(getDecodeApkPath());
+        try {
+            androlib.build(appDir, new File(buildPath));
+            result = STATUS_SUCCESS;
+        } catch (BrutException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 }

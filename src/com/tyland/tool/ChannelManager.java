@@ -31,7 +31,7 @@ public class ChannelManager {
     private Decoder mDecoder;
 
     private static final String CHANNEL_CONFIG_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
-    private static final int STATUS_SUCCESS = 0;
+    public static final int STATUS_SUCCESS = 0;
     public static final int STATUS_NO_FIND = 1;
     public static final int STATUS_FAIL = 2;
     public static final int STATUS_SIGN_SUCCESS = 4;
@@ -96,6 +96,7 @@ public class ChannelManager {
                     if (result == STATUS_SUCCESS) {
                         result = STATUS_DECODE_SUCCESS;
                         yjConfig = mDecoder.getDecodeResult(yjConfig);
+                        mDecoder.updateYml(yjConfig.appInfo);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

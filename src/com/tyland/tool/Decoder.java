@@ -77,11 +77,11 @@ public class Decoder extends BaseCompiler {
 
     public void updateManifest(YJConfig c) {
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
-        AppVersionInfo app = c.appInfo;
-        if (app != null) {
-            manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
-            manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
-        }
+//        AppVersionInfo app = c.appInfo;
+//        if (app != null) {
+//            manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
+//            manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
+//        }
         String[] names = new String[]{META_DATA_CHANNEL_KEY, META_DATA_GAME_ID, META_DATA_GAME_KEY, META_DATA_GAME_VERSION};
         String[] values = new String[]{c.channelKey, c.gameId, c.gameKey, c.gameVersion};
         //更新meta-data
