@@ -72,7 +72,7 @@ public class FileUtils {
     // 复制某个目录及目录下的所有子目录和文件到新文件夹
     public static void copyFolder(File source, File dest) {
         try {
-            Log.iln("source file == " + source.getCanonicalPath() + ", dest file== " + dest.getCanonicalPath());
+            Log.dln("source file == " + source.getCanonicalPath() + ", dest file== " + dest.getCanonicalPath());
             // 如果文件夹不存在，则建立新文件夹
             if (!dest.exists())
                 dest.mkdirs();

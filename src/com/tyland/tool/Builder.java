@@ -14,7 +14,7 @@ import java.util.*;
 import static com.tyland.tool.ChannelManager.*;
 
 public class Builder extends BaseCompiler {
-    private static final String DEFAULT_APK_NAME = "build.apk";
+    private static final String DEFAULT_APK_NAME = "build-unsigned.apk";
     private String mApkPackageName;
     private Map<String, String> applicationIcons;
 
@@ -58,7 +58,7 @@ public class Builder extends BaseCompiler {
 //        FileUtils.delFolder(RES_PATH);
 //        FileUtils.deleteFile(MANIFEST_PATH);
 //        FileUtils.copyFolder(new File(BUILD_APK_PATH), new File(OUT_PATH));
-        Log.iln("build path=" + apkBuildPath);
+        Log.dln("build path=" + apkBuildPath);
         //        String cmd="%s b %s -o %s -a %s";
         String cmd = "%s b %s -o %s";
         String scriptPath = String.format(cmd, APKTOOL_PATH, getDecodeApkPath(), apkBuildPath/*, BIN_PATH + File.separator + "aapt.exe"*/);

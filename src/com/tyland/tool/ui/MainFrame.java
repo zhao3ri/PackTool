@@ -15,16 +15,16 @@ import static com.tyland.tool.ui.BasePane.*;
 import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
-    protected static final int FRAME_WIDTH = 550;
-    protected static final int FRAME_HEIGHT = 555;
+    protected static final int FRAME_WIDTH = 480;
+    protected static final int FRAME_HEIGHT = 260;
 
     private OnCloseListener closeListener;
-    private LoadApkListener loadApkListener;
-    private OnUpdateClickListener updateClickListener;
     private OnPackageClickListener packageClickListener;
 
     private HomePane homePane;
     private String currentPath;
+
+    private static final String PKG_REGEX = "([a-zA-Z_][a-zA-Z0-9_]*[.])*([a-zA-Z_][a-zA-Z0-9_]*)$";
 
     public MainFrame(String path) {
         create();
@@ -32,7 +32,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     private void create() {
-        setTitle("打包工具");
+        setTitle("Packager");
         setLayout(new FlowLayout());
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT)); //设置窗口的大小
         setLocation(300, 200);//设置窗口的初始位置
@@ -52,21 +52,8 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public void open() {
-//        this.setVisible(true);
-//        homePane.load();
-        DialogOptionPane optionPane = new DialogOptionPane(this);
-        int result = optionPane.showDialog(currentPath, "apk", "apk");
-        if (result == CODE_ACTION_FILE_CONFIRM) {
-            if (!Utils.isEmpty(optionPane.getView().getChooseFilePath())) {
-                this.setVisible(true);
-                homePane.load();
-            }
-            if (loadApkListener != null)
-                loadApkListener.onLoad(optionPane.getView().getChooseFilePath());
-        } else if (result == CODE_ACTION_CLOSE) {
-            close();
-            System.exit(0);
-        }
+        this.setVisible(true);
+        homePane.load();
     }
 
     private HomePane createHomePane() {
@@ -82,14 +69,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         }
         homePane.setAppPackageText(config.packageName);
         homePane.setAppNameText(config.appName);
-        homePane.setChannelKeyText(config.channelKey);
-        homePane.setGameIdText(config.gameId);
-        homePane.setGameKeyText(config.gameKey);
-        homePane.setGameVersionText(config.gameVersion);
-        homePane.setVersionName(config.appInfo.getVersionName());
-        homePane.setVersionCode(config.appInfo.getVersionCode());
-        homePane.setMinSdk(config.appInfo.getMinSdk());
-        homePane.setTargetSdk(config.appInfo.getTargetSdk());
     }
 
     public void close() {
@@ -152,7 +131,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                 }
                 break;
         }
-        Log.iln("result==" + result);
+        Log.dln("result==" + result);
     }
 
     public void setCloseListener(OnCloseListener closeListener) {
@@ -161,10 +140,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
 
     public void setPackageClickListener(OnPackageClickListener packageClickListener) {
         this.packageClickListener = packageClickListener;
-    }
-
-    public void setUpdateClickListener(OnUpdateClickListener updateClickListener) {
-        this.updateClickListener = updateClickListener;
     }
 
     @Override
@@ -197,25 +172,28 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof Integer) {
             int action = (int) e.getSource();
-            Log.iln("action==" + action);
-            if (action == CODE_ACTION_CLICK_UPDATE) {
-                //点击更新
-                if (updateClickListener != null) {
-                    YJConfig config = new YJConfig();
-                    config.appName = homePane.getAppNameText();
-                    config.channelKey = homePane.getChannelKeyText();
-                    config.gameId = homePane.getGameIdText();
-                    config.gameKey = homePane.getGameKeyText();
-                    config.gameVersion = homePane.getGameVersionText();
-                    config.appInfo = new AppVersionInfo(homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
-                    updateClickListener.onClickUpdate(config);
-                }
-                return;
-            }
+            Log.dln("action==" + action);
             if (action == CODE_ACTION_CLICK_PACKAGE) {
                 //点击打包
                 if (packageClickListener != null) {
-                    packageClickListener.onClickPackage();
+                    if (Utils.isEmpty(homePane.getAppPackageText().trim())) {
+                        showWarningDialog("包名不能为空！");
+                        return;
+                    }
+                    boolean matches = Utils.matches(PKG_REGEX, homePane.getAppPackageText().trim());
+                    if (!matches) {
+                        showWarningDialog("包名格式不正确！");
+                        return;
+                    }
+                    if (Utils.isEmpty(homePane.getAppNameText().trim())) {
+                        showWarningDialog("应用名不能为空！");
+                        return;
+                    }
+                    YJConfig config = new YJConfig();
+                    config.appName = homePane.getAppNameText().trim();
+                    config.packageName = homePane.getAppPackageText().trim();
+                    refreshView(config);
+                    packageClickListener.onClickPackage(config);
                 }
                 return;
             }
@@ -230,10 +208,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setViewEnable(enable);
     }
 
-    public void setLoadApkListener(LoadApkListener listener) {
-        loadApkListener = listener;
-    }
-
     public interface OnCloseListener {
         void onClose(int result);
     }
@@ -244,16 +218,8 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         void onNegative();
     }
 
-    public interface OnUpdateClickListener {
-        void onClickUpdate(YJConfig config);
-    }
-
     public interface OnPackageClickListener {
-        void onClickPackage();
-    }
-
-    public interface LoadApkListener {
-        void onLoad(String apk);
+        void onClickPackage(YJConfig config);
     }
 
 }

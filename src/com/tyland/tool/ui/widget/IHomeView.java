@@ -18,7 +18,15 @@ public interface IHomeView extends IView {
 
     JButton getSubmitButton();
 
+    String getAppPackageText();
+
+    void setAppPackageText(String pkg);
+
     String getAppNameText();
+
+    void setAppNameText(String name);
+
+    void setMessage(String msg);
 
     String getChannelKeyText();
 

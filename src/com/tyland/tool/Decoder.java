@@ -6,6 +6,7 @@ import brut.androlib.ApkDecoder;
 import brut.androlib.meta.MetaInfo;
 import brut.androlib.res.util.ExtFile;
 import brut.directory.DirectoryException;
+import com.tyland.common.Log;
 import com.tyland.tool.entity.ApkInfo;
 import com.tyland.tool.entity.AppVersionInfo;
 import com.tyland.tool.entity.YJConfig;
@@ -18,6 +19,9 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
 import static com.tyland.tool.ChannelManager.*;
 import static com.tyland.tool.entity.YJConfig.*;
@@ -26,6 +30,7 @@ import static com.tyland.tool.util.FileUtils.getPath;
 
 public class Decoder extends BaseCompiler {
     private ApkInfo mApkInfo;
+
 
     public Decoder(ApkInfo apkInfo, String apkName) {
         super(apkName);
@@ -60,34 +65,10 @@ public class Decoder extends BaseCompiler {
         decoder.decode();
     }
 
-    public YJConfig getDecodeResult(YJConfig c) {
-        if (c == null) {
-            c = new YJConfig();
-            c.appName = mApkInfo.getApplicationLable();
-            c.appInfo = new AppVersionInfo(mApkInfo.getSdkVersion(), mApkInfo.getTargetSdkVersion(), mApkInfo.getVersionCode(), mApkInfo.getVersionName());
-        }
-        ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
-        c.channelKey = manifestHelper.getChannelKey();
-        c.gameId = manifestHelper.getGameId();
-        c.gameKey = manifestHelper.getGameKey();
-        c.gameVersion = manifestHelper.getGameVersion();
-        c.packageName = manifestHelper.getConfigPackageName();
-        return c;
-    }
-
     public void updateManifest(YJConfig c) {
         ManifestHelper manifestHelper = new ManifestHelper(mApkInfo, getManifestPath());
-//        AppVersionInfo app = c.appInfo;
-//        if (app != null) {
-//            manifestHelper.addVersionInfo(app.getVersionCode(), app.getVersionName());
-//            manifestHelper.addSdkInfo(app.getMinSdk(), app.getTargetSdk());
-//        }
-        String[] names = new String[]{META_DATA_CHANNEL_KEY, META_DATA_GAME_ID, META_DATA_GAME_KEY, META_DATA_GAME_VERSION};
-        String[] values = new String[]{c.channelKey, c.gameId, c.gameKey, c.gameVersion};
-        //更新meta-data
-        manifestHelper.updateMetaData(names, values);
         //更新包名
-        manifestHelper.updatePackageName();
+        manifestHelper.updatePackageName(c.packageName);
         if (!mApkInfo.getApplicationLable().equals(c.appName)) {
             manifestHelper.updateAppName(c.appName);
             ResourceHelper resHelper = new ResourceHelper(getResDirPath());
@@ -95,24 +76,53 @@ public class Decoder extends BaseCompiler {
         }
     }
 
-    private static final String APK_FILE_NAME = "game.apk";
-    private static final String MIN_SDK = "minSdkVersion";
-    private static final String TARGET_SDK = "targetSdkVersion";
-
-    public void updateYml(AppVersionInfo app) throws AndrolibException {
-        Androlib androlib = new Androlib();
-        File appDir = new File(getDecodeApkPath());
-        MetaInfo metaInfo = androlib.readMetaFile(new ExtFile(appDir));
-        if (app != null) {
-            metaInfo.versionInfo.versionCode = app.getVersionCode();
-            metaInfo.versionInfo.versionName = app.getVersionName();
-            metaInfo.apkFileName = APK_FILE_NAME;
-            metaInfo.sdkInfo.put(MIN_SDK, app.getMinSdk());
-            if (!Utils.isEmpty(app.getTargetSdk()))
-                metaInfo.sdkInfo.put(TARGET_SDK, app.getTargetSdk());
+    public void updatePackage(String defPkg, YJConfig config) throws IOException {
+        if (Utils.isEmpty(config.packageName)) {
+            return;
         }
-        androlib.writeMetaFile(appDir, metaInfo);
+        String[] smailNames = (new File(getSmaliPath())).list();
+        String packageName = config.packageName;
+        Iterator<String> iterator = Arrays.asList(smailNames).iterator();
+        while (iterator.hasNext()) {
+            String fileName = iterator.next();
+            readSmail(fileName, defPkg, packageName);
+        }
+        File sourceFile = new File(getSmaliPath() + File.separator + replacePackageSeparator(defPkg, File.separator));
+        File destFile = new File(getSmaliPath() + File.separator + replacePackageSeparator(packageName, File.separator));
+        File tmpFile = new File(getSmaliPath() + File.separator + replacePackageSeparator(defPkg + "0", File.separator));
+        FileUtils.renameFile(sourceFile, tmpFile);
+        FileUtils.copyFolder(tmpFile, destFile);
+        FileUtils.delFolder(tmpFile.getCanonicalPath());
     }
 
+    private void readSmail(String fileName, String defPkg, String replacePackage) throws IOException {
+        File file = new File(getSmaliPath() + File.separator + fileName);
+        String pkgName = file.getPath().substring(getSmaliPath().length());
+        if (file.isFile()) {
+            if (!Utils.isEmpty(defPkg) && !Utils.isEmpty(replacePackage)) {
+                String[] targets = new String[]{defPkg, replacePackageSeparator(defPkg, "/")};
+                String[] replaces = new String[]{replacePackage, replacePackageSeparator(replacePackage, "/")};
+                String content = FileUtils.readAndReplaceFile(file.getCanonicalPath(), targets, replaces);
+                FileUtils.writer2File(file.getCanonicalPath(), content);
+            }
+        } else {
+            Iterator<String> iterator = Arrays.asList(file.list()).iterator();
+            while (iterator.hasNext()) {
+                if (pkgName.startsWith("android")) {
+                    break;
+                }
+                readSmail(pkgName + File.separator + iterator.next(), defPkg, replacePackage);
+            }
+        }
+    }
 
+    private String replacePackageSeparator(String pkg, String separator) {
+        String rp = pkg.replace(".", separator);
+        return rp;
+    }
+
+    public void replaceIcon(Map<String, String> icons) throws IOException {
+        DrawableReplaceHelper helper = new DrawableReplaceHelper(icons, getResDirPath(), REPLACE_RES_PATH);
+        helper.replace();
+    }
 }

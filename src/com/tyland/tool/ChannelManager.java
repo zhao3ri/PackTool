@@ -1,6 +1,6 @@
 package com.tyland.tool;
 
-import brut.androlib.AndrolibException;
+import com.tyland.common.Log;
 import com.tyland.tool.entity.ApkInfo;
 import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.*;
@@ -10,11 +10,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 
-import static com.tyland.tool.BaseCompiler.OUT_DIR_PREFIX;
+import static com.tyland.tool.BaseCompiler.*;
 import static com.tyland.tool.Main.ROOT_PATH;
-import static com.tyland.tool.util.FileUtils.createFileDir;
-import static com.tyland.tool.util.FileUtils.delFolder;
-import static com.tyland.tool.util.FileUtils.searchApk;
+import static com.tyland.tool.util.FileUtils.*;
 
 /**
  * Created by zhaoj on 2018/10/29.
@@ -28,25 +26,18 @@ public class ChannelManager {
     private String apkFileName;
     private ApkInfo mApkInfo;
     private String apkPath;
-    private Decoder mDecoder;
+    private String outApkPath;
 
-    private static final String CHANNEL_CONFIG_PATH = ROOT_PATH + File.separator + "conf" + File.separator + "channel_list.xml";
+    private String APK_PATH = BIN_PATH + File.separator + "build.apk";
+
     public static final int STATUS_SUCCESS = 0;
     public static final int STATUS_NO_FIND = 1;
     public static final int STATUS_FAIL = 2;
-    public static final int STATUS_SIGN_SUCCESS = 4;
-    public static final int STATUS_DECODE_SUCCESS = 5;
-    public static final int STATUS_BUILD_SUCCESS = 6;
 
     private YJConfig yjConfig;
 
     public ChannelManager() {
-        File apk = searchApk(ROOT_PATH);
-        initApk(apk);
-    }
-
-    public ChannelManager(String apkPath) {
-        File apk = new File(apkPath);
+        File apk = new File(APK_PATH);
         initApk(apk);
     }
 
@@ -55,6 +46,7 @@ public class ChannelManager {
         try {
             apkPath = createOutDir(apkFile);
             mApkInfo = new ApkUtils().getApkInfo(apkPath);
+            Log.iln("run");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -62,9 +54,8 @@ public class ChannelManager {
 
     private String createOutDir(File apk) {
         if (apk != null) {
-            apkFileName = apk.getName().substring(0, apk.getName().indexOf("."));
-            delFolder(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkFileName);
-            createFileDir(ROOT_PATH + File.separator + OUT_DIR_PREFIX + apkFileName + File.separator);
+            delFolder(ROOT_PATH + File.separator + OUT_DIR_NAME);
+            createFileDir(ROOT_PATH + File.separator + OUT_DIR_NAME + File.separator);
 //                FileUtils.createOutDir(apk, new File(outPath + apk.getName()));
             return apk.getAbsolutePath();
         }
@@ -75,11 +66,11 @@ public class ChannelManager {
         this.cyclicBarrier = cyclicBarrier;
     }
 
-
-    public void decodeApk() {
+    public void execute(YJConfig config) {
         new SubThread(cyclicBarrier, "BuildApk") {
             @Override
             public void execute() {
+                yjConfig = config;
                 int result = STATUS_FAIL;
                 if (mApkInfo == null) {
                     if (listener != null) {
@@ -89,15 +80,23 @@ public class ChannelManager {
                 }
                 try {
                     //初始化Decoder
-                    if (mDecoder == null)
-                        mDecoder = new Decoder(mApkInfo, apkFileName);
-                    mDecoder.setProgressListener(progressListener);
-                    result = mDecoder.decode(apkPath);
+                    Decoder decoder = new Decoder(mApkInfo, apkFileName);
+                    decoder.setProgressListener(progressListener);
+                    result = decoder.decode(APK_PATH);
                     if (result == STATUS_SUCCESS) {
-                        result = STATUS_DECODE_SUCCESS;
-                        yjConfig = mDecoder.getDecodeResult(yjConfig);
-                        mDecoder.updateYml(yjConfig.appInfo);
+                        decoder.updateManifest(yjConfig);
+                        decoder.updatePackage(getDefaultPackageName(), yjConfig);
+                        if (isExists(REPLACE_ICON_PATH)) {
+                            decoder.replaceIcon(getIcons());
+                        }
+                        result = buildApk();
+                        if (result == STATUS_SUCCESS) {
+                            apkFileName = yjConfig.appName;
+                            result = signApk();
+                        }
                     }
+                    delFolder(decoder.getDecodeApkPath());
+                    deleteFile(buildApkPath);
                 } catch (Exception e) {
                     e.printStackTrace();
                     result = STATUS_FAIL;
@@ -110,37 +109,27 @@ public class ChannelManager {
         }.start();
     }
 
-    public void buildApk() {
-        new SubThread(cyclicBarrier, "BuildApk") {
-
-            @Override
-            public void execute() {
-                Builder builder = new Builder(apkFileName);
-                builder.setProgressListener(progressListener);
-                builder.setConfig(getYjConfig());
-                int result = builder.build();
-                if (result == STATUS_SUCCESS) {
-                    result = STATUS_BUILD_SUCCESS;
-                    buildApkPath = builder.getApkBuildPath();
-                }
-                if (listener != null) {
-                    listener.onFinish(result);
-                }
-            }
-        }.start();
+    private int buildApk() {
+        Builder builder = new Builder(apkFileName);
+        builder.setProgressListener(progressListener);
+        builder.setConfig(getYjConfig());
+        int result = builder.build();
+        if (result == STATUS_SUCCESS) {
+            buildApkPath = builder.getApkBuildPath();
+        }
+        return result;
     }
 
-    public void updateConfig(YJConfig c) {
-        if (mDecoder == null) {
-            return;
+    private int signApk() throws IOException {
+        int result = STATUS_FAIL;
+        if (!Utils.isEmpty(buildApkPath)) {
+            Signer signer = new Signer(apkFileName);
+            signer.setProgressListener(progressListener);
+            updateProgress("Sign Apk...");
+            result = signer.sign(buildApkPath);
+            outApkPath = signer.getSignApkPath();
         }
-        yjConfig = c;
-        mDecoder.updateManifest(c);
-        try {
-            mDecoder.updateYml(c.appInfo);
-        } catch (AndrolibException e) {
-            e.printStackTrace();
-        }
+        return result;
     }
 
     public YJConfig getYjConfig() {
@@ -161,33 +150,6 @@ public class ChannelManager {
         this.progressListener = progressListener;
     }
 
-    public String getDefaultMinSdk() {
-        if (mApkInfo == null)
-            return null;
-        if (!Utils.isEmpty(mApkInfo.getMinSdkVersion())) {
-            return mApkInfo.getMinSdkVersion();
-        }
-        return mApkInfo.getSdkVersion();
-    }
-
-    public String getDefaultTargetSdk() {
-        if (mApkInfo == null)
-            return null;
-        return mApkInfo.getTargetSdkVersion();
-    }
-
-    public String getDefaultVersionCode() {
-        if (mApkInfo == null)
-            return null;
-        return mApkInfo.getVersionCode();
-    }
-
-    public String getDefaultVersionName() {
-        if (mApkInfo == null)
-            return null;
-        return mApkInfo.getVersionName();
-    }
-
     public String getDefaultPackageName() {
         if (mApkInfo == null)
             return null;
@@ -206,29 +168,14 @@ public class ChannelManager {
         return mApkInfo.getApplicationIcons();
     }
 
-    public void signApk() {
-        new SubThread(cyclicBarrier, "SignApk") {
-            @Override
-            public void execute() {
-                int result = STATUS_FAIL;
-                if (!Utils.isEmpty(buildApkPath)) {
-                    Signer signer = new Signer(apkFileName);
-                    signer.setProgressListener(progressListener);
-                    updateProgress("Sign Apk...");
-                    try {
-                        result = signer.sign(buildApkPath);
-                        if (result == STATUS_SUCCESS) {
-                            result = STATUS_SIGN_SUCCESS;
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (listener != null) {
-                    listener.onFinish(result);
-                }
-            }
-        }.start();
+    public String getOutApkPath() {
+        File file = new File(outApkPath);
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outApkPath;
     }
 
     public void setExecuteFinishListener(OnExecuteFinishListener listener) {

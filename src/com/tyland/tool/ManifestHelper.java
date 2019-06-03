@@ -32,11 +32,6 @@ public class ManifestHelper {
     private Document mDocument;
     private ApkInfo mApkInfo;
     private String manifestPath;
-    private String confPackage;
-    private String channelKey;
-    private String gameId;
-    private String gameKey;
-    private String gameVersion;
 
     public ManifestHelper(ApkInfo apk, String path) {
         mApkInfo = apk;
@@ -48,23 +43,10 @@ public class ManifestHelper {
     private void init() {
         Element root = mDocument.getDocumentElement();
         //获得配置包的名称
-        confPackage = root.getAttribute(ELEMENT_PACKAGE);
+//        packageName = root.getAttribute(ELEMENT_PACKAGE);
         readMetaData(new OnReadContentListener() {
             @Override
             public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {
-                if (attributeName.equals(YJConfig.META_DATA_CHANNEL_KEY)) {
-                    channelKey = attributeValue;
-                    Log.iln("channelKey=" + channelKey);
-                } else if (attributeName.equals(YJConfig.META_DATA_GAME_ID)) {
-                    gameId = attributeValue;
-                    Log.iln("gameId=" + gameId);
-                } else if (attributeName.equals(YJConfig.META_DATA_GAME_KEY)) {
-                    gameKey = attributeValue;
-                    Log.iln("gameKey=" + gameKey);
-                } else if (attributeName.equals(YJConfig.META_DATA_GAME_VERSION)) {
-                    gameVersion = attributeValue;
-                    Log.iln("gameVersion=" + gameVersion);
-                }
             }
         });
     }
@@ -305,7 +287,7 @@ public class ManifestHelper {
         void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue);
     }
 
-    public void updateManifestConfig(String targets, String replaces) {
+    private void updateManifestConfig(String targets, String replaces) {
         String manifest = FileUtils.replaceFile(manifestPath, targets, replaces);
         FileUtils.writer2File(manifestPath, manifest);
     }
@@ -315,15 +297,11 @@ public class ManifestHelper {
         FileUtils.writer2File(manifestPath, manifest);
     }
 
-    public String getConfigPackageName() {
-        return confPackage;
-    }
-
-    public void updatePackageName() {
+    public void updatePackageName(String confPackage) {
         if (Utils.isEmpty(confPackage)) {
             return;
         }
-//        updateManifestConfig(mApkInfo.getPackageName(), confPackage);
+        updateManifestConfig(mApkInfo.getPackageName(), confPackage);
     }
 
     public void updateAppName(String appName) {
@@ -331,21 +309,5 @@ public class ManifestHelper {
             return;
         }
         updateManifestConfig(mApkInfo.getApplicationLable(), appName);
-    }
-
-    public String getChannelKey() {
-        return channelKey;
-    }
-
-    public String getGameId() {
-        return gameId;
-    }
-
-    public String getGameKey() {
-        return gameKey;
-    }
-
-    public String getGameVersion() {
-        return gameVersion;
     }
 }

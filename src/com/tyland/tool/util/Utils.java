@@ -76,7 +76,7 @@ public class Utils {
             }
         }
         String cmd = "cmd.exe /C start /b " + scriptPath + " " + argStr;
-        Log.dln(cmd);
+        Log.iln(cmd);
         Log.ln();
         ShellUtils shell = null;
         if (listener != null) {

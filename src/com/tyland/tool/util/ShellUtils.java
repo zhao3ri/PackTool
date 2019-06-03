@@ -68,7 +68,7 @@ public class ShellUtils {
             InputStreamReader isr = null;
             BufferedReader br = null;
             PrintWriter pw = null;
-            Log.iln(tag + " Is the barrier broken? - " + barrier.isBroken());
+            Log.dln(tag + " Is the barrier broken? - " + barrier.isBroken());
             try {
                 if (os != null) {
                     pw = new PrintWriter(os);
@@ -83,9 +83,9 @@ public class ShellUtils {
                     if (onProgressListener != null) {
                         onProgressListener.publishProgress(line);
                     }
-                    Log.iln(tag + line);
+                    Log.dln(tag + line);
                 }
-                Log.iln((tag + " Number of parties waiting at the barrier at this point = " + barrier.getNumberWaiting()));
+                Log.dln((tag + " Number of parties waiting at the barrier at this point = " + barrier.getNumberWaiting()));
                 if (pw != null) {
                     pw.flush();
                 }

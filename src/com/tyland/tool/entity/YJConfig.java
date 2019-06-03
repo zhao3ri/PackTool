@@ -14,7 +14,6 @@ public class YJConfig {
     public String gameId;
     public String gameKey;
     public String gameVersion;
-    public AppVersionInfo appInfo;
 
     @Override
     public boolean equals(Object obj) {
@@ -23,14 +22,6 @@ public class YJConfig {
                 equalsString(this.channelKey, ((YJConfig) obj).channelKey) &&
                 equalsString(this.gameId, ((YJConfig) obj).gameId) &&
                 equalsString(this.gameVersion, ((YJConfig) obj).gameVersion) &&
-                equalsString(this.gameKey, ((YJConfig) obj).gameKey) &&
-                this.appInfo.equals(((YJConfig) obj).appInfo);
-    }
-
-    public void updateAppInfo(String min, String target, String vcode, String vname) {
-        if (this.appInfo == null) {
-            this.appInfo = new AppVersionInfo();
-        }
-        this.appInfo.update(min, target, vcode, vname);
+                equalsString(this.gameKey, ((YJConfig) obj).gameKey) ;
     }
 }

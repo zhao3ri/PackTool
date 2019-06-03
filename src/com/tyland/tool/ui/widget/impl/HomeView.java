@@ -72,25 +72,6 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         setText(getParent().getAppNameText(), textAppName);
         textAppName.setHintText(getParent().getAppNameText());
 
-        setText(getParent().getChannelKeyText(), textChannelKey);
-        textChannelKey.setHintText(getParent().getChannelKeyText());
-
-        setText(getParent().getGameIdText(), textGameId);
-        textGameId.setHintText(getParent().getGameIdText());
-
-        setText(getParent().getGameKeyText(), textGameKey);
-        textGameKey.setHintText(getParent().getGameKeyText());
-
-        setText(getParent().getGameVersionText(), textGameVersion);
-        textGameVersion.setHintText(getParent().getGameVersionText());
-
-        setText(getParent().getMinSDK(), textMinSDK);
-        textMinSDK.setHintText(getParent().getMinSDK());
-        setText(getParent().getTargetSdk(), textTargetSDK);
-        setText(getParent().getVersionCode(), textVersionCode);
-        textVersionCode.setHintText(getParent().getVersionCode());
-        setText(getParent().getVersionName(), textVersionName);
-        textVersionName.setHintText(getParent().getVersionName());
         setMessage(getParent().getMessage());
     }
 
@@ -100,9 +81,6 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         contentView.setLayout(new FlowLayout());
         contentView.setPreferredSize(new Dimension(getWidth(), getHeight()));
         addAppInfoView();
-        addMetaDataView();
-        addSDKInfoView();
-        addVersionInfoView();
         addButton();
         addLabel();
         return contentView;
@@ -131,7 +109,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         JPanel apkInfoItem = new JPanel();
         apkInfoItem.setLayout(null);
         apkInfoItem.setPreferredSize(new Dimension(getWidth() - contentPadding, itemHeight + defaultMargin * 2));
-        TitledBorder border = createBorder(apkInfoItem, "App Info");
+        TitledBorder border = createBorder(apkInfoItem, "请输入");
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(2, 1, 5, 5));
@@ -144,11 +122,11 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         panel.setLocation(startX, startY);
 
         textAppPackage = new JTextField();
-        getLabelWithTextView(textAppPackage, "app package:", null, panel, 20);
+        getLabelWithTextView(textAppPackage, "包 名:", null, panel, 20);
         textAppPackage.setEnabled(false);
         panel.add(textAppPackage);
         textAppName = new JHintTextField();
-        getLabelWithTextView(textAppName, "app name:", null, panel, 20);
+        getLabelWithTextView(textAppName, "应用名:", null, panel, 20);
         panel.add(textAppName);
         apkInfoItem.add(panel);
         addContentView(apkInfoItem);
@@ -282,17 +260,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         JPanel parent = new JPanel();
         parent.setPreferredSize(new Dimension(bodyWidth, buttonHeight + defaultMargin));
         parent.setLayout(null);
-        btnUpdate = new JButton("更新配置");
-        btnUpdate.setSize(buttonWidth, buttonHeight);
-        int x = (bodyWidth - buttonWidth * 2 - defaultMargin) / 2;
-        btnUpdate.setLocation(x, defaultMargin);
-        btnUpdate.addActionListener(this);
-        parent.add(btnUpdate);
 
-        btnPackage = new JButton("打包签名");
+        btnPackage = new JButton("确认打包");
         btnPackage.setSize(buttonWidth, buttonHeight);
         btnPackage.addActionListener(packageClickActionListener);
-        btnPackage.setLocation(btnUpdate.getX() + buttonWidth + defaultMargin, defaultMargin);
+//        btnPackage.setLocation(btnUpdate.getX() + buttonWidth + defaultMargin, defaultMargin);
+        btnPackage.setLocation((bodyWidth - buttonWidth) / 2, defaultMargin);
         parent.add(btnPackage);
         addContentView(parent);
     }
@@ -309,7 +282,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         panel.add(line);
 
         labMsg = new JLabel("", JLabel.CENTER);
-        labMsg.setPreferredSize(new Dimension(bodyWidth, labMsg.getFont().getSize() * 2));
+        labMsg.setPreferredSize(new Dimension(bodyWidth, (labMsg.getFont().getSize() + labMsg.getFont().getSize() / 2) * 2));
         labMsg.setHorizontalAlignment(SwingConstants.LEFT);
         labMsg.setHorizontalTextPosition(SwingConstants.LEFT);
 //        Font fnt = new Font("Default", Font.BOLD, 30);
@@ -334,87 +307,36 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         if (prop.equals(UI_ENABLE_CHANGED_PROPERTY)) {
             Boolean enable = (Boolean) evt.getNewValue();
             setUIEnable(enable);
-        } else if (prop.equals(APP_PKG_CHANGED_PROPERTY)) {
-            String pkg = (String) evt.getNewValue();
-            setText(pkg, textAppPackage);
-        } else if (prop.equals(APP_NAME_CHANGED_PROPERTY)) {
-            String name = (String) evt.getNewValue();
-            setText(name, textAppName);
-        } else if (prop.equals(CHANNEL_KEY_CHANGED_PROPERTY)) {
-            String key = (String) evt.getNewValue();
-            setText(key, textChannelKey);
-        } else if (prop.equals(GAME_ID_CHANGED_PROPERTY)) {
-            String id = (String) evt.getNewValue();
-            setText(id, textGameId);
-        } else if (prop.equals(GAME_KEY_CHANGED_PROPERTY)) {
-            String key = (String) evt.getNewValue();
-            setText(key, textGameKey);
-        } else if (prop.equals(GAME_VERSION_CHANGED_PROPERTY)) {
-            String key = (String) evt.getNewValue();
-            setText(key, textGameVersion);
-        } else if (prop.equals(MESSAGE_TEXT_CHANGED_PROPERTY)) {
-            String msg = String.valueOf(evt.getNewValue());
-            setMessage(msg);
-        } else if (prop.equals(MIN_SDK_TEXT_CHANGED_PROPERTY)) {
-            String min = (String) evt.getNewValue();
-            setText(min, textMinSDK);
-        } else if (prop.equals(TARGET_SDK_TEXT_CHANGED_PROPERTY)) {
-            String target = (String) evt.getNewValue();
-            setText(target, textTargetSDK);
-        } else if (prop.equals(VERSION_CODE_TEXT_CHANGED_PROPERTY)) {
-            String code = (String) evt.getNewValue();
-            setText(code, textVersionCode);
-        } else if (prop.equals(VERSION_NAME_TEXT_CHANGED_PROPERTY)) {
-            String name = (String) evt.getNewValue();
-            setText(name, textVersionName);
+//        } else if (prop.equals(APP_PKG_CHANGED_PROPERTY)) {
+//            String pkg = (String) evt.getNewValue();
+//            setText(pkg, textAppPackage);
+//        } else if (prop.equals(APP_NAME_CHANGED_PROPERTY)) {
+//            String name = (String) evt.getNewValue();
+//            setText(name, textAppName);
         }
     }
 
     private void setUIEnable(boolean enable) {
-        if (btnUpdate != null)
-            btnUpdate.setEnabled(enable);
+        if (textAppPackage != null) {
+            textAppPackage.setEnabled(enable);
+        }
 
-        if (btnPackage != null)
-            btnPackage.setEnabled(enable);
-
-        if (textMinSDK != null)
-            textMinSDK.setEnabled(enable);
-
-        if (textTargetSDK != null)
-            textTargetSDK.setEnabled(enable);
-
-        if (textVersionCode != null)
-            textVersionCode.setEnabled(enable);
-
-        if (textVersionName != null)
-            textVersionName.setEnabled(enable);
-
-        if (textAppName != null)
+        if (textAppName != null) {
             textAppName.setEnabled(enable);
+        }
 
-        if (textChannelKey != null)
-            textChannelKey.setEnabled(enable);
-
-        if (textGameId != null)
-            textGameId.setEnabled(enable);
-
-        if (textGameKey != null)
-            textGameKey.setEnabled(enable);
-
-        if (textGameVersion != null)
-            textGameVersion.setEnabled(enable);
+        if (btnPackage != null) {
+            btnPackage.setEnabled(enable);
+        }
     }
 
-    private void setMessage(String msg) {
-        labMsg.setText(msg);
+    public void setMessage(String msg) {
+        labMsg.setText("<html>" + msg + "</html>");
     }
 
     @Override
     public void remove() {
         parent.removePropertyChangeListener(this);
-        if (updateClickActionListener != null) {
-            btnUpdate.removeActionListener(updateClickActionListener);
-        }
         if (packageClickActionListener != null) {
             btnPackage.removeActionListener(packageClickActionListener);
         }
@@ -446,8 +368,23 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     }
 
     @Override
+    public String getAppPackageText() {
+        return textAppPackage.getText();
+    }
+
+    @Override
+    public void setAppPackageText(String pkg) {
+        setText(pkg, textAppPackage);
+    }
+
+    @Override
     public String getAppNameText() {
         return getText(textAppName);
+    }
+
+    @Override
+    public void setAppNameText(String name) {
+        setText(name, textAppName);
     }
 
     @Override

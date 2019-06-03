@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.tyland.tool.BaseCompiler.DRAWABLE_ICON_LAUNCHER;
+import static com.tyland.tool.BaseCompiler.DRAWABLE_ICON_NAME;
 import static com.tyland.tool.entity.ApkInfo.*;
 
 /**
@@ -63,13 +64,14 @@ public class DrawableReplaceHelper {
         Iterator<String> it = Arrays.asList(replaces).iterator();
         while (it.hasNext()) {
             String name = it.next();
-            boolean matches = Utils.matches(DRAWABLE_NAME_REGEX, name);
-            if (!matches) {
-                continue;
-            }
-            String suffix = name.substring(name.indexOf("-") + 1, name.indexOf("."));
+//            boolean matches = Utils.matches(DRAWABLE_NAME_REGEX, name);
+//            if (!matches) {
+//                continue;
+//            }
+//            String suffix = name.substring(name.indexOf("-") + 1, name.indexOf("."));
+            String suffix = DRAWABLE_XXHDPI;
             Map<String, String> drawableMap;
-            if (name.startsWith(DRAWABLE_ICON_LAUNCHER)) {
+            if (/*name.startsWith(DRAWABLE_ICON_LAUNCHER)*/name.equals(DRAWABLE_ICON_NAME)) {
                 drawableMap = replaceIcons;
             } else {
                 drawableMap = replaceScreens;

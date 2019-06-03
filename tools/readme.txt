@@ -1,1 +1,0 @@
-需要给Apk签名，需要将jarsigner.exe放到你的JAVA_HOME下

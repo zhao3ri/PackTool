@@ -14,6 +14,7 @@ import static com.tyland.tool.Main.ROOT_PATH;
 
 public class Signer extends BaseCompiler {
     private static final String SUFFIX_NAME = "-out.apk";
+    private String signApkPath;
 
     public Signer(String apkName) {
         super(apkName);
@@ -27,11 +28,15 @@ public class Signer extends BaseCompiler {
         String scriptPath = BIN_PATH + File.separator + "Sign.bat";
 
         String apkName = apkFileName + SUFFIX_NAME;
-        String signApkPath = getOutDirPath() + apkName;
+        signApkPath = getOutDirPath() + apkName;
         FileUtils.deleteFile(signApkPath);
-        Log.iln("signApk apk path: " + signApkPath);
-        int result = Utils.execShell(progressListener, scriptPath, unsignedApkPath, apkName);
+        Log.dln("signApk apk path: " + signApkPath);
+        int result = Utils.execShell(progressListener, scriptPath, unsignedApkPath, signApkPath);
 //        FileUtils.deleteFile(apkPath);
         return result;
+    }
+
+    public String getSignApkPath() {
+        return signApkPath;
     }
 }
