@@ -12,7 +12,6 @@ public class HomePane extends BasePane {
     public static final String UI_ENABLE_CHANGED_PROPERTY = "HomePane.UiEnableChangedProperty";
     public static final String APP_PKG_CHANGED_PROPERTY = "HomePane.AppPackageChangedProperty";
     public static final String APP_NAME_CHANGED_PROPERTY = "HomePane.AppNameChangedProperty";
-    public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
 
     private String appPackage;
     private String appName;
@@ -40,7 +39,7 @@ public class HomePane extends BasePane {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == getView().getMoreButton()) {
+        if (e.getSource() == getView().getConfirmButton()) {
             returnCode = CODE_ACTION_CLICK_PACKAGE;
             fireActionPerformed(ACTION_PACKAGE_BUTTON_CLICK);
         }

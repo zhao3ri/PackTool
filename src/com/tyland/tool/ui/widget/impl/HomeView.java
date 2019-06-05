@@ -1,7 +1,6 @@
 package com.tyland.tool.ui.widget.impl;
 
 import com.tyland.tool.entity.YJConfig;
-import com.tyland.tool.entity.Channel;
 import com.tyland.tool.ui.BasePane;
 import com.tyland.tool.ui.HomePane;
 import com.tyland.tool.ui.JHintTextField;
@@ -54,7 +53,6 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
 
     private ActionListener updateClickActionListener;
     private ActionListener packageClickActionListener;
-    private List<Channel> channelList;
 
     public HomeView(Window win, BasePane parent) {
         super(win, parent);
@@ -307,12 +305,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         if (prop.equals(UI_ENABLE_CHANGED_PROPERTY)) {
             Boolean enable = (Boolean) evt.getNewValue();
             setUIEnable(enable);
-//        } else if (prop.equals(APP_PKG_CHANGED_PROPERTY)) {
-//            String pkg = (String) evt.getNewValue();
-//            setText(pkg, textAppPackage);
-//        } else if (prop.equals(APP_NAME_CHANGED_PROPERTY)) {
-//            String name = (String) evt.getNewValue();
-//            setText(name, textAppName);
+        } else if (prop.equals(APP_PKG_CHANGED_PROPERTY)) {
+            String pkg = (String) evt.getNewValue();
+            setText(pkg, textAppPackage);
+        } else if (prop.equals(APP_NAME_CHANGED_PROPERTY)) {
+            String name = (String) evt.getNewValue();
+            setText(name, textAppName);
         }
     }
 
@@ -353,12 +351,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     }
 
     @Override
-    public void setChannelList(List<Channel> channels) {
-        this.channelList = channels;
-    }
-
-    @Override
-    public JButton getMoreButton() {
+    public JButton getConfirmButton() {
         return btnPackage;
     }
 

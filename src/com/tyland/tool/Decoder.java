@@ -45,7 +45,6 @@ public class Decoder extends BaseCompiler {
         try {
             FileUtils.delFolder(getDecodeApkPath());
             createFileDir(getDecodeApkPath());
-//            apkDecode(path);
             String cmd = "%s d %s -o %s -f";
             String scriptPath = String.format(/*"%s d %s -o %s -s -f",*/cmd, APKTOOL_PATH, path, getDecodeApkPath());
             result = Utils.execShell(progressListener, scriptPath);

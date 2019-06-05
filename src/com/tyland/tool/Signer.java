@@ -1,10 +1,8 @@
 package com.tyland.tool;
 
 import com.tyland.common.Log;
-import com.tyland.tool.entity.SignInfo;
 import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
-import com.tyland.tool.entity.Channel;
 
 import java.io.File;
 import java.io.IOException;

@@ -2,11 +2,8 @@ package com.tyland.tool;
 
 import com.tyland.common.Log;
 import com.tyland.tool.entity.ApkInfo;
-import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.FileUtils;
 import com.tyland.tool.util.Utils;
-import com.tyland.tool.entity.Channel;
-import com.tyland.tool.entity.Filter;
 import com.tyland.tool.xml.XmlTool;
 import org.w3c.dom.*;
 
@@ -74,86 +71,8 @@ public class ManifestHelper {
         }
     }
 
-    /**
-     * 添加sdk配置
-     */
-    public void addSdkInfo(String minSdk, String targetSdk) {
-        String[] sdkInfo = getSdkInfo();
-        if (Utils.isEmpty(minSdk)) {
-            minSdk = sdkInfo[0];
-        }
-//        if (Utils.isEmpty(targetSdk)) {
-//            targetSdk = sdkInfo[1];
-//        }
-        if (mDocument.getElementsByTagName(ELEMENT_USE_SDK) != null) {
-            NodeList nodeList = mDocument.getElementsByTagName(ELEMENT_USE_SDK);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                node.getParentNode().removeChild(node);
-            }
-        }
-
-        Element sdkElm = mDocument.createElement(ELEMENT_USE_SDK);
-        Attr minSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_MIN_SDK);
-        minSdkAttr.setValue(minSdk);
-        sdkElm.setAttributeNode(minSdkAttr);
-
-        if (!Utils.isEmpty(targetSdk)) {
-            Attr targetSdkAttr = mDocument.createAttribute(ATTRIBUTE_ANDROID_TARGET_SDK);
-            targetSdkAttr.setValue(targetSdk);
-            sdkElm.setAttributeNode(targetSdkAttr);
-        }
-        XmlTool.addElement(mDocument, sdkElm);
-    }
-
-    private String[] getSdkInfo() {
-        String minSdk = mApkInfo.getMinSdkVersion();
-        String targetSdk = mApkInfo.getTargetSdkVersion();
-        if (Utils.isEmpty(minSdk)) {
-            minSdk = mApkInfo.getSdkVersion();
-        }
-        if (Utils.isEmpty(targetSdk)) {
-            targetSdk = minSdk;
-        }
-        if (!Utils.isEmpty(minSdk) && !Utils.isEmpty(targetSdk)) {
-            if (Integer.valueOf(minSdk) > Integer.valueOf(targetSdk)) {
-                minSdk = targetSdk;
-            }
-        }
-        return new String[]{minSdk, targetSdk};
-    }
-
     private NodeList getRootList() {
         return XmlTool.getDocumentRootNodeList(mDocument);
-    }
-
-    /**
-     * 替换入口activity
-     */
-    public void replaceLauncher(Channel channel) {
-        if (channel == null || Utils.isEmpty(channel.getLauncher())) {
-            return;
-        }
-        NodeList nodeList = getRootList();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node node = nodeList.item(i);
-            if (!node.getNodeName().equals(ELEMENT_APPLICATION)) {
-                continue;
-            }
-            NodeList applicationList = node.getChildNodes();
-            for (int j = 0; j < applicationList.getLength(); j++) {
-                Node component = applicationList.item(j);
-                if (component.getNodeName().equals(ELEMENT_ACTIVITY)) {
-                    Node attributeNameNode = component.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
-                    String activityName = attributeNameNode.getTextContent();
-                    if (activityName.equals(mApkInfo.getLaunchableActivity())) {
-                        copyLauncher(component);
-                        attributeNameNode.setTextContent(channel.getLauncher());
-                        break;
-                    }
-                }
-            }
-        }//for
     }
 
     private void copyLauncher(Node item) {
@@ -166,96 +85,6 @@ public class ManifestHelper {
             activityElement.setAttributeNode(copyAttr);
         }
         item.getParentNode().appendChild(activityElement);
-    }
-
-    /**
-     * 删除无关的渠道信息
-     */
-    public void deleteUnrelatedChannelInfo(Channel channel) {
-        NodeList nodeList = getRootList();
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node node = nodeList.item(i);
-            if (!node.getNodeName().equals(ELEMENT_APPLICATION)) {
-                continue;
-            }
-            NodeList applicationList = node.getChildNodes();
-
-            for (int j = 0; j < applicationList.getLength(); j++) {
-                Node component = applicationList.item(j);
-                if (component.getNodeName().equals(ELEMENT_ACTIVITY)
-                        || component.getNodeName().equals(ELEMENT_SERVICE)
-                        || component.getNodeName().equals(ELEMENT_PROVIDER)
-                        || component.getNodeName().equals(ELEMENT_RECEIVER)) {
-                    deleteElement(component, channel);
-                } else if (component.getNodeName().equals(ELEMENT_METADATA)) {
-                    deleteMetaData(component, channel);
-                }
-            }
-        }
-        XmlTool.saveXml(mDocument, manifestPath);
-    }
-
-    private void deleteElement(Node item, Channel channel) {
-        Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
-        String attributeName = attributeNameNode.toString();
-        if (null != channel.getFilter().getPackageNameList() && !channel.getFilter().getPackageNameList().isEmpty()) {
-            for (Filter.Package pk : channel.getFilter().getPackageNameList()) {
-                if (attributeName.contains(pk.getName())) {
-                    item.getParentNode().removeChild(item);
-                }
-            }
-        }
-        if (!item.hasChildNodes() || null == channel.getFilter().getResNames() || channel.getFilter().getResNames().isEmpty()) {
-            return;
-        }
-        //查找标签下包含android:resource属性的值
-        NodeList subItems = item.getChildNodes();
-        for (int i = 0; i < subItems.getLength(); i++) {
-            Node subItem = subItems.item(i);
-            if (subItem.hasAttributes() && subItem.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_RESOURCE) != null) {
-                Node attributeResNode = subItem.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_RESOURCE);
-                String attributeResName = attributeResNode.getTextContent();
-                for (String name : channel.getFilter().getResNames()) {
-                    String input = attributeResName.substring(attributeResName.indexOf("/") + 1);
-                    if (Utils.matches(name, input)) {
-                        item.getParentNode().removeChild(item);
-                    }
-                }
-            }
-        }
-    }
-
-    private void deleteMetaData(Node item, Channel channel) {
-        if (null == channel.getFilter().getMetaData() || channel.getFilter().getMetaData().isEmpty()) {
-            return;
-        }
-        Node attributeNameNode = item.getAttributes().getNamedItem(ATTRIBUTE_ANDROID_NAME);
-        String attributeName = attributeNameNode.getTextContent();
-        for (String name : channel.getFilter().getMetaData()) {
-            if (Utils.matches(name, attributeName)) {
-                item.getParentNode().removeChild(item);
-                Log.eln("delete:" + item.getNodeName() + " name=" + attributeName);
-            }
-        }
-    }
-
-    public void updateMetaData(String[] names, String[] values) {
-        if (null == names || null == values || names.length == 0 || values.length == 0) {
-            return;
-        }
-        readMetaData(new OnReadContentListener() {
-            @Override
-            public void onRead(Node attributeNameNode, String attributeName, Node attributeValueNode, String attributeValue) {
-                for (int index = 0; index < names.length; index++) {
-                    if (names[index].equals(attributeName) && !attributeValue.equals(values[index])) {
-                        attributeValueNode.setTextContent(values[index]);
-                        Log.eln("name=" + attributeName + ",new value=" + values[index]);
-                    }
-                }
-            }
-        });
-        XmlTool.saveXml(mDocument, manifestPath);
     }
 
     private void readMetaData(OnReadContentListener listener) {

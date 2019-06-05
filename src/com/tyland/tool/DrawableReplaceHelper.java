@@ -9,7 +9,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
-import static com.tyland.tool.BaseCompiler.DRAWABLE_ICON_LAUNCHER;
 import static com.tyland.tool.BaseCompiler.DRAWABLE_ICON_NAME;
 import static com.tyland.tool.entity.ApkInfo.*;
 
@@ -20,7 +19,6 @@ public class DrawableReplaceHelper {
     private String replacePath;
     private String resPath;
     private Map<String, String> replaceIcons;
-    private Map<String, String> replaceScreens;
     //    private Map<String, String> applicationIcons;
     private String iconName;
     private String screenName;
@@ -59,7 +57,6 @@ public class DrawableReplaceHelper {
         String icon = icons.get(APPLICATION_ICON_160);
         iconName = icon.substring(icon.lastIndexOf("/") + 1, icon.indexOf("."));
         replaceIcons = new HashMap<>();
-        replaceScreens = new HashMap<>();
         String[] replaces = replaceFile.list();
         Iterator<String> it = Arrays.asList(replaces).iterator();
         while (it.hasNext()) {
@@ -70,19 +67,9 @@ public class DrawableReplaceHelper {
 //            }
 //            String suffix = name.substring(name.indexOf("-") + 1, name.indexOf("."));
             String suffix = DRAWABLE_XXHDPI;
-            Map<String, String> drawableMap;
+            Map<String, String> drawableMap = null;
             if (/*name.startsWith(DRAWABLE_ICON_LAUNCHER)*/name.equals(DRAWABLE_ICON_NAME)) {
                 drawableMap = replaceIcons;
-            } else {
-                drawableMap = replaceScreens;
-                int index = name.indexOf("-");
-                if (index < 0) {
-                    continue;
-                }
-                String prefix = name.substring(0, name.indexOf("-"));//获得闪屏图片的名称
-                if (Utils.isEmpty(screenName)) {
-                    screenName = prefix;
-                }
             }
             putDrawables(drawableMap, suffix, name);
         }
@@ -93,7 +80,7 @@ public class DrawableReplaceHelper {
     }
 
     public void replace() throws IOException {
-        if (replaceScreens.isEmpty() && replaceIcons.isEmpty()) {
+        if (replaceIcons.isEmpty()) {
             Log.eln("replace drawable is null");
             return;
         }
@@ -113,9 +100,7 @@ public class DrawableReplaceHelper {
                 while (it.hasNext()) {
                     String drawableName = it.next();
                     String name = drawableName.substring(0, drawableName.indexOf("."));
-                    if (name.equals(screenName)) {
-                        replace(replaceScreens, drawable.getCanonicalPath(), drawableName, suffix, false);
-                    } else if (name.equals(iconName)) {
+                    if (name.equals(iconName)) {
                         replace(replaceIcons, drawable.getCanonicalPath(), drawableName, suffix, true);
                     }
                 }//while
