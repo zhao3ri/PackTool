@@ -1,13 +1,15 @@
 package com.tyland.tool.ui;
 
-import com.tyland.tool.entity.Channel;
 import com.tyland.tool.ui.widget.IHomeView;
 import com.tyland.tool.ui.widget.IView;
 import com.tyland.tool.ui.widget.impl.HomeView;
+import com.tyland.tool.util.Utils;
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.List;
+
+import static com.tyland.tool.entity.YJConfig.DEFAULT_AGENT_ID;
+import static com.tyland.tool.entity.YJConfig.DEFAULT_SITE_ID;
 
 public class HomePane extends BasePane {
 
@@ -19,6 +21,8 @@ public class HomePane extends BasePane {
     public static final String GAME_KEY_CHANGED_PROPERTY = "HomePane.GameKeyChangedProperty";
     public static final String GAME_VERSION_CHANGED_PROPERTY = "HomePane.GameVersionChangedProperty";
     public static final String MESSAGE_TEXT_CHANGED_PROPERTY = "HomePane.MessageTextChangedProperty";
+    public static final String AGENT_ID_CHANGED_PROPERTY = "HomePane.AgentIdChangedProperty";
+    public static final String SITE_ID_CHANGED_PROPERTY = "HomePane.SiteIdChangedProperty";
 
     public static final String MIN_SDK_TEXT_CHANGED_PROPERTY = "MorePane.MinSdkTextChangedProperty";
     public static final String TARGET_SDK_TEXT_CHANGED_PROPERTY = "MorePane.TargetSdkTextChangedProperty";
@@ -35,6 +39,8 @@ public class HomePane extends BasePane {
     private String targetSdk;
     private String versionCode;
     private String versionName;
+    private String agentId;
+    private String siteId;
     private String message;
     private boolean isEnable = true;
 
@@ -109,6 +115,28 @@ public class HomePane extends BasePane {
     public String getGameIdText() {
         gameId = getView().getGameIdText();
         return gameId;
+    }
+
+    public void setAgentIdText(String id) {
+        String old = agentId;
+        agentId = id;
+        firePropertyChange(AGENT_ID_CHANGED_PROPERTY, old, agentId);
+    }
+
+    public String getAgentIdText() {
+        agentId = getView().getAgentIdText();
+        return agentId;
+    }
+
+    public void setSiteIdText(String id) {
+        String old = siteId;
+        siteId = id;
+        firePropertyChange(SITE_ID_CHANGED_PROPERTY, old, siteId);
+    }
+
+    public String getSiteIdText() {
+        siteId = getView().getSiteIdText();
+        return siteId;
     }
 
     public void setGameKeyText(String key) {
@@ -194,7 +222,7 @@ public class HomePane extends BasePane {
     }
 
     public String getVersionName() {
-        versionCode = getView().getVersionCodeText();
+        versionName = getView().getVersionNameText();
         return versionName;
     }
 }

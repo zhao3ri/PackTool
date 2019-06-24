@@ -7,6 +7,9 @@ public class YJConfig {
     public static final String META_DATA_GAME_ID = "GAORE_GAME_ID";
     public static final String META_DATA_GAME_KEY = "GAORE_APP_KEY";
     public static final String META_DATA_GAME_VERSION = "GAORE_GAME_VERSION";
+    public static final String CHANNEL_CONFIG_FILE_NAME = "grConfig.ini";
+    public static final String DEFAULT_AGENT_ID = "1001";
+    public static final String DEFAULT_SITE_ID = "1001";
 
     public String appName;
     public String packageName;
@@ -14,6 +17,8 @@ public class YJConfig {
     public String gameId;
     public String gameKey;
     public String gameVersion;
+    public String agentId = DEFAULT_AGENT_ID;
+    public String siteId = DEFAULT_SITE_ID;
     public AppVersionInfo appInfo;
 
     @Override
@@ -24,6 +29,8 @@ public class YJConfig {
                 equalsString(this.gameId, ((YJConfig) obj).gameId) &&
                 equalsString(this.gameVersion, ((YJConfig) obj).gameVersion) &&
                 equalsString(this.gameKey, ((YJConfig) obj).gameKey) &&
+                equalsString(this.agentId, ((YJConfig) obj).agentId) &&
+                equalsString(this.siteId, ((YJConfig) obj).siteId) &&
                 this.appInfo.equals(((YJConfig) obj).appInfo);
     }
 

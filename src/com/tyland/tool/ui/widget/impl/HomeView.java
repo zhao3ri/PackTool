@@ -15,6 +15,7 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     private int labelWidth = 110;
     private int textWidth = 85;
     private int contentPadding = 20;
-    private int itemHeight = 80;
+    private int itemHeight = 87;
 
     private Container contentView;
 
@@ -41,6 +42,8 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     private JHintTextField textGameId;
     private JHintTextField textGameKey;
     private JHintTextField textGameVersion;
+    private JHintTextField textAgentId;
+    private JHintTextField textSiteId;
 
     private JHintTextField textMinSDK;
     private JHintTextField textTargetSDK;
@@ -71,6 +74,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
 
         setText(getParent().getAppNameText(), textAppName);
         textAppName.setHintText(getParent().getAppNameText());
+
+        setText(getParent().getAgentIdText(), textAgentId);
+        textAgentId.setHintText(getParent().getAgentIdText());
+
+        setText(getParent().getSiteIdText(), textSiteId);
+        textSiteId.setHintText(getParent().getSiteIdText());
 
         setText(getParent().getChannelKeyText(), textChannelKey);
         textChannelKey.setHintText(getParent().getChannelKeyText());
@@ -128,14 +137,19 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     }
 
     private void addAppInfoView() {
+        int width = getWidth() - contentPadding;
+        int margin = 5;
         JPanel apkInfoItem = new JPanel();
         apkInfoItem.setLayout(null);
-        apkInfoItem.setPreferredSize(new Dimension(getWidth() - contentPadding, itemHeight + defaultMargin * 2));
+        apkInfoItem.setPreferredSize(new Dimension(width, itemHeight + defaultMargin * 3));
         TitledBorder border = createBorder(apkInfoItem, "App Info");
 
+        int contentWidth = width - defaultMargin * 2;
+        int contentHeight = itemHeight;
+        int columnHeight = contentHeight / 3 - margin;
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(2, 1, 5, 5));
-        panel.setSize(new Dimension(getWidth() - contentPadding - defaultMargin * 2, itemHeight - defaultMargin));
+        panel.setLayout(new GridLayout(3, 1, margin, margin));
+        panel.setSize(new Dimension(contentWidth, contentHeight));
 
         Insets insets = border.getBorderInsets(parent);
 //        int margin = contentWidth / 2 - labelWidth - textWidth;
@@ -144,14 +158,41 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         panel.setLocation(startX, startY);
 
         textAppPackage = new JTextField();
-        getLabelWithTextView(textAppPackage, "app package:", null, panel, 20);
+        getLabelWithTextView(textAppPackage, "app package:", new Dimension(labelWidth, itemHeight / 3), panel, 20);
         textAppPackage.setEnabled(false);
+        textAppPackage.setSize(new Dimension(contentWidth / 2, columnHeight));
         panel.add(textAppPackage);
         textAppName = new JHintTextField();
-        getLabelWithTextView(textAppName, "app name:", null, panel, 20);
+        getLabelWithTextView(textAppName, "app name:", new Dimension(labelWidth, itemHeight / 3), panel, 20);
+        textAppName.setSize(new Dimension(contentWidth / 2, columnHeight));
         panel.add(textAppName);
+        addChannelInfoView(panel, columnHeight);
         apkInfoItem.add(panel);
         addContentView(apkInfoItem);
+    }
+
+    private void addChannelInfoView(JPanel parent, int columnHeight) {
+        int textWidth = 50;
+        JLabel text = new JLabel("channel info:");
+        text.setSize(new Dimension(labelWidth, columnHeight));
+        parent.add(text);
+
+        FlowLayout layout = new FlowLayout(FlowLayout.LEFT, 0, 0);
+        JPanel info = new JPanel();
+        info.setLayout(layout);
+
+        textAgentId = createFormatTextField(true);
+        textAgentId.setPreferredSize(new Dimension(textWidth, columnHeight));
+        info.add(textAgentId);
+
+        JLabel label = new JLabel(" - ");
+        label.setPreferredSize(new Dimension(10, columnHeight));
+        info.add(label);
+
+        textSiteId = createFormatTextField(true);
+        textSiteId.setPreferredSize(new Dimension(textWidth, columnHeight));
+        info.add(textSiteId);
+        parent.add(info);
     }
 
     private void addMetaDataView() {
@@ -249,7 +290,7 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         JTextField textField;
         textField = new JHintTextField();
         if (format) {
-            ((JHintTextField) textField).setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
+            ((JHintTextField) textField).setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter(new DecimalFormat("####.####"))));
             textField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyReleased(KeyEvent e) {
@@ -340,6 +381,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
         } else if (prop.equals(APP_NAME_CHANGED_PROPERTY)) {
             String name = (String) evt.getNewValue();
             setText(name, textAppName);
+        } else if (prop.equals(AGENT_ID_CHANGED_PROPERTY)) {
+            String name = (String) evt.getNewValue();
+            setText(name, textAgentId);
+        } else if (prop.equals(SITE_ID_CHANGED_PROPERTY)) {
+            String name = (String) evt.getNewValue();
+            setText(name, textSiteId);
         } else if (prop.equals(CHANNEL_KEY_CHANGED_PROPERTY)) {
             String key = (String) evt.getNewValue();
             setText(key, textChannelKey);
@@ -403,6 +450,12 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
 
         if (textGameVersion != null)
             textGameVersion.setEnabled(enable);
+
+        if (textAgentId != null)
+            textAgentId.setEnabled(enable);
+
+        if (textSiteId != null)
+            textSiteId.setEnabled(enable);
     }
 
     private void setMessage(String msg) {
@@ -448,6 +501,16 @@ public class HomeView extends BaseView implements IHomeView, ActionListener {
     @Override
     public String getAppNameText() {
         return getText(textAppName);
+    }
+
+    @Override
+    public String getSiteIdText() {
+        return getText(textSiteId);
+    }
+
+    @Override
+    public String getAgentIdText() {
+        return getText(textAgentId);
     }
 
     @Override

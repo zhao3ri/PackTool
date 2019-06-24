@@ -16,7 +16,7 @@ import static javax.swing.JOptionPane.*;
 
 public class MainFrame extends JFrame implements ComponentListener, PropertyChangeListener, ActionListener {
     protected static final int FRAME_WIDTH = 550;
-    protected static final int FRAME_HEIGHT = 555;
+    protected static final int FRAME_HEIGHT = 575;
 
     private OnCloseListener closeListener;
     private LoadApkListener loadApkListener;
@@ -90,6 +90,8 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         homePane.setVersionCode(config.appInfo.getVersionCode());
         homePane.setMinSdk(config.appInfo.getMinSdk());
         homePane.setTargetSdk(config.appInfo.getTargetSdk());
+        homePane.setAgentIdText(config.agentId);
+        homePane.setSiteIdText(config.siteId);
     }
 
     public void close() {
@@ -207,6 +209,8 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
                     config.gameId = homePane.getGameIdText();
                     config.gameKey = homePane.getGameKeyText();
                     config.gameVersion = homePane.getGameVersionText();
+                    config.agentId = homePane.getAgentIdText();
+                    config.siteId = homePane.getSiteIdText();
                     config.appInfo = new AppVersionInfo(homePane.getMinSDK(), homePane.getTargetSdk(), homePane.getVersionCode(), homePane.getVersionName());
                     updateClickListener.onClickUpdate(config);
                 }

@@ -72,7 +72,29 @@ public class Decoder extends BaseCompiler {
         c.gameKey = manifestHelper.getGameKey();
         c.gameVersion = manifestHelper.getGameVersion();
         c.packageName = manifestHelper.getConfigPackageName();
+        String[] channelInfo = readChannelInfo();
+        c.agentId = channelInfo[0];
+        c.siteId = channelInfo[1];
         return c;
+    }
+
+    private String[] readChannelInfo() {
+        String content = FileUtils.readFile(getAssetsDirPath() + File.separator + CHANNEL_CONFIG_FILE_NAME);
+        String agentId = DEFAULT_AGENT_ID;
+        String siteId = DEFAULT_SITE_ID;
+        if (!Utils.isEmpty(content)) {
+            int index = content.indexOf("-");
+            if (index != -1) {
+                agentId = content.substring(0, index);
+                siteId = content.substring(index + 1).trim();
+            }
+        }
+        return new String[]{agentId, siteId};
+    }
+
+    public void setChannelInfo(String agentId, String siteId) {
+        String content = agentId + "-" + siteId;
+        FileUtils.writer2File(getAssetsDirPath() + File.separator + CHANNEL_CONFIG_FILE_NAME, content);
     }
 
     public void updateManifest(YJConfig c) {
@@ -113,6 +135,5 @@ public class Decoder extends BaseCompiler {
         }
         androlib.writeMetaFile(appDir, metaInfo);
     }
-
 
 }

@@ -136,6 +136,7 @@ public class ChannelManager {
         }
         yjConfig = c;
         mDecoder.updateManifest(c);
+        mDecoder.setChannelInfo(c.agentId, c.siteId);
         try {
             mDecoder.updateYml(c.appInfo);
         } catch (AndrolibException e) {

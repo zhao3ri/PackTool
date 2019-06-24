@@ -20,6 +20,10 @@ public interface IHomeView extends IView {
 
     String getAppNameText();
 
+    String getSiteIdText();
+
+    String getAgentIdText();
+
     String getChannelKeyText();
 
     String getGameIdText();

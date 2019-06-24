@@ -55,6 +55,10 @@ public abstract class BaseCompiler {
         return getDecodeApkPath() + File.separator + "res";
     }
 
+    protected String getAssetsDirPath() {
+        return getDecodeApkPath() + File.separator + "assets";
+    }
+
     public void setApkName(String apk) {
         apkFileName = apk;
     }
