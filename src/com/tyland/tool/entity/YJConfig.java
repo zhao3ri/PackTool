@@ -3,11 +3,11 @@ package com.tyland.tool.entity;
 import static com.tyland.tool.util.Utils.equalsString;
 
 public class YJConfig {
-    public static final String META_DATA_CHANNEL_KEY = "GAORE_CHANNEL_KEY";
-    public static final String META_DATA_GAME_ID = "GAORE_GAME_ID";
-    public static final String META_DATA_GAME_KEY = "GAORE_APP_KEY";
-    public static final String META_DATA_GAME_VERSION = "GAORE_GAME_VERSION";
-    public static final String CHANNEL_CONFIG_FILE_NAME = "grConfig.ini";
+    public static final String META_DATA_CHANNEL_KEY = "YJSDK_CHANNEL_KEY";
+    public static final String META_DATA_GAME_ID = "YJSDK_GAME_ID";
+    public static final String META_DATA_GAME_KEY = "YJSDK_APP_KEY";
+    public static final String META_DATA_GAME_VERSION = "YJSDK_GAME_VERSION";
+    public static final String CHANNEL_CONFIG_FILE_NAME = "yjConfig.ini";
     public static final String DEFAULT_AGENT_ID = "1001";
     public static final String DEFAULT_SITE_ID = "1001";
 
