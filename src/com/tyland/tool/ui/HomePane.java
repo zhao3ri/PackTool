@@ -13,7 +13,7 @@ public class HomePane extends BasePane {
     public static final String APP_PKG_CHANGED_PROPERTY = "HomePane.AppPackageChangedProperty";
     public static final String APP_NAME_CHANGED_PROPERTY = "HomePane.AppNameChangedProperty";
 
-    private String appPackage;
+    private String jarPath;
     private String appName;
     private String message;
     private boolean isEnable = true;
@@ -28,7 +28,6 @@ public class HomePane extends BasePane {
     protected IView createView() {
         IHomeView view = new HomeView(win, this);
         view.setPackageClickAction(this);
-        view.setUpdateClickAction(this);
         return view;
     }
 
@@ -45,28 +44,9 @@ public class HomePane extends BasePane {
         }
     }
 
-    public void setAppPackageText(String pkg) {
-//        String old = appPackage;
-        appPackage = pkg;
-//        firePropertyChange(APP_PKG_CHANGED_PROPERTY, old, appPackage);
-        getView().setAppPackageText(pkg);
-    }
-
-    public String getAppPackageText() {
-        appPackage = getView().getAppPackageText();
-        return appPackage;
-    }
-
-    public void setAppNameText(String name) {
-//        String old = appName;
-        appName = name;
-//        firePropertyChange(APP_NAME_CHANGED_PROPERTY, old, appName);
-        getView().setAppNameText(name);
-    }
-
-    public String getAppNameText() {
-        appName = getView().getAppNameText();
-        return appName;
+    public String getJarText() {
+        jarPath = getView().getJarText();
+        return jarPath;
     }
 
     public void setMessage(String msg) {

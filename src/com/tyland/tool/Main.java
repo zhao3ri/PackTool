@@ -36,7 +36,7 @@ public class Main implements MainFrame.OnCloseListener, OnExecuteFinishListener,
         mainFrame.setPackageClickListener(this);
         mainFrame.changeEnable(true);
         initChannelManager();
-        finish("等待输入确认");
+        finish("等待确认");
         mainFrame.open();
     }
 
@@ -58,10 +58,6 @@ public class Main implements MainFrame.OnCloseListener, OnExecuteFinishListener,
                 mainFrame.setMessage(values);
             }
         });
-        if (!channelManager.isExistApk()) {
-            mainFrame.showErrorDialog("当前无apk文件！");
-            return;
-        }
     }
 
     @Override
@@ -92,11 +88,11 @@ public class Main implements MainFrame.OnCloseListener, OnExecuteFinishListener,
         String tip = "Error!!";
         switch (status) {
             case STATUS_SUCCESS:
-                Log.iln("打包完成");
+                Log.iln("编译完成");
                 finish("Success!! path = " + channelManager.getOutApkPath());
                 break;
             case STATUS_NO_FIND:
-                tip = "No find apk!";
+                tip = "No find file!";
             default:
                 mainFrame.showDialog(tip);
                 finish("Finish!!");
@@ -105,13 +101,14 @@ public class Main implements MainFrame.OnCloseListener, OnExecuteFinishListener,
     }
 
     @Override
-    public void onClickPackage(YJConfig config) {
+    public void onClickPackage(String path) {
         mainFrame.changeEnable(false);
-        mainFrame.setMessage("Build apk....");
+        mainFrame.setMessage("running....");
+        channelManager.setPath(path);
         new Thread() {
             @Override
             public void run() {
-                channelManager.execute(config);
+                channelManager.execute();
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {

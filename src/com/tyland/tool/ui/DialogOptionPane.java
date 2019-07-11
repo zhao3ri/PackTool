@@ -68,4 +68,7 @@ public class DialogOptionPane extends BasePane {
         return dialog;
     }
 
+    public String getChoosePath(){
+        return getView().getChooseFilePath();
+    }
 }

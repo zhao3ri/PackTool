@@ -1,7 +1,6 @@
 package com.tyland.tool.ui;
 
 import com.tyland.common.Log;
-import com.tyland.tool.entity.AppVersionInfo;
 import com.tyland.tool.entity.YJConfig;
 import com.tyland.tool.util.Utils;
 
@@ -67,8 +66,6 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
         if (homePane == null) {
             return;
         }
-        homePane.setAppPackageText(config.packageName);
-        homePane.setAppNameText(config.appName);
     }
 
     public void close() {
@@ -176,24 +173,11 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
             if (action == CODE_ACTION_CLICK_PACKAGE) {
                 //点击打包
                 if (packageClickListener != null) {
-                    if (Utils.isEmpty(homePane.getAppPackageText().trim())) {
-                        showWarningDialog("包名不能为空！");
+                    if (Utils.isEmpty(homePane.getJarText().trim())) {
+                        showWarningDialog("请选择文件");
                         return;
                     }
-                    boolean matches = Utils.matches(PKG_REGEX, homePane.getAppPackageText().trim());
-                    if (!matches) {
-                        showWarningDialog("包名格式不正确！");
-                        return;
-                    }
-                    if (Utils.isEmpty(homePane.getAppNameText().trim())) {
-                        showWarningDialog("应用名不能为空！");
-                        return;
-                    }
-                    YJConfig config = new YJConfig();
-                    config.appName = homePane.getAppNameText().trim();
-                    config.packageName = homePane.getAppPackageText().trim();
-                    refreshView(config);
-                    packageClickListener.onClickPackage(config);
+                    packageClickListener.onClickPackage(homePane.getJarText());
                 }
                 return;
             }
@@ -219,7 +203,7 @@ public class MainFrame extends JFrame implements ComponentListener, PropertyChan
     }
 
     public interface OnPackageClickListener {
-        void onClickPackage(YJConfig config);
+        void onClickPackage(String path);
     }
 
 }

@@ -48,7 +48,7 @@ public class DialogView extends BaseView implements IDialogView, ActionListener 
     private Component getApkChooseDialogContentView() {
         JPanel group = new JPanel();
         group.setLayout(null);
-        TitledBorder border = BorderFactory.createTitledBorder("选择apk:");
+        TitledBorder border = BorderFactory.createTitledBorder("请选择:");
         group.setBorder(border);
         group.setPreferredSize(new Dimension(getBodyWidth(), dialogHeight - 2 * padding));
         Dimension borderSize = border.getMinimumSize(parent);

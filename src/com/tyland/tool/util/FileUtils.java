@@ -31,12 +31,28 @@ public class FileUtils {
      * @return
      */
     public static String createFileDir(String fileDir) {
-        File file = new File(fileDir);
-        if (!file.exists()) {
-            file.mkdirs();
-            Log.dln("create dir:" + fileDir);
+        return createFileDir(new File(fileDir));
+    }
+
+    /**
+     * 创建文件存储并返回相应路径
+     *
+     * @param fileDir
+     * @return
+     */
+    public static String createFileDir(File fileDir) {
+        File file = null;
+        try {
+            file = new File(fileDir.getCanonicalPath());
+            if (!file.exists()) {
+                file.mkdirs();
+                Log.dln("create dir:" + fileDir);
+            }
+            return file.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return fileDir;
+        return fileDir.getAbsolutePath();
     }
 
     public static void copyFile(File source, File dest) {

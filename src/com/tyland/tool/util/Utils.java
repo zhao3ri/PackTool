@@ -1,8 +1,5 @@
 package com.tyland.tool.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tyland.common.Log;
 
 import java.io.*;
@@ -115,30 +112,6 @@ public class Utils {
             return true;
         }
         return false;
-    }
-
-    public static <T> T json2Obj(String json, Class<T> cls) {
-        if (isEmpty(json)){
-            return null;
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        try {
-            return objectMapper.readValue(json, cls);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static String obj2Json(Object obj) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }
